@@ -3,6 +3,8 @@ import { Route } from 'react-router-dom';
 
 // Import owner components
 import OwnerHomestayList from '../pages/owner/HomestayList';
+import ServiceList from '../pages/owner/ServiceList';
+import CustomerList from '../pages/owner/CustomerList';
 // import OwnerAddHomestay from '../pages/owner/AddHomestay';
 // import OwnerHomestayDashboard from '../pages/owner/HomestayDashboard';
 // import OwnerHomestayInfo from '../pages/owner/HomestayInfo';
@@ -35,7 +37,7 @@ export const ownerRoutes = [
   },
   {
     path: "/owner/homestays/:id/services",
-    element: null, // <OwnerServices />
+    element: <ServiceList />
   },
   {
     path: "/owner/homestays/:id/bookings",
@@ -43,7 +45,7 @@ export const ownerRoutes = [
   },
   {
     path: "/owner/homestays/:id/customers",
-    element: null, // <OwnerCustomers />
+    element: <CustomerList />
   },
   {
     path: "/owner/homestays/:id/vouchers",
