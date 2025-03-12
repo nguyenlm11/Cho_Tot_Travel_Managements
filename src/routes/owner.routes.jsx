@@ -1,18 +1,11 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
-
-// Import owner components
 import OwnerHomestayList from '../pages/owner/HomestayList';
 import ServiceList from '../pages/owner/ServiceList';
 import CustomerList from '../pages/owner/CustomerList';
-// import OwnerAddHomestay from '../pages/owner/AddHomestay';
-// import OwnerHomestayDashboard from '../pages/owner/HomestayDashboard';
-// import OwnerHomestayInfo from '../pages/owner/HomestayInfo';
-// import OwnerRoomTypes from '../pages/owner/RoomTypes';
-// import OwnerServices from '../pages/owner/Services';
-// import OwnerBookings from '../pages/owner/Bookings';
-// import OwnerCustomers from '../pages/owner/Customers';
-// import OwnerVouchers from '../pages/owner/Vouchers';
+import HomestayDetail from '../pages/owner/HomestayDetail';
+import RoomTypeList from '../pages/owner/RoomTypeList';
+
 
 export const ownerRoutes = [
   {
@@ -29,11 +22,11 @@ export const ownerRoutes = [
   },
   {
     path: "/owner/homestays/:id/info",
-    element: null, // <OwnerHomestayInfo />
+    element: <HomestayDetail />
   },
   {
     path: "/owner/homestays/:id/room-types",
-    element: null, // <OwnerRoomTypes />
+    element: <RoomTypeList />
   },
   {
     path: "/owner/homestays/:id/services",
