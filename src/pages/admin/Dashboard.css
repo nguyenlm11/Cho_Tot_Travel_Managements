@@ -1,0 +1,66 @@
+.admin-dashboard-container {
+    padding: 24px;
+    background-color: #f0f2f5;
+    min-height: 100vh;
+}
+
+.stats-row {
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.total {
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+    color: white;
+}
+
+.stat-card.active {
+    background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+    color: white;
+}
+
+.stat-card.inactive {
+    background: linear-gradient(135deg, #faad14 0%, #d48806 100%);
+    color: white;
+}
+
+.stat-card.revenue {
+    background: linear-gradient(135deg, #30B53E 0%, #237A2E 100%);
+    color: white;
+}
+
+.stat-card .ant-statistic-title {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.stat-card .ant-statistic-content {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.stat-card .anticon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.ant-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-typography {
+    color: #1f1f1f;
+}
