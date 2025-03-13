@@ -6,6 +6,7 @@ import CustomerList from '../pages/owner/CustomerList';
 import HomestayDetail from '../pages/owner/HomestayDetail';
 import RoomTypeList from '../pages/owner/RoomTypeList';
 import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
+import RatingList from '../pages/owner/RatingList';
 
 
 export const ownerRoutes = [
@@ -48,6 +49,10 @@ export const ownerRoutes = [
   {
     path: "/owner/homestays/:id/vouchers",
     element: null, // <OwnerVouchers />
+  },
+  {
+    path: "/owner/homestays/:id/ratings",
+    element: <RatingList />
   },
 ];
 
