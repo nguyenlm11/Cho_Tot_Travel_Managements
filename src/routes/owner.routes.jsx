@@ -5,6 +5,7 @@ import ServiceList from '../pages/owner/ServiceList';
 import CustomerList from '../pages/owner/CustomerList';
 import HomestayDetail from '../pages/owner/HomestayDetail';
 import RoomTypeList from '../pages/owner/RoomTypeList';
+import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
 
 
 export const ownerRoutes = [
@@ -27,6 +28,10 @@ export const ownerRoutes = [
   {
     path: "/owner/homestays/:id/room-types",
     element: <RoomTypeList />
+  },
+  {
+    path: '/owner/homestays/:id/room-types/:roomTypeId',
+    element: <RoomTypeDetail />
   },
   {
     path: "/owner/homestays/:id/services",

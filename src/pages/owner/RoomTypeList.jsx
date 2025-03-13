@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaBed, FaUsers, FaEdit, FaTrash, FaEye, FaPlus, FaFilter, FaCheckCircle, FaTimesCircle, FaChevronLeft, FaChevronRight, } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import { useNavigate, useParams } from 'react-router-dom';
 
 function useDebounce(value, delay) {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -17,6 +18,24 @@ function useDebounce(value, delay) {
     return [debouncedValue];
 }
 
+const cardVariants = {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: {
+        opacity: 1,
+        scale: 1,
+        transition: {
+            type: "spring",
+            stiffness: 100,
+            damping: 15
+        }
+    },
+    hover: {
+        y: -5,
+        scale: 1.02,
+        transition: { type: "spring", stiffness: 400, damping: 10 }
+    }
+};
+
 const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
     const statusConfig = {
         active: {
@@ -30,122 +49,108 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
     };
 
     const status = statusConfig[roomType.status];
+    const [isHovered, setIsHovered] = useState(false);
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100 }}
-            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg 
-                hover:shadow-xl transition-all duration-300 group"
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover="hover"
+            onHoverStart={() => setIsHovered(true)}
+            onHoverEnd={() => setIsHovered(false)}
+            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
+                border border-gray-100 dark:border-gray-700 group relative
+                transition-all duration-300 hover:shadow-xl hover:shadow-primary/10"
         >
-            {/* Room Image with Hover Overlay */}
-            <div className="relative h-48 overflow-hidden">
-                <img
-                    src={roomType.image}
-                    alt={roomType.name}
-                    className="w-full h-full object-cover transform group-hover:scale-110 
-                        transition-transform duration-500"
-                />
-                {/* Status Badge */}
-                <div className={`absolute top-4 right-4 px-3 py-1 rounded-full 
-                    ${status.color} text-white text-sm font-medium flex items-center gap-2`}>
-                    {status.icon}
-                    {status.text}
-                </div>
-                {/* Quick Actions Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent 
-                    opacity-0 group-hover:opacity-100 transition-opacity duration-300 
-                    flex items-center justify-center gap-4">
-                    <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => onView(roomType)}
-                        className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 
-                            transition-colors backdrop-blur-sm"
-                        title="Xem chi tiết"
-                    >
-                        <FaEye className="w-5 h-5" />
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => onEdit(roomType)}
-                        className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 
-                            transition-colors backdrop-blur-sm"
-                        title="Chỉnh sửa"
-                    >
-                        <FaEdit className="w-5 h-5" />
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => onDelete(roomType)}
-                        className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 
-                            transition-colors backdrop-blur-sm"
-                        title="Xóa"
-                    >
-                        <FaTrash className="w-5 h-5" />
-                    </motion.button>
+            <div className="flex flex-col">
+                {/* Image Container */}
+                <div className="relative h-48 overflow-hidden">
+                    <img
+                        src={roomType.image}
+                        alt={roomType.name}
+                        className="w-full h-full object-cover transform group-hover:scale-110 
+                            transition-transform duration-500"
+                    />
+                    {/* Quick Actions Overlay */}
+                    <AnimatePresence>
+                        {isHovered && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3"
+                            >
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => onView(roomType)}
+                                    className="p-2 bg-white/90 rounded-full hover:bg-white
+                                        transform hover:scale-110 transition-all duration-200"
+                                >
+                                    <FaEye className="w-5 h-5 text-primary" />
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => onEdit(roomType)}
+                                    className="p-2 bg-white/90 rounded-full hover:bg-white
+                                        transform hover:scale-110 transition-all duration-200"
+                                >
+                                    <FaEdit className="w-5 h-5 text-primary" />
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => onDelete(roomType)}
+                                    className="p-2 bg-white/90 rounded-full hover:bg-white
+                                        transform hover:scale-110 transition-all duration-200"
+                                >
+                                    <FaTrash className="w-5 h-5 text-red-500" />
+                                </motion.button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
-                <div className="absolute bottom-4 left-4 text-white">
-                    <h3 className="text-xl font-bold mb-1 drop-shadow-lg">
+                {/* Content */}
+                <div className="p-6">
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2
+                        group-hover:text-primary transition-colors duration-200">
                         {roomType.name}
-                    </h3>
-                    <p className="text-sm opacity-90 flex items-center gap-2">
-                        <span className="bg-white/20 px-2 py-1 rounded-lg backdrop-blur-sm">
-                            {roomType.size}
-                        </span>
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        {roomType.description}
                     </p>
-                </div>
-            </div>
 
-            {/* Room Details */}
-            <div className="p-6">
-                <div className="flex items-center gap-6 mb-4">
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center 
-                            justify-center text-primary">
-                            <FaUsers className="w-4 h-4" />
+                    {/* Room Details */}
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                                <FaUsers className="text-primary" />
+                                <span>{roomType.capacity} người</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                                <FaBed className="text-primary" />
+                                <span>{roomType.bedType}</span>
+                            </div>
                         </div>
-                        <span>{roomType.capacity} người</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center 
-                            justify-center text-primary">
-                            <FaBed className="w-4 h-4" />
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {new Date(roomType.lastUpdated).toLocaleDateString('vi-VN')}
                         </div>
-                        <span>{roomType.bedType}</span>
                     </div>
-                </div>
 
-                <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 h-12">
-                    {roomType.description}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                    {roomType.amenities.map((amenity, index) => (
-                        <span
-                            key={index}
-                            className="px-3 py-1 bg-gray-100 dark:bg-gray-700 
-                                text-gray-600 dark:text-gray-300 rounded-full text-sm
-                                hover:bg-primary/10 hover:text-primary transition-colors"
+                    {/* Bottom edit button */}
+                    <div className="flex">
+                        <button
+                            onClick={() => onEdit(roomType)}
+                            className="w-full bg-primary/10 dark:bg-primary/20 text-primary font-semibold
+                                py-2.5 rounded-lg hover:bg-primary hover:text-white
+                                transition-all duration-300 text-center"
                         >
-                            {amenity}
-                        </span>
-                    ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t 
-                    border-gray-100 dark:border-gray-700">
-                    <p className="text-xl font-bold text-gray-800 dark:text-white">
-                        {roomType.price.toLocaleString()}đ
-                        <span className="text-sm text-gray-500 dark:text-gray-400">/đêm</span>
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Cập nhật: {new Date(roomType.lastUpdated).toLocaleDateString('vi-VN')}
-                    </p>
+                            Chỉnh sửa
+                        </button>
+                    </div>
                 </div>
             </div>
         </motion.div>
@@ -153,11 +158,13 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
 };
 
 const RoomTypeList = () => {
+    const { id: selectedHomestay } = useParams();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const itemsPerPage = 6;
+    const navigate = useNavigate();
 
     // Updated mock data
     const [roomTypes] = useState([
@@ -228,14 +235,8 @@ const RoomTypeList = () => {
         }
     };
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-        setCurrentPage(1);
-    };
-
     const handleViewRoomType = (roomType) => {
-        // Handle view action
-        console.log('View room type:', roomType);
+        navigate(`/owner/homestays/${selectedHomestay}/room-types/${roomType.id}`);
     };
 
     const handleEditRoomType = (roomType) => {
@@ -271,7 +272,7 @@ const RoomTypeList = () => {
                     {/* Search Input */}
                     <div className="flex-1 relative group">
                         <div className="absolute inset-y-0 left-3 flex items-center">
-                            <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
+                            <FaSearch className="text-gray-400 dark:text-gray-500" />
                         </div>
                         <input
                             ref={searchInputRef}
@@ -451,12 +452,26 @@ const RoomTypeList = () => {
         setCurrentPage(1);
     }, [searchTerm, selectedStatus]);
 
+    const pageVariants = {
+        initial: { opacity: 0, y: 20 },
+        animate: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: 0.4,
+                when: "beforeChildren",
+                staggerChildren: 0.1
+            }
+        },
+        exit: { opacity: 0, y: -20 }
+    };
+
     return (
         <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
             className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
             <div className="container">
@@ -470,8 +485,7 @@ const RoomTypeList = () => {
                         <div>
                             <h1 className="text-4xl font-bold bg-clip-text text-transparent 
                                 bg-gradient-to-r from-primary via-primary-dark to-primary 
-                                tracking-tight mb-2"
-                            >
+                                tracking-tight mb-2 dark:text-white">
                                 Quản lý loại phòng
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
@@ -489,7 +503,7 @@ const RoomTypeList = () => {
                                 font-semibold px-6 py-3 rounded-xl flex items-center gap-2 
                                 shadow-lg hover:shadow-primary/20 transition-all duration-300"
                         >
-                            <FaPlus className="w-5 h-5" />
+                            <FaPlus className="text-white" />
                             Thêm loại phòng mới
                         </motion.button>
                     </div>
@@ -526,8 +540,7 @@ const RoomTypeList = () => {
                                 key={stat.label}
                                 variants={itemVariants}
                                 className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
-                                    rounded-xl shadow-lg transform transition-all duration-300 
-                                    hover:scale-105 hover:shadow-xl overflow-hidden`}
+                                    rounded-xl shadow-lg dark:shadow-gray-900/30`}
                             >
                                 <div className="p-6">
                                     <div className="flex items-center gap-4">
@@ -563,6 +576,8 @@ const RoomTypeList = () => {
                 {/* Room Type Grid */}
                 <motion.div
                     variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
                 >
                     {paginatedRoomTypes.map((roomType, index) => (
@@ -607,7 +622,7 @@ const RoomTypeList = () => {
                                         font-semibold rounded-xl hover:bg-primary-dark transition-all 
                                         duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
                                 >
-                                    <FaPlus className="w-5 h-5 mr-2" />
+                                    <FaPlus className="text-white" />
                                     Thêm loại phòng
                                 </button>
                             )}
@@ -624,8 +639,6 @@ const RoomTypeList = () => {
                     <Pagination />
                 </motion.div>
             </div>
-
-            {/* Add DeleteConfirmationModal and Notification components here */}
         </motion.div>
     );
 };

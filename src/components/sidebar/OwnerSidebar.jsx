@@ -67,7 +67,10 @@ const OwnerSidebar = ({ selectedHomestay }) => {
     }
   ];
 
-  const menuItems = selectedHomestay ? homestayMenuItems : defaultMenuItems;
+  // Check if the current path is for managing a specific homestay
+  const isManagingHomestay = location.pathname.match(/^\/owner\/homestays\/[^/]+\/(dashboard|info|room-types|services|bookings|customers|vouchers|ratings)/) && !location.pathname.includes('/add');
+
+  const menuItems = isManagingHomestay ? homestayMenuItems : defaultMenuItems;
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -79,7 +82,7 @@ const OwnerSidebar = ({ selectedHomestay }) => {
         <div className="flex items-center gap-3 mb-8 px-2">
           <FaHome className="text-3xl text-white dark:text-primary" />
           <h2 className="font-bold text-xl text-white dark:text-primary">
-            {selectedHomestay ? 'Quản lý nhà nghỉ' : 'Owner Panel'}
+            {isManagingHomestay ? 'Quản lý nhà nghỉ' : 'Owner Panel'}
           </h2>
         </div>
 
