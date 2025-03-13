@@ -1,8 +1,8 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 
-// Import admin components (commented for now)
-// import AdminDashboard from '../pages/admin/Dashboard';
+// Import admin components
+import AdminDashboard from '../pages/admin/Dashboard';
 // import AdminCustomers from '../pages/admin/Customers';
 // import AdminOwners from '../pages/admin/Owners';
 // import AdminHomestays from '../pages/admin/Homestays';
@@ -12,7 +12,7 @@ import { Route } from 'react-router-dom';
 export const adminRoutes = [
   {
     path: "/admin/dashboard",
-    element: null, // <AdminDashboard />
+    element: <AdminDashboard />
   },
   {
     path: "/admin/users/customers",
