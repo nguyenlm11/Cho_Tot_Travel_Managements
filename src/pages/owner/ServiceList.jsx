@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaFilter, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaTag, FaDollarSign, FaClock, FaCheckCircle, FaExclamationCircle, FaTimes, FaImage, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaFilter, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaTag, FaDollarSign, FaClock, FaCheckCircle, FaExclamationCircle, FaTimes, FaImage, FaToggleOn, FaToggleOff, FaEye, FaMoneyBillWave, FaRegClock } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import ServiceModal from '../../components/modals/ServiceModal';
 
@@ -21,17 +21,29 @@ function useDebounce(value, delay) {
 }
 
 const pageVariants = {
+    initial: { opacity: 0 },
+    animate: {
+        opacity: 1,
+        transition: {
+            duration: 0.3,
+            when: "beforeChildren",
+            staggerChildren: 0.1
+        }
+    },
+    exit: { opacity: 0 }
+};
+
+const itemVariants = {
     initial: { opacity: 0, y: 20 },
     animate: {
         opacity: 1,
         y: 0,
         transition: {
-            duration: 0.4,
-            when: "beforeChildren",
-            staggerChildren: 0.1
+            type: "spring",
+            stiffness: 100,
+            damping: 15
         }
-    },
-    exit: { opacity: 0, y: -20 }
+    }
 };
 
 const cardVariants = {
@@ -52,6 +64,13 @@ const cardVariants = {
     }
 };
 
+const overlayVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: 0.2 }
+};
+
 const ServiceList = () => {
     // States for search, filter, and pagination
     const [searchTerm, setSearchTerm] = useState('');
@@ -66,7 +85,7 @@ const ServiceList = () => {
         {
             id: 1,
             name: "Dịch vụ giặt ủi",
-            description: "Giặt ủi quần áo theo yêu cầu",
+            description: "Dịch vụ giặt ủi với công nghệ hiện đại",
             price: 50000,
             status: "active",
             duration: "2 giờ",
@@ -76,8 +95,8 @@ const ServiceList = () => {
         {
             id: 2,
             name: "Dịch vụ spa",
-            description: "Massage và chăm sóc da",
-            price: 300000,
+            description: "Dịch vụ spa cao cấp với các liệu pháp thư giãn",
+            price: 500000,
             status: "inactive",
             duration: "1 giờ",
             image: "https://img1.kienthucvui.vn/uploads/2021/01/13/anh-cham-soc-da-mat-tai-spa_022204667.jpg",
@@ -144,7 +163,7 @@ const ServiceList = () => {
 
         const statusOptions = [
             { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
-            { value: 'active', label: 'Hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+            { value: 'active', label: 'Đang hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
             { value: 'inactive', label: 'Tạm ngưng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
         ];
 
@@ -168,7 +187,7 @@ const ServiceList = () => {
                         <input
                             ref={searchInputRef}
                             type="text"
-                            placeholder="Tìm kiếm theo tên hoặc mô tả..."
+                            placeholder="Tìm kiếm theo tên dịch vụ..."
                             value={searchTerm}
                             onChange={handleSearchChange}
                             autoFocus
@@ -257,15 +276,15 @@ const ServiceList = () => {
     };
 
     // ServiceCard component
-    const ServiceCard = ({ service, index }) => {
+    const ServiceCard = ({ service, onEdit, onDelete }) => {
         const [isHovered, setIsHovered] = useState(false);
 
         return (
             <motion.div
                 variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ delay: index * 0.1 }}
+                initial="initial"
+                animate="animate"
+                whileHover="hover"
                 onHoverStart={() => setIsHovered(true)}
                 onHoverEnd={() => setIsHovered(false)}
                 className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
@@ -278,10 +297,8 @@ const ServiceList = () => {
                         <img
                             src={service.image}
                             alt={service.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/400x200?text=No+Image';
-                            }}
+                            className="w-full h-full object-cover transform group-hover:scale-110 
+                              transition-transform duration-500"
                         />
                         <div className="absolute top-4 right-4">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium
@@ -295,25 +312,30 @@ const ServiceList = () => {
                         <AnimatePresence>
                             {isHovered && (
                                 <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
+                                    variants={overlayVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
                                     className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3"
                                 >
-                                    <button
-                                        onClick={() => handleEditService(service)}
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => onEdit(service)}
                                         className="p-2 bg-white/90 rounded-full hover:bg-white
                                             transform hover:scale-110 transition-all duration-200"
                                     >
                                         <FaEdit className="w-5 h-5 text-primary" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteClick(service)}
+                                    </motion.button>
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => onDelete(service)}
                                         className="p-2 bg-white/90 rounded-full hover:bg-white
                                             transform hover:scale-110 transition-all duration-200"
                                     >
                                         <FaTrash className="w-5 h-5 text-red-500" />
-                                    </button>
+                                    </motion.button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -351,7 +373,7 @@ const ServiceList = () => {
                         {/* Bottom edit button */}
                         <div className="flex">
                             <button
-                                onClick={() => handleEditService(service)}
+                                onClick={() => onEdit(service)}
                                 className="w-full bg-primary/10 dark:bg-primary/20 text-primary font-semibold
                                     py-2.5 rounded-lg hover:bg-primary hover:text-white
                                     transition-all duration-300 text-center"
@@ -615,6 +637,13 @@ const ServiceList = () => {
         }
     };
 
+    // Thêm hàm handleViewService vào cùng vị trí với các hàm xử lý khác trong ServiceList component
+    const handleViewService = (service) => {
+        // Tạm thời chỉ log thông tin service, sau này có thể thêm logic để xem chi tiết
+        console.log('View service:', service);
+        // Có thể thêm logic để mở modal xem chi tiết
+    };
+
     return (
         <motion.div
             variants={pageVariants}
@@ -723,11 +752,26 @@ const ServiceList = () => {
 
                 {/* Service Grid with improved layout */}
                 <motion.div
-                    variants={cardVariants}
+                    variants={{
+                        initial: { opacity: 0 },
+                        animate: {
+                            opacity: 1,
+                            transition: {
+                                staggerChildren: 0.1
+                            }
+                        }
+                    }}
+                    initial="initial"
+                    animate="animate"
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
                 >
-                    {paginatedServices.map((service, index) => (
-                        <ServiceCard key={service.id} service={service} index={index} />
+                    {paginatedServices.map((service) => (
+                        <ServiceCard
+                            key={service.id}
+                            service={service}
+                            onEdit={handleEditService}
+                            onDelete={handleDeleteClick}
+                        />
                     ))}
                 </motion.div>
 

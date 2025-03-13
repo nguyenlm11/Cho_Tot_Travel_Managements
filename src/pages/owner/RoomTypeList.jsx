@@ -36,6 +36,13 @@ const cardVariants = {
     }
 };
 
+const overlayVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: 0.2 }
+};
+
 const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
     const statusConfig = {
         active: {
@@ -54,8 +61,8 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
     return (
         <motion.div
             variants={cardVariants}
-            initial="hidden"
-            animate="visible"
+            initial="initial"
+            animate="animate"
             whileHover="hover"
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
@@ -72,13 +79,22 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
                         className="w-full h-full object-cover transform group-hover:scale-110 
                             transition-transform duration-500"
                     />
+                    <div className="absolute top-4 right-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium
+                            ${statusConfig[roomType.status]?.color || 'bg-gray-100 dark:bg-gray-700'} 
+                            shadow-lg`}>
+                            {statusConfig[roomType.status]?.text || 'Không xác định'}
+                        </span>
+                    </div>
+
                     {/* Quick Actions Overlay */}
                     <AnimatePresence>
                         {isHovered && (
                             <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+                                variants={overlayVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
                                 className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3"
                             >
                                 <motion.button
