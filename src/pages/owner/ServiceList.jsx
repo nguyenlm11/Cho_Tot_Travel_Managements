@@ -52,23 +52,6 @@ const cardVariants = {
     }
 };
 
-const StatusSwitch = ({ isActive, onToggle }) => {
-    return (
-        <motion.button
-            onClick={onToggle}
-            whileTap={{ scale: 0.95 }}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 
-                ${isActive ? 'bg-green-500' : 'bg-gray-400'}`}
-        >
-            <motion.span
-                layout
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300
-                    ${isActive ? 'translate-x-6' : 'translate-x-1'}`}
-            />
-        </motion.button>
-    );
-};
-
 const ServiceList = () => {
     // States for search, filter, and pagination
     const [searchTerm, setSearchTerm] = useState('');
@@ -188,7 +171,6 @@ const ServiceList = () => {
                             placeholder="Tìm kiếm theo tên hoặc mô tả..."
                             value={searchTerm}
                             onChange={handleSearchChange}
-                            autoComplete="off"
                             autoFocus
                             className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
                 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
@@ -691,14 +673,6 @@ const ServiceList = () => {
                                 gradient: 'from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700',
                                 iconBg: 'bg-emerald-400/20',
                                 hoverGradient: 'hover:from-emerald-600 hover:to-emerald-700'
-                            },
-                            {
-                                label: 'Chờ duyệt',
-                                value: services.filter(s => s.status === 'pending').length,
-                                icon: <FaTag className="w-6 h-6" />,
-                                gradient: 'from-amber-500 to-amber-600 dark:from-amber-600 dark:to-amber-700',
-                                iconBg: 'bg-amber-400/20',
-                                hoverGradient: 'hover:from-amber-600 hover:to-amber-700'
                             },
                             {
                                 label: 'Không hoạt động',
