@@ -3,6 +3,7 @@ import { Route } from 'react-router-dom';
 
 // Import admin components
 import AdminDashboard from '../pages/admin/Dashboard';
+import CustomerManagement from '../pages/admin/CustomerManagement';
 // import AdminCustomers from '../pages/admin/Customers';
 // import AdminOwners from '../pages/admin/Owners';
 // import AdminHomestays from '../pages/admin/Homestays';
@@ -13,6 +14,10 @@ export const adminRoutes = [
   {
     path: "/admin/dashboard",
     element: <AdminDashboard />
+  },
+  {
+    path: "/admin/users/customers",
+    element: <CustomerManagement />
   },
   {
     path: "/admin/users/customers",
