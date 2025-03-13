@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaBed, FaUsers, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaBed, FaUsers, FaEdit, FaTrash, FaEye, FaPlus, FaFilter, FaCheckCircle, FaTimesCircle, FaChevronLeft, FaChevronRight, } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 
 function useDebounce(value, delay) {
@@ -17,46 +17,188 @@ function useDebounce(value, delay) {
     return [debouncedValue];
 }
 
+const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
+    const statusConfig = {
+        active: {
+            color: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100',
+            text: 'Hoạt động',
+        },
+        inactive: {
+            color: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100',
+            text: 'Tạm ngưng',
+        }
+    };
+
+    const status = statusConfig[roomType.status];
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 100 }}
+            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg 
+                hover:shadow-xl transition-all duration-300 group"
+        >
+            {/* Room Image with Hover Overlay */}
+            <div className="relative h-48 overflow-hidden">
+                <img
+                    src={roomType.image}
+                    alt={roomType.name}
+                    className="w-full h-full object-cover transform group-hover:scale-110 
+                        transition-transform duration-500"
+                />
+                {/* Status Badge */}
+                <div className={`absolute top-4 right-4 px-3 py-1 rounded-full 
+                    ${status.color} text-white text-sm font-medium flex items-center gap-2`}>
+                    {status.icon}
+                    {status.text}
+                </div>
+                {/* Quick Actions Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent 
+                    opacity-0 group-hover:opacity-100 transition-opacity duration-300 
+                    flex items-center justify-center gap-4">
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => onView(roomType)}
+                        className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 
+                            transition-colors backdrop-blur-sm"
+                        title="Xem chi tiết"
+                    >
+                        <FaEye className="w-5 h-5" />
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => onEdit(roomType)}
+                        className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 
+                            transition-colors backdrop-blur-sm"
+                        title="Chỉnh sửa"
+                    >
+                        <FaEdit className="w-5 h-5" />
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => onDelete(roomType)}
+                        className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 
+                            transition-colors backdrop-blur-sm"
+                        title="Xóa"
+                    >
+                        <FaTrash className="w-5 h-5" />
+                    </motion.button>
+                </div>
+
+                <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="text-xl font-bold mb-1 drop-shadow-lg">
+                        {roomType.name}
+                    </h3>
+                    <p className="text-sm opacity-90 flex items-center gap-2">
+                        <span className="bg-white/20 px-2 py-1 rounded-lg backdrop-blur-sm">
+                            {roomType.size}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            {/* Room Details */}
+            <div className="p-6">
+                <div className="flex items-center gap-6 mb-4">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center 
+                            justify-center text-primary">
+                            <FaUsers className="w-4 h-4" />
+                        </div>
+                        <span>{roomType.capacity} người</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center 
+                            justify-center text-primary">
+                            <FaBed className="w-4 h-4" />
+                        </div>
+                        <span>{roomType.bedType}</span>
+                    </div>
+                </div>
+
+                <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 h-12">
+                    {roomType.description}
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {roomType.amenities.map((amenity, index) => (
+                        <span
+                            key={index}
+                            className="px-3 py-1 bg-gray-100 dark:bg-gray-700 
+                                text-gray-600 dark:text-gray-300 rounded-full text-sm
+                                hover:bg-primary/10 hover:text-primary transition-colors"
+                        >
+                            {amenity}
+                        </span>
+                    ))}
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t 
+                    border-gray-100 dark:border-gray-700">
+                    <p className="text-xl font-bold text-gray-800 dark:text-white">
+                        {roomType.price.toLocaleString()}đ
+                        <span className="text-sm text-gray-500 dark:text-gray-400">/đêm</span>
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Cập nhật: {new Date(roomType.lastUpdated).toLocaleDateString('vi-VN')}
+                    </p>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
 const RoomTypeList = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const itemsPerPage = 6;
 
-    // Mock data - replace with API call later
+    // Updated mock data
     const [roomTypes] = useState([
         {
             id: 1,
             name: "Phòng Deluxe Hướng Biển",
-            description: "Phòng sang trọng với view biển tuyệt đẹp",
+            description: "Phòng sang trọng với view biển tuyệt đẹp, thiết kế hiện đại và đầy đủ tiện nghi cao cấp",
             capacity: 2,
             bedType: "1 giường đôi lớn",
             size: "35m²",
             price: 2500000,
-            amenities: ["TV", "Minibar", "Ban công", "Máy lạnh", "Wifi"],
-            image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a"
+            status: 'active',
+            amenities: ["Smart TV", "Minibar", "Ban công riêng", "Máy lạnh", "Wifi tốc độ cao"],
+            image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a",
+            lastUpdated: "2024-03-15"
         },
         {
             id: 2,
             name: "Phòng Suite Gia Đình",
-            description: "Phòng rộng rãi phù hợp cho gia đình",
+            description: "Phòng rộng rãi phù hợp cho gia đình, có khu vực sinh hoạt chung và bếp mini",
             capacity: 4,
             bedType: "2 giường đôi",
             size: "45m²",
             price: 3500000,
-            amenities: ["TV", "Minibar", "Bồn tắm", "Máy lạnh", "Wifi"],
-            image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a"
+            status: 'inactive',
+            amenities: ["Smart TV", "Bếp mini", "Bồn tắm", "Máy lạnh", "Wifi tốc độ cao"],
+            image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a",
+            lastUpdated: "2024-03-14"
         }
     ]);
 
     const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
 
     const filteredRoomTypes = useMemo(() => {
-        return roomTypes.filter(room =>
-            room.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-            room.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-        );
-    }, [roomTypes, debouncedSearchTerm]);
+        return roomTypes.filter(room => {
+            const matchesSearch = room.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+                room.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+            const matchesStatus = selectedStatus === 'all' || room.status === selectedStatus;
+            return matchesSearch && matchesStatus;
+        });
+    }, [roomTypes, debouncedSearchTerm, selectedStatus]);
 
     const totalPages = Math.ceil(filteredRoomTypes.length / itemsPerPage);
     const paginatedRoomTypes = filteredRoomTypes.slice(
@@ -91,190 +233,399 @@ const RoomTypeList = () => {
         setCurrentPage(1);
     };
 
+    const handleViewRoomType = (roomType) => {
+        // Handle view action
+        console.log('View room type:', roomType);
+    };
+
+    const handleEditRoomType = (roomType) => {
+        // Handle edit action
+        console.log('Edit room type:', roomType);
+    };
+
+    const handleDeleteRoomType = (roomType) => {
+        // Handle delete action
+        console.log('Delete room type:', roomType);
+    };
+
+    // Add these new state variables
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedRoomType, setSelectedRoomType] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [roomTypeToDelete, setRoomTypeToDelete] = useState(null);
+    const [notification, setNotification] = useState(null);
+
+    // FilterBar component
+    const FilterBar = () => {
+        const searchInputRef = useRef(null);
+
+        const statusOptions = [
+            { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
+            { value: 'active', label: 'Hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+            { value: 'inactive', label: 'Tạm ngưng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
+        ];
+
+        return (
+            <div className="mb-8 space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                    {/* Search Input */}
+                    <div className="flex-1 relative group">
+                        <div className="absolute inset-y-0 left-3 flex items-center">
+                            <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
+                        </div>
+                        <input
+                            ref={searchInputRef}
+                            type="text"
+                            placeholder="Tìm kiếm theo tên hoặc mô tả..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            autoFocus
+                            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
+                                dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                                dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                                focus:border-primary transition-all duration-200
+                                hover:border-primary/50 hover:shadow-md"
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="absolute inset-y-0 right-3 flex items-center text-gray-400 
+                                    hover:text-gray-600 dark:hover:text-gray-300"
+                            >
+                                <IoClose className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="relative min-w-[220px]">
+                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                            <FaFilter className="text-gray-400" />
+                        </div>
+                        <select
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
+                                dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                                dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                                focus:border-primary transition-all duration-200
+                                hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
+                        >
+                            {statusOptions.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Active Filters */}
+                {(searchTerm || selectedStatus !== 'all') && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-wrap gap-2"
+                    >
+                        {searchTerm && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
+                                bg-primary/10 text-primary text-sm">
+                                <FaSearch className="w-3 h-3" />
+                                {searchTerm}
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="hover:bg-primary/20 rounded-full p-1"
+                                >
+                                    <IoClose className="w-3 h-3" />
+                                </button>
+                            </span>
+                        )}
+                        {selectedStatus !== 'all' && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
+                                bg-primary/10 text-primary text-sm">
+                                {statusOptions.find(opt => opt.value === selectedStatus)?.icon}
+                                {statusOptions.find(opt => opt.value === selectedStatus)?.label}
+                                <button
+                                    onClick={() => setSelectedStatus('all')}
+                                    className="hover:bg-primary/20 rounded-full p-1"
+                                >
+                                    <IoClose className="w-3 h-3" />
+                                </button>
+                            </span>
+                        )}
+                    </motion.div>
+                )}
+            </div>
+        );
+    };
+
+    // Pagination component
+    const Pagination = () => {
+        if (totalPages <= 1) return null;
+
+        const pageNumbers = [];
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pageNumbers.push(i);
+        }
+
+        return (
+            <div className="flex justify-center items-center gap-2 mt-8">
+                <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={`p-2 rounded-lg ${currentPage === 1
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                >
+                    <FaChevronLeft className="w-5 h-5" />
+                </button>
+
+                {startPage > 1 && (
+                    <>
+                        <button
+                            onClick={() => setCurrentPage(1)}
+                            className={`w-10 h-10 rounded-lg ${1 === currentPage
+                                ? 'bg-primary text-white'
+                                : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                        >
+                            1
+                        </button>
+                        {startPage > 2 && <span className="text-gray-400">...</span>}
+                    </>
+                )}
+
+                {pageNumbers.map(number => (
+                    <button
+                        key={number}
+                        onClick={() => setCurrentPage(number)}
+                        className={`w-10 h-10 rounded-lg ${number === currentPage
+                            ? 'bg-primary text-white'
+                            : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                    >
+                        {number}
+                    </button>
+                ))}
+
+                {endPage < totalPages && (
+                    <>
+                        {endPage < totalPages - 1 && <span className="text-gray-400">...</span>}
+                        <button
+                            onClick={() => setCurrentPage(totalPages)}
+                            className={`w-10 h-10 rounded-lg ${totalPages === currentPage
+                                ? 'bg-primary text-white'
+                                : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                        >
+                            {totalPages}
+                        </button>
+                    </>
+                )}
+
+                <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`p-2 rounded-lg ${currentPage === totalPages
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                >
+                    <FaChevronRight className="w-5 h-5" />
+                </button>
+            </div>
+        );
+    };
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedStatus]);
+
     return (
         <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="container mx-auto px-4 py-8"
+            exit="hidden"
+            className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+            <div className="container">
+                {/* Header Section */}
                 <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="mb-4 md:mb-0"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
                 >
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-                        Quản lý loại phòng
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        Quản lý các loại phòng và tiện nghi
-                    </p>
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div>
+                            <h1 className="text-4xl font-bold bg-clip-text text-transparent 
+                                bg-gradient-to-r from-primary via-primary-dark to-primary 
+                                tracking-tight mb-2"
+                            >
+                                Quản lý loại phòng
+                            </h1>
+                            <p className="text-gray-600 dark:text-gray-400">
+                                Quản lý tất cả các loại phòng của nhà nghỉ
+                            </p>
+                        </div>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                                setSelectedRoomType(null);
+                                setIsModalOpen(true);
+                            }}
+                            className="bg-gradient-to-r from-primary to-primary-dark text-white 
+                                font-semibold px-6 py-3 rounded-xl flex items-center gap-2 
+                                shadow-lg hover:shadow-primary/20 transition-all duration-300"
+                        >
+                            <FaPlus className="w-5 h-5" />
+                            Thêm loại phòng mới
+                        </motion.button>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                        {[
+                            {
+                                label: 'Tổng số loại phòng',
+                                value: roomTypes.length,
+                                icon: <FaBed className="w-6 h-6" />,
+                                gradient: 'from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700',
+                                iconBg: 'bg-blue-400/20',
+                                hoverGradient: 'hover:from-blue-600 hover:to-blue-700'
+                            },
+                            {
+                                label: 'Đang hoạt động',
+                                value: roomTypes.filter(r => r.status === 'active').length,
+                                icon: <FaCheckCircle className="w-6 h-6" />,
+                                gradient: 'from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700',
+                                iconBg: 'bg-emerald-400/20',
+                                hoverGradient: 'hover:from-emerald-600 hover:to-emerald-700'
+                            },
+                            {
+                                label: 'Không hoạt động',
+                                value: roomTypes.filter(r => r.status === 'inactive').length,
+                                icon: <FaTimesCircle className="w-6 h-6" />,
+                                gradient: 'from-rose-500 to-rose-600 dark:from-rose-600 dark:to-rose-700',
+                                iconBg: 'bg-rose-400/20',
+                                hoverGradient: 'hover:from-rose-600 hover:to-rose-700'
+                            }
+                        ].map((stat, index) => (
+                            <motion.div
+                                key={stat.label}
+                                variants={itemVariants}
+                                className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
+                                    rounded-xl shadow-lg transform transition-all duration-300 
+                                    hover:scale-105 hover:shadow-xl overflow-hidden`}
+                            >
+                                <div className="p-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-3 rounded-lg ${stat.iconBg}`}>
+                                            <div className="text-white">
+                                                {stat.icon}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-white/80 text-sm font-medium">
+                                                {stat.label}
+                                            </p>
+                                            <h3 className="text-white text-2xl font-bold mt-1">
+                                                {stat.value.toLocaleString()}
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                 </motion.div>
 
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl
-                        hover:bg-primary-dark transition-colors"
+                {/* Enhanced FilterBar */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
                 >
-                    <FaPlus />
-                    <span>Thêm loại phòng</span>
-                </motion.button>
-            </div>
+                    <FilterBar />
+                </motion.div>
 
-            {/* Search Bar */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
-            >
-                <div className="relative">
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm loại phòng..."
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
-                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-                            focus:border-primary transition-all duration-200"
-                    />
-                    {searchTerm && (
-                        <button
-                            onClick={() => setSearchTerm('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 
-                                hover:text-gray-600"
-                        >
-                            <IoClose className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-            </motion.div>
-
-            {/* Room Type Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <AnimatePresence>
+                {/* Room Type Grid */}
+                <motion.div
+                    variants={containerVariants}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                >
                     {paginatedRoomTypes.map((roomType, index) => (
-                        <motion.div
+                        <RoomTypeCard
                             key={roomType.id}
-                            variants={itemVariants}
-                            layout
-                            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg 
-                                hover:shadow-xl transition-shadow duration-300"
-                        >
-                            {/* Room Image */}
-                            <div className="relative h-48 overflow-hidden">
-                                <img
-                                    src={roomType.image}
-                                    alt={roomType.name}
-                                    className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                                <div className="absolute bottom-4 left-4 text-white">
-                                    <p className="text-lg font-semibold">{roomType.name}</p>
-                                    <p className="text-sm opacity-80">{roomType.size}</p>
-                                </div>
-                            </div>
-
-                            {/* Room Details */}
-                            <div className="p-6">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                        <FaUsers className="text-primary" />
-                                        <span>{roomType.capacity} người</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                        <FaBed className="text-primary" />
-                                        <span>{roomType.bedType}</span>
-                                    </div>
-                                </div>
-
-                                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                                    {roomType.description}
-                                </p>
-
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {roomType.amenities.map((amenity, index) => (
-                                        <span
-                                            key={index}
-                                            className="px-3 py-1 bg-gray-100 dark:bg-gray-700 
-                                                text-gray-600 dark:text-gray-300 rounded-full text-sm"
-                                        >
-                                            {amenity}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                    <p className="text-xl font-bold text-gray-800 dark:text-white">
-                                        {roomType.price.toLocaleString()}đ
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">/đêm</span>
-                                    </p>
-                                    <div className="flex gap-2">
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            className="p-2 text-primary hover:bg-primary/10 rounded-lg 
-                                                transition-colors"
-                                        >
-                                            <FaEdit />
-                                        </motion.button>
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 
-                                                rounded-lg transition-colors"
-                                        >
-                                            <FaTrash />
-                                        </motion.button>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
+                            roomType={roomType}
+                            onView={handleViewRoomType}
+                            onEdit={handleEditRoomType}
+                            onDelete={handleDeleteRoomType}
+                        />
                     ))}
-                </AnimatePresence>
-            </div>
+                </motion.div>
 
-            {/* Empty State */}
-            {filteredRoomTypes.length === 0 && (
+                {/* Empty State */}
+                <AnimatePresence>
+                    {filteredRoomTypes.length === 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
+                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
+                        >
+                            <div className="text-gray-400 dark:text-gray-500 mb-4">
+                                <FaBed className="mx-auto w-16 h-16" />
+                            </div>
+                            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                                {roomTypes.length === 0 ? "Chưa có loại phòng nào" : "Không tìm thấy kết quả"}
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400 mb-6">
+                                {roomTypes.length === 0
+                                    ? "Bắt đầu bằng cách thêm loại phòng đầu tiên"
+                                    : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
+                            </p>
+                            {roomTypes.length === 0 && (
+                                <button
+                                    onClick={() => {
+                                        setSelectedRoomType(null);
+                                        setIsModalOpen(true);
+                                    }}
+                                    className="inline-flex items-center px-6 py-3 bg-primary text-white 
+                                        font-semibold rounded-xl hover:bg-primary-dark transition-all 
+                                        duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
+                                >
+                                    <FaPlus className="w-5 h-5 mr-2" />
+                                    Thêm loại phòng
+                                </button>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Pagination */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center py-12"
+                    className="mt-8"
                 >
-                    <FaBed className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-600 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                        Không tìm thấy loại phòng
-                    </h3>
-                    <p className="text-gray-500 dark:text-gray-400">
-                        Thử tìm kiếm với từ khóa khác
-                    </p>
+                    <Pagination />
                 </motion.div>
-            )}
+            </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-8">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                        <motion.button
-                            key={number}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setCurrentPage(number)}
-                            className={`w-10 h-10 rounded-lg ${
-                                number === currentPage
-                                    ? 'bg-primary text-white'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                            }`}
-                        >
-                            {number}
-                        </motion.button>
-                    ))}
-                </div>
-            )}
+            {/* Add DeleteConfirmationModal and Notification components here */}
         </motion.div>
     );
 };

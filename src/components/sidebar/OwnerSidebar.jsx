@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft } from 'react-icons/fa';
+import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft, FaTag, FaStar } from 'react-icons/fa';
 
 const OwnerSidebar = ({ selectedHomestay }) => {
   const location = useLocation();
@@ -37,7 +37,7 @@ const OwnerSidebar = ({ selectedHomestay }) => {
     {
       title: 'Dịch vụ',
       path: `/owner/homestays/${selectedHomestay}/services`,
-      icon: <FaCalendarAlt />
+      icon: <FaTag />
     },
     {
       title: 'Đặt phòng',
@@ -53,6 +53,11 @@ const OwnerSidebar = ({ selectedHomestay }) => {
       title: 'Mã giảm giá',
       path: `/owner/homestays/${selectedHomestay}/vouchers`,
       icon: <FaTicketAlt />
+    },
+    {
+      title: 'Đánh giá',
+      path: `/owner/homestays/${selectedHomestay}/ratings`,
+      icon: <FaStar />
     },
     {
       title: 'Quay lại danh sách',
