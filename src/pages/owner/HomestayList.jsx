@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaMapMarkerAlt, FaStar, FaBed, FaRegClock, FaEdit, FaTrash, FaSearch, FaFilter, FaChevronLeft, FaChevronRight, FaChartLine, FaHome } from 'react-icons/fa';
+import { FaPlus, FaMapMarkerAlt, FaStar, FaRegClock, FaEdit, FaTrash, FaSearch, FaFilter, FaChevronLeft, FaChevronRight, FaChartLine, FaHome, FaBed } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 
 // Animation variants
@@ -19,14 +19,11 @@ const pageVariants = {
 };
 
 const itemVariants = {
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    y: 0,
     transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
+      staggerChildren: 0.1
     }
   }
 };
@@ -59,20 +56,6 @@ const overlayVariants = {
   transition: { duration: 0.2 }
 };
 
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-
-  return [debouncedValue];
-}
-
 const statusConfig = {
   active: {
     color: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100',
@@ -88,7 +71,7 @@ const statusConfig = {
   }
 };
 
-const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus }) => {
+const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
   const searchInputRef = useRef(null);
 
   const statusOptions = [
@@ -104,15 +87,22 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
   const handleSearchClear = () => {
     setSearchTerm('');
+    setActualSearchTerm('');
     searchInputRef.current?.focus();
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   return (
     <div className="mb-8 space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Search Input */}
-        <div className="flex-1 relative group">
-          <div className="absolute inset-y-0 left-3 flex items-center">
+        {/* Search Input - Điều chỉnh lại vị trí các phần tử */}
+        <div className="flex-1 relative group flex">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
           </div>
           <input
@@ -121,26 +111,38 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
             placeholder="Tìm kiếm theo tên hoặc địa chỉ..."
             value={searchTerm}
             onChange={handleSearchChange}
-            autoComplete="off"
-            autoFocus
-            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
+            onKeyDown={handleKeyPress}
+            className="flex-1 pl-10 pr-[140px] py-3 rounded-l-xl border border-gray-200 
               dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
               dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
               focus:border-primary transition-all duration-200
               hover:border-primary/50 hover:shadow-md"
           />
+          {/* Điều chỉnh vị trí nút clear */}
           {searchTerm && (
             <button
               onClick={handleSearchClear}
-              className="absolute inset-y-0 right-3 flex items-center text-gray-400 
-                hover:text-gray-600 dark:hover:text-gray-300"
+              className="absolute right-[140px] top-1/2 -translate-y-1/2 p-1.5
+                text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
+                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
+                transition-all duration-200"
             >
               <IoClose className="w-5 h-5" />
             </button>
           )}
+          <button
+            onClick={handleSearch}
+            className="px-6 bg-primary hover:bg-primary-dark text-white font-medium 
+              rounded-r-xl flex items-center gap-2 transition-all duration-200
+              hover:shadow-lg hover:shadow-primary/20 min-w-[120px] justify-center
+              border-l-0"
+          >
+            <FaSearch className="w-4 h-4" />
+            Tìm kiếm
+          </button>
         </div>
 
-        {/* Status Filter with custom dropdown */}
+        {/* Status Filter - Điều chỉnh lại style cho đồng bộ */}
         <div className="relative min-w-[220px]">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <FaFilter className="text-gray-400" />
@@ -168,36 +170,40 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
         </div>
       </div>
 
-      {/* Active Filters */}
-      {(searchTerm || selectedStatus !== 'all') && (
+      {/* Active Filters - Điều chỉnh lại style cho chip */}
+      {(actualSearchTerm || selectedStatus !== 'all') && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-wrap gap-2"
         >
-          {searchTerm && (
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
-              bg-primary/10 text-primary text-sm">
+          {actualSearchTerm && (
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+              bg-primary/10 text-primary text-sm font-medium"
+            >
               <FaSearch className="w-3 h-3" />
-              {searchTerm}
+              {actualSearchTerm}
               <button
-                onClick={() => setSearchTerm('')}
-                className="hover:bg-primary/20 rounded-full p-1"
+                onClick={handleSearchClear}
+                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                  transition-colors duration-200"
               >
-                <IoClose className="w-3 h-3" />
+                <IoClose className="w-3.5 h-3.5" />
               </button>
             </span>
           )}
           {selectedStatus !== 'all' && (
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
-              bg-primary/10 text-primary text-sm">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+              bg-primary/10 text-primary text-sm font-medium"
+            >
               {statusOptions.find(opt => opt.value === selectedStatus)?.icon}
               {statusOptions.find(opt => opt.value === selectedStatus)?.label}
               <button
                 onClick={() => setSelectedStatus('all')}
-                className="hover:bg-primary/20 rounded-full p-1"
+                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                  transition-colors duration-200"
               >
-                <IoClose className="w-3 h-3" />
+                <IoClose className="w-3.5 h-3.5" />
               </button>
             </span>
           )}
@@ -225,7 +231,10 @@ const HomestayCard = ({ homestay, index }) => {
       variants={cardVariants}
       initial="initial"
       animate="animate"
-      whileHover="hover"
+      whileHover={{
+        y: -20,
+        transition: { type: "spring", stiffness: 800, damping: 50 }
+      }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
@@ -321,6 +330,7 @@ const HomestayCard = ({ homestay, index }) => {
 
 const HomestayList = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [actualSearchTerm, setActualSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -349,16 +359,14 @@ const HomestayList = () => {
     }
   ]);
 
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-
   const filteredHomestays = useMemo(() => {
     return homestays.filter(homestay => {
-      const matchesSearch = homestay.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        homestay.address.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+      const matchesSearch = homestay.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+        homestay.address.toLowerCase().includes(actualSearchTerm.toLowerCase());
       const matchesStatus = selectedStatus === 'all' || homestay.status === selectedStatus;
       return matchesSearch && matchesStatus;
     });
-  }, [homestays, debouncedSearchTerm, selectedStatus]);
+  }, [homestays, actualSearchTerm, selectedStatus]);
 
   const totalPages = Math.ceil(filteredHomestays.length / itemsPerPage);
   const paginatedHomestays = filteredHomestays.slice(
@@ -366,9 +374,10 @@ const HomestayList = () => {
     currentPage * itemsPerPage
   );
 
-  useEffect(() => {
+  const handleSearch = () => {
+    setActualSearchTerm(searchTerm);
     setCurrentPage(1);
-  }, [searchTerm, selectedStatus]);
+  };
 
   return (
     <motion.div
@@ -376,7 +385,7 @@ const HomestayList = () => {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="container mx-auto px-4 py-8"
+      className="min-h-screen bg-gray-50 dark:bg-gray-900"
     >
       {/* Header Section */}
       <motion.div
@@ -404,9 +413,9 @@ const HomestayList = () => {
         </div>
 
         {/* Stats Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
           {[
-            { 
+            {
               label: 'Tổng số nhà nghỉ',
               value: homestays.length,
               color: 'bg-blue-500',
@@ -456,6 +465,9 @@ const HomestayList = () => {
         setSearchTerm={setSearchTerm}
         selectedStatus={selectedStatus}
         setSelectedStatus={setSelectedStatus}
+        handleSearch={handleSearch}
+        setActualSearchTerm={setActualSearchTerm}
+        actualSearchTerm={actualSearchTerm}
       />
 
       {/* Grid Layout */}

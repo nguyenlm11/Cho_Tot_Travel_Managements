@@ -4,36 +4,17 @@ import { FaSearch, FaBed, FaUsers, FaEdit, FaTrash, FaEye, FaPlus, FaFilter, FaC
 import { IoClose } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
 
-function useDebounce(value, delay) {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-
-        return () => clearTimeout(handler);
-    }, [value, delay]);
-
-    return [debouncedValue];
-}
-
-const cardVariants = {
-    initial: { opacity: 0, scale: 0.95 },
+const pageVariants = {
+    initial: { opacity: 0 },
     animate: {
         opacity: 1,
-        scale: 1,
         transition: {
-            type: "spring",
-            stiffness: 100,
-            damping: 15
+            duration: 0.3,
+            when: "beforeChildren",
+            staggerChildren: 0.1
         }
     },
-    hover: {
-        y: -5,
-        scale: 1.02,
-        transition: { type: "spring", stiffness: 400, damping: 10 }
-    }
+    exit: { opacity: 0 }
 };
 
 const overlayVariants = {
@@ -41,6 +22,157 @@ const overlayVariants = {
     animate: { opacity: 1 },
     exit: { opacity: 0 },
     transition: { duration: 0.2 }
+};
+
+const itemVariants = {
+    initial: { opacity: 0 },
+    animate: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
+// FilterBar component
+const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
+    const searchInputRef = useRef(null);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setActualSearchTerm('');
+        searchInputRef.current?.focus();
+    };
+
+    const statusOptions = [
+        { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
+        { value: 'active', label: 'Hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: 'inactive', label: 'Tạm ngưng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
+    ];
+
+    return (
+        <div className="mb-8 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+                {/* Search Input */}
+                <div className="flex-1 relative group flex">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
+                    </div>
+                    <input
+                        ref={searchInputRef}
+                        type="text"
+                        placeholder="Tìm kiếm theo tên hoặc mô tả..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        onKeyDown={handleKeyDown}
+                        className="flex-1 pl-10 pr-[140px] py-3 rounded-l-xl border border-gray-200 
+                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                            focus:border-primary transition-all duration-200
+                            hover:border-primary/50 hover:shadow-md"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={handleSearchClear}
+                            className="absolute right-[140px] top-1/2 -translate-y-1/2 p-1.5
+                                text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
+                                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
+                                transition-all duration-200"
+                        >
+                            <IoClose className="w-5 h-5" />
+                        </button>
+                    )}
+                    <button
+                        onClick={handleSearch}
+                        className="px-6 bg-primary hover:bg-primary-dark text-white font-medium 
+                            rounded-r-xl flex items-center gap-2 transition-all duration-200
+                            hover:shadow-lg hover:shadow-primary/20 min-w-[120px] justify-center
+                            border-l-0"
+                    >
+                        <FaSearch className="w-4 h-4" />
+                        Tìm kiếm
+                    </button>
+                </div>
+
+                {/* Status Filter */}
+                <div className="relative min-w-[220px]">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaFilter className="text-gray-400" />
+                    </div>
+                    <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
+                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                            focus:border-primary transition-all duration-200
+                            hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
+                    >
+                        {statusOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            {/* Active Filters */}
+            {(actualSearchTerm || selectedStatus !== 'all') && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-wrap gap-2"
+                >
+                    {actualSearchTerm && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                            bg-primary/10 text-primary text-sm font-medium"
+                        >
+                            <FaSearch className="w-3 h-3" />
+                            {actualSearchTerm}
+                            <button
+                                onClick={handleSearchClear}
+                                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                                    transition-colors duration-200"
+                            >
+                                <IoClose className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                    {selectedStatus !== 'all' && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                            bg-primary/10 text-primary text-sm font-medium"
+                        >
+                            {statusOptions.find(opt => opt.value === selectedStatus)?.icon}
+                            {statusOptions.find(opt => opt.value === selectedStatus)?.label}
+                            <button
+                                onClick={() => setSelectedStatus('all')}
+                                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                                    transition-colors duration-200"
+                            >
+                                <IoClose className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                </motion.div>
+            )}
+        </div>
+    );
 };
 
 const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
@@ -54,16 +186,18 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
             text: 'Tạm ngưng',
         }
     };
-
-    const status = statusConfig[roomType.status];
     const [isHovered, setIsHovered] = useState(false);
 
     return (
         <motion.div
-            variants={cardVariants}
-            initial="initial"
-            animate="animate"
-            whileHover="hover"
+            layout
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            whileHover={{
+                y: -20,
+                transition: { type: "spring", stiffness: 800, damping: 50 }
+            }}
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
             className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
@@ -155,18 +289,6 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
                             {new Date(roomType.lastUpdated).toLocaleDateString('vi-VN')}
                         </div>
                     </div>
-
-                    {/* Bottom edit button */}
-                    <div className="flex">
-                        <button
-                            onClick={() => onEdit(roomType)}
-                            className="w-full bg-primary/10 dark:bg-primary/20 text-primary font-semibold
-                                py-2.5 rounded-lg hover:bg-primary hover:text-white
-                                transition-all duration-300 text-center"
-                        >
-                            Chỉnh sửa
-                        </button>
-                    </div>
                 </div>
             </div>
         </motion.div>
@@ -176,6 +298,7 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
 const RoomTypeList = () => {
     const { id: selectedHomestay } = useParams();
     const [searchTerm, setSearchTerm] = useState('');
+    const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -212,16 +335,19 @@ const RoomTypeList = () => {
         }
     ]);
 
-    const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    const handleSearch = () => {
+        setActualSearchTerm(searchTerm);
+        setCurrentPage(1);
+    };
 
     const filteredRoomTypes = useMemo(() => {
         return roomTypes.filter(room => {
-            const matchesSearch = room.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                room.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+            const matchesSearch = room.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+                room.description.toLowerCase().includes(actualSearchTerm.toLowerCase());
             const matchesStatus = selectedStatus === 'all' || room.status === selectedStatus;
             return matchesSearch && matchesStatus;
         });
-    }, [roomTypes, debouncedSearchTerm, selectedStatus]);
+    }, [roomTypes, actualSearchTerm, selectedStatus]);
 
     const totalPages = Math.ceil(filteredRoomTypes.length / itemsPerPage);
     const paginatedRoomTypes = filteredRoomTypes.slice(
@@ -229,39 +355,15 @@ const RoomTypeList = () => {
         currentPage * itemsPerPage
     );
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                type: "spring",
-                stiffness: 100
-            }
-        }
-    };
-
     const handleViewRoomType = (roomType) => {
         navigate(`/owner/homestays/${selectedHomestay}/room-types/${roomType.id}`);
     };
 
     const handleEditRoomType = (roomType) => {
-        // Handle edit action
         console.log('Edit room type:', roomType);
     };
 
     const handleDeleteRoomType = (roomType) => {
-        // Handle delete action
         console.log('Delete room type:', roomType);
     };
 
@@ -271,115 +373,6 @@ const RoomTypeList = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [roomTypeToDelete, setRoomTypeToDelete] = useState(null);
     const [notification, setNotification] = useState(null);
-
-    // FilterBar component
-    const FilterBar = () => {
-        const searchInputRef = useRef(null);
-
-        const statusOptions = [
-            { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
-            { value: 'active', label: 'Hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
-            { value: 'inactive', label: 'Tạm ngưng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
-        ];
-
-        return (
-            <div className="mb-8 space-y-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    {/* Search Input */}
-                    <div className="flex-1 relative group">
-                        <div className="absolute inset-y-0 left-3 flex items-center">
-                            <FaSearch className="text-gray-400 dark:text-gray-500" />
-                        </div>
-                        <input
-                            ref={searchInputRef}
-                            type="text"
-                            placeholder="Tìm kiếm theo tên hoặc mô tả..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            autoFocus
-                            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
-                                dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-                                dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-                                focus:border-primary transition-all duration-200
-                                hover:border-primary/50 hover:shadow-md"
-                        />
-                        {searchTerm && (
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="absolute inset-y-0 right-3 flex items-center text-gray-400 
-                                    hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <IoClose className="w-5 h-5" />
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Status Filter */}
-                    <div className="relative min-w-[220px]">
-                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                            <FaFilter className="text-gray-400" />
-                        </div>
-                        <select
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
-                                dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-                                dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-                                focus:border-primary transition-all duration-200
-                                hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
-                        >
-                            {statusOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Active Filters */}
-                {(searchTerm || selectedStatus !== 'all') && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-wrap gap-2"
-                    >
-                        {searchTerm && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
-                                bg-primary/10 text-primary text-sm">
-                                <FaSearch className="w-3 h-3" />
-                                {searchTerm}
-                                <button
-                                    onClick={() => setSearchTerm('')}
-                                    className="hover:bg-primary/20 rounded-full p-1"
-                                >
-                                    <IoClose className="w-3 h-3" />
-                                </button>
-                            </span>
-                        )}
-                        {selectedStatus !== 'all' && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
-                                bg-primary/10 text-primary text-sm">
-                                {statusOptions.find(opt => opt.value === selectedStatus)?.icon}
-                                {statusOptions.find(opt => opt.value === selectedStatus)?.label}
-                                <button
-                                    onClick={() => setSelectedStatus('all')}
-                                    className="hover:bg-primary/20 rounded-full p-1"
-                                >
-                                    <IoClose className="w-3 h-3" />
-                                </button>
-                            </span>
-                        )}
-                    </motion.div>
-                )}
-            </div>
-        );
-    };
 
     // Pagination component
     const Pagination = () => {
@@ -463,25 +456,6 @@ const RoomTypeList = () => {
         );
     };
 
-    // Reset page when filters change
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, selectedStatus]);
-
-    const pageVariants = {
-        initial: { opacity: 0, y: 20 },
-        animate: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.4,
-                when: "beforeChildren",
-                staggerChildren: 0.1
-            }
-        },
-        exit: { opacity: 0, y: -20 }
-    };
-
     return (
         <motion.div
             variants={pageVariants}
@@ -493,15 +467,14 @@ const RoomTypeList = () => {
             <div className="container">
                 {/* Header Section */}
                 <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    variants={itemVariants}
                     className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
                 >
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                         <div>
                             <h1 className="text-4xl font-bold bg-clip-text text-transparent 
-                                bg-gradient-to-r from-primary via-primary-dark to-primary 
-                                tracking-tight mb-2 dark:text-white">
+                bg-gradient-to-r from-primary via-primary-dark to-primary 
+                tracking-tight mb-2 dark:text-white">
                                 Quản lý loại phòng
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
@@ -516,16 +489,16 @@ const RoomTypeList = () => {
                                 setIsModalOpen(true);
                             }}
                             className="bg-gradient-to-r from-primary to-primary-dark text-white 
-                                font-semibold px-6 py-3 rounded-xl flex items-center gap-2 
-                                shadow-lg hover:shadow-primary/20 transition-all duration-300"
+                font-semibold px-6 py-3 rounded-xl flex items-center gap-2 
+                shadow-lg hover:shadow-primary/20 transition-all duration-300"
                         >
                             <FaPlus className="text-white" />
                             Thêm loại phòng mới
                         </motion.button>
                     </div>
 
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    {/* Stats Grid adjusted for 3 items */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
                         {[
                             {
                                 label: 'Tổng số loại phòng',
@@ -554,9 +527,8 @@ const RoomTypeList = () => {
                         ].map((stat, index) => (
                             <motion.div
                                 key={stat.label}
-                                variants={itemVariants}
                                 className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
-                                    rounded-xl shadow-lg dark:shadow-gray-900/30`}
+                    rounded-xl shadow-lg dark:shadow-gray-900/30`}
                             >
                                 <div className="p-6">
                                     <div className="flex items-center gap-4">
@@ -586,26 +558,31 @@ const RoomTypeList = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
                 >
-                    <FilterBar />
+                    <FilterBar
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                        selectedStatus={selectedStatus}
+                        setSelectedStatus={setSelectedStatus}
+                        handleSearch={handleSearch}
+                        setActualSearchTerm={setActualSearchTerm}
+                        actualSearchTerm={actualSearchTerm}
+                    />
                 </motion.div>
 
                 {/* Room Type Grid */}
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-                >
-                    {paginatedRoomTypes.map((roomType, index) => (
-                        <RoomTypeCard
-                            key={roomType.id}
-                            roomType={roomType}
-                            onView={handleViewRoomType}
-                            onEdit={handleEditRoomType}
-                            onDelete={handleDeleteRoomType}
-                        />
-                    ))}
-                </motion.div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <AnimatePresence>
+                        {paginatedRoomTypes.map((roomType) => (
+                            <RoomTypeCard
+                                key={roomType.id}
+                                roomType={roomType}
+                                onView={handleViewRoomType}
+                                onEdit={handleEditRoomType}
+                                onDelete={handleDeleteRoomType}
+                            />
+                        ))}
+                    </AnimatePresence>
+                </div>
 
                 {/* Empty State */}
                 <AnimatePresence>
