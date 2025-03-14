@@ -3,29 +3,52 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 
-function useDebounce(value, delay) {
-    const [debouncedValue, setDebouncedValue] = useState(value);
+const pageVariants = {
+    initial: { opacity: 0 },
+    animate: {
+        opacity: 1,
+        transition: {
+            duration: 0.3,
+            when: "beforeChildren",
+            staggerChildren: 0.1
+        }
+    },
+    exit: { opacity: 0 }
+};
 
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
-
-    return [debouncedValue];
-}
+const itemVariants = {
+    initial: { opacity: 0 },
+    animate: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
 
 // Move FilterBar outside to prevent re-renders
-const FilterBar = React.memo(({ searchTerm, onSearchChange, onSearchClear }) => {
+const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
     const searchInputRef = useRef(null);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setActualSearchTerm('');
+        searchInputRef.current?.focus();
+    };
 
     return (
         <div className="mb-8">
-            <div className="relative group">
+            <div className="relative group flex">
                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                     <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
                 </div>
@@ -34,10 +57,9 @@ const FilterBar = React.memo(({ searchTerm, onSearchChange, onSearchClear }) => 
                     type="text"
                     placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
                     value={searchTerm}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    autoComplete="off"
-                    autoFocus
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
+                    onChange={handleSearchChange}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1 pl-10 pr-[140px] py-3 rounded-l-xl border border-gray-200 
                         dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
                         dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
                         focus:border-primary transition-all duration-200
@@ -45,20 +67,33 @@ const FilterBar = React.memo(({ searchTerm, onSearchChange, onSearchClear }) => 
                 />
                 {searchTerm && (
                     <button
-                        onClick={onSearchClear}
-                        className="absolute inset-y-0 right-3 flex items-center text-gray-400 
-                            hover:text-gray-600 dark:hover:text-gray-300"
+                        onClick={handleSearchClear}
+                        className="absolute right-[140px] top-1/2 -translate-y-1/2 p-1.5
+                            text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
+                            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
+                            transition-all duration-200"
                     >
                         <IoClose className="w-5 h-5" />
                     </button>
                 )}
+                <button
+                    onClick={handleSearch}
+                    className="px-6 bg-primary hover:bg-primary-dark text-white font-medium 
+                        rounded-r-xl flex items-center gap-2 transition-all duration-200
+                        hover:shadow-lg hover:shadow-primary/20 min-w-[120px] justify-center
+                        border-l-0"
+                >
+                    <FaSearch className="w-4 h-4" />
+                    Tìm kiếm
+                </button>
             </div>
         </div>
     );
-});
+};
 
 const CustomerList = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
     const itemsPerPage = 10;
@@ -85,14 +120,17 @@ const CustomerList = () => {
         }
     ]);
 
-    const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    const handleSearch = () => {
+        setActualSearchTerm(searchTerm);
+        setCurrentPage(1);
+    };
 
     const filteredCustomers = useMemo(() => {
         let filtered = customers.filter(customer => {
-            const searchLower = debouncedSearchTerm.toLowerCase();
+            const searchLower = actualSearchTerm.toLowerCase();
             return customer.name.toLowerCase().includes(searchLower) ||
                 customer.email.toLowerCase().includes(searchLower) ||
-                customer.phone.includes(debouncedSearchTerm);
+                customer.phone.includes(actualSearchTerm);
         });
 
         if (sortConfig.key) {
@@ -108,7 +146,7 @@ const CustomerList = () => {
         }
 
         return filtered;
-    }, [customers, debouncedSearchTerm, sortConfig]);
+    }, [customers, actualSearchTerm, sortConfig]);
 
     const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
     const paginatedCustomers = filteredCustomers.slice(
@@ -139,11 +177,10 @@ const CustomerList = () => {
                     <span className="font-semibold text-gray-700 dark:text-gray-300">
                         {label}
                     </span>
-                    <div className={`transition-colors ${
-                        isSorted ? 'text-primary' : 'text-gray-400 dark:text-gray-600'
-                    }`}>
+                    <div className={`transition-colors ${isSorted ? 'text-primary' : 'text-gray-400 dark:text-gray-600'
+                        }`}>
                         {isSorted && (
-                            sortConfig.direction === 'asc' 
+                            sortConfig.direction === 'asc'
                                 ? <FaSortAmountUp className="w-4 h-4" />
                                 : <FaSortAmountDown className="w-4 h-4" />
                         )}
@@ -155,14 +192,15 @@ const CustomerList = () => {
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="container mx-auto px-4 py-8"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
             {/* Header */}
             <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={itemVariants}
                 className="mb-8"
             >
                 <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
@@ -216,8 +254,10 @@ const CustomerList = () => {
             {/* Filter Bar */}
             <FilterBar
                 searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                onSearchClear={() => setSearchTerm('')}
+                setSearchTerm={setSearchTerm}
+                handleSearch={handleSearch}
+                setActualSearchTerm={setActualSearchTerm}
+                actualSearchTerm={actualSearchTerm}
             />
 
             {/* Table */}
@@ -321,14 +361,13 @@ const CustomerList = () => {
                     <button
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                         disabled={currentPage === 1}
-                        className={`p-2 rounded-lg ${
-                            currentPage === 1
-                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
+                        className={`p-2 rounded-lg ${currentPage === 1
+                            ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                                 d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
@@ -337,11 +376,10 @@ const CustomerList = () => {
                         <button
                             key={number}
                             onClick={() => setCurrentPage(number)}
-                            className={`w-10 h-10 rounded-lg ${
-                                number === currentPage
-                                    ? 'bg-primary text-white'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                            }`}
+                            className={`w-10 h-10 rounded-lg ${number === currentPage
+                                ? 'bg-primary text-white'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                }`}
                         >
                             {number}
                         </button>
@@ -350,14 +388,13 @@ const CustomerList = () => {
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                         disabled={currentPage === totalPages}
-                        className={`p-2 rounded-lg ${
-                            currentPage === totalPages
-                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
+                        className={`p-2 rounded-lg ${currentPage === totalPages
+                            ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                                 d="M9 5l7 7-7 7" />
                         </svg>
                     </button>

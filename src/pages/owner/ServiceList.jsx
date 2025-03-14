@@ -1,25 +1,10 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaFilter, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaTag, FaDollarSign, FaClock, FaCheckCircle, FaExclamationCircle, FaTimes, FaImage, FaToggleOn, FaToggleOff, FaEye, FaMoneyBillWave, FaRegClock } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaDollarSign, FaClock, FaTag, FaPlus, FaEdit, FaTrash, FaCheckCircle, FaExclamationCircle, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import ServiceModal from '../../components/modals/ServiceModal';
 
-function useDebounce(value, delay) {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
-
-    return [debouncedValue];
-}
-
+// Animation variants
 const pageVariants = {
     initial: { opacity: 0 },
     animate: {
@@ -33,11 +18,21 @@ const pageVariants = {
     exit: { opacity: 0 }
 };
 
-const cardVariants = {
-    initial: { opacity: 0, scale: 0.95 },
+const itemVariants = {
+    initial: { opacity: 0 },
     animate: {
         opacity: 1,
-        scale: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const cardVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: {
+        opacity: 1,
+        y: 0,
         transition: {
             type: "spring",
             stiffness: 100,
@@ -46,8 +41,11 @@ const cardVariants = {
     },
     hover: {
         y: -5,
-        scale: 1.02,
-        transition: { type: "spring", stiffness: 400, damping: 10 }
+        transition: {
+            type: "spring",
+            stiffness: 400,
+            damping: 10
+        }
     }
 };
 
@@ -58,9 +56,150 @@ const overlayVariants = {
     transition: { duration: 0.2 }
 };
 
+const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
+    const searchInputRef = useRef(null);
+
+    const statusOptions = [
+        { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
+        { value: 'active', label: 'Đang hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: 'inactive', label: 'Tạm ngưng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
+    ];
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setActualSearchTerm('');
+        searchInputRef.current?.focus();
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    return (
+        <div className="mb-8 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+                {/* Search Input */}
+                <div className="flex-1 relative group flex">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
+                    </div>
+                    <input
+                        ref={searchInputRef}
+                        type="text"
+                        placeholder="Tìm kiếm theo tên dịch vụ..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        onKeyDown={handleKeyPress}
+                        className="flex-1 pl-10 pr-[140px] py-3 rounded-l-xl border border-gray-200 
+                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                            focus:border-primary transition-all duration-200
+                            hover:border-primary/50 hover:shadow-md"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={handleSearchClear}
+                            className="absolute right-[140px] top-1/2 -translate-y-1/2 p-1.5
+                                text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
+                                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
+                                transition-all duration-200"
+                        >
+                            <IoClose className="w-5 h-5" />
+                        </button>
+                    )}
+                    <button
+                        onClick={handleSearch}
+                        className="px-6 bg-primary hover:bg-primary-dark text-white font-medium 
+                            rounded-r-xl flex items-center gap-2 transition-all duration-200
+                            hover:shadow-lg hover:shadow-primary/20 min-w-[120px] justify-center
+                            border-l-0"
+                    >
+                        <FaSearch className="w-4 h-4" />
+                        Tìm kiếm
+                    </button>
+                </div>
+
+                {/* Status Filter */}
+                <div className="relative min-w-[220px]">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaFilter className="text-gray-400" />
+                    </div>
+                    <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
+                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                            focus:border-primary transition-all duration-200
+                            hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
+                    >
+                        {statusOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            {/* Active Filters */}
+            {(actualSearchTerm || selectedStatus !== 'all') && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-wrap gap-2"
+                >
+                    {actualSearchTerm && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                            bg-primary/10 text-primary text-sm font-medium"
+                        >
+                            <FaSearch className="w-3 h-3" />
+                            {actualSearchTerm}
+                            <button
+                                onClick={handleSearchClear}
+                                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                                    transition-colors duration-200"
+                            >
+                                <IoClose className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                    {selectedStatus !== 'all' && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                            bg-primary/10 text-primary text-sm font-medium"
+                        >
+                            {statusOptions.find(opt => opt.value === selectedStatus)?.icon}
+                            {statusOptions.find(opt => opt.value === selectedStatus)?.label}
+                            <button
+                                onClick={() => setSelectedStatus('all')}
+                                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                                    transition-colors duration-200"
+                            >
+                                <IoClose className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                </motion.div>
+            )}
+        </div>
+    );
+};
+
 const ServiceList = () => {
     // States for search, filter, and pagination
     const [searchTerm, setSearchTerm] = useState('');
+    const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -90,8 +229,6 @@ const ServiceList = () => {
             lastUpdated: "2024-03-14T15:45:00"
         }
     ]);
-
-    const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
 
     const statusConfig = {
         active: {
@@ -125,12 +262,12 @@ const ServiceList = () => {
     // Filter services based on search term and status
     const filteredServices = useMemo(() => {
         return services.filter(service => {
-            const matchesSearch = service.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                service.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+            const matchesSearch = service.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+                service.description.toLowerCase().includes(actualSearchTerm.toLowerCase());
             const matchesStatus = selectedStatus === 'all' || service.status === selectedStatus;
             return matchesSearch && matchesStatus;
         });
-    }, [services, debouncedSearchTerm, selectedStatus]);
+    }, [services, actualSearchTerm, selectedStatus]);
 
     // Calculate pagination
     const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
@@ -144,134 +281,20 @@ const ServiceList = () => {
         setCurrentPage(1);
     }, [searchTerm, selectedStatus]);
 
-    // FilterBar component
-    const FilterBar = () => {
-        const searchInputRef = useRef(null);
-
-        const statusOptions = [
-            { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
-            { value: 'active', label: 'Đang hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
-            { value: 'inactive', label: 'Tạm ngưng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
-        ];
-
-        const handleSearchChange = (e) => {
-            setSearchTerm(e.target.value);
-        };
-
-        const handleSearchClear = () => {
-            setSearchTerm('');
-            searchInputRef.current?.focus();
-        };
-
-        return (
-            <div className="mb-8 space-y-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    {/* Search Input */}
-                    <div className="flex-1 relative group">
-                        <div className="absolute inset-y-0 left-3 flex items-center">
-                            <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
-                        </div>
-                        <input
-                            ref={searchInputRef}
-                            type="text"
-                            placeholder="Tìm kiếm theo tên dịch vụ..."
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            autoFocus
-                            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
-                dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-                dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-                focus:border-primary transition-all duration-200
-                hover:border-primary/50 hover:shadow-md"
-                        />
-                        {searchTerm && (
-                            <button
-                                onClick={handleSearchClear}
-                                className="absolute inset-y-0 right-3 flex items-center text-gray-400 
-                  hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <IoClose className="w-5 h-5" />
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Status Filter */}
-                    <div className="relative min-w-[220px]">
-                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                            <FaFilter className="text-gray-400" />
-                        </div>
-                        <select
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
-                dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-                dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-                focus:border-primary transition-all duration-200
-                hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
-                        >
-                            {statusOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Active Filters */}
-                {(searchTerm || selectedStatus !== 'all') && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-wrap gap-2"
-                    >
-                        {searchTerm && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
-                bg-primary/10 text-primary text-sm">
-                                <FaSearch className="w-3 h-3" />
-                                {searchTerm}
-                                <button
-                                    onClick={handleSearchClear}
-                                    className="hover:bg-primary/20 rounded-full p-1"
-                                >
-                                    <IoClose className="w-3 h-3" />
-                                </button>
-                            </span>
-                        )}
-                        {selectedStatus !== 'all' && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
-                bg-primary/10 text-primary text-sm">
-                                {statusOptions.find(opt => opt.value === selectedStatus)?.icon}
-                                {statusOptions.find(opt => opt.value === selectedStatus)?.label}
-                                <button
-                                    onClick={() => setSelectedStatus('all')}
-                                    className="hover:bg-primary/20 rounded-full p-1"
-                                >
-                                    <IoClose className="w-3 h-3" />
-                                </button>
-                            </span>
-                        )}
-                    </motion.div>
-                )}
-            </div>
-        );
-    };
-
     // ServiceCard component
     const ServiceCard = ({ service, onEdit, onDelete }) => {
         const [isHovered, setIsHovered] = useState(false);
 
         return (
             <motion.div
-                variants={cardVariants}
+                layout
                 initial="initial"
                 animate="animate"
-                whileHover="hover"
+                exit={{ opacity: 0 }}
+                whileHover={{
+                    y: -20,
+                    transition: { type: "spring", stiffness: 800, damping: 50 }
+                }}
                 onHoverStart={() => setIsHovered(true)}
                 onHoverEnd={() => setIsHovered(false)}
                 className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
@@ -355,18 +378,6 @@ const ServiceList = () => {
                                 <FaClock className="text-primary" />
                                 <span>{formatDate(service.lastUpdated)}</span>
                             </div>
-                        </div>
-
-                        {/* Bottom edit button */}
-                        <div className="flex">
-                            <button
-                                onClick={() => onEdit(service)}
-                                className="w-full bg-primary/10 dark:bg-primary/20 text-primary font-semibold
-                                    py-2.5 rounded-lg hover:bg-primary hover:text-white
-                                    transition-all duration-300 text-center"
-                            >
-                                Chỉnh sửa
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -488,15 +499,15 @@ const ServiceList = () => {
                                 <button
                                     onClick={onClose}
                                     className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600
-                    text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700
-                    transition-colors"
+                                        text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700
+                                        transition-colors"
                                 >
                                     Hủy
                                 </button>
                                 <button
                                     onClick={onConfirm}
                                     className="px-4 py-2 rounded-lg bg-red-500 text-white
-                    hover:bg-red-600 transition-colors"
+                                        hover:bg-red-600 transition-colors"
                                 >
                                     Xóa
                                 </button>
@@ -631,6 +642,12 @@ const ServiceList = () => {
         // Có thể thêm logic để mở modal xem chi tiết
     };
 
+    // Thêm hàm handleSearch
+    const handleSearch = () => {
+        setActualSearchTerm(searchTerm);
+        setCurrentPage(1);
+    };
+
     return (
         <motion.div
             variants={pageVariants}
@@ -642,16 +659,12 @@ const ServiceList = () => {
             <div className="container">
                 {/* Header Section with improved styling */}
                 <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    variants={itemVariants}
                     className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
                 >
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                         <div>
-                            <h1 className="text-4xl font-bold bg-clip-text text-transparent 
-                  bg-gradient-to-r from-primary via-primary-dark to-primary 
-                  tracking-tight mb-2"
-                            >
+                            <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
                                 Quản lý dịch vụ
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
@@ -663,16 +676,16 @@ const ServiceList = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={handleAddService}
                             className="bg-gradient-to-r from-primary to-primary-dark text-white 
-                  font-semibold px-6 py-3 rounded-xl flex items-center gap-2 
-                  shadow-lg hover:shadow-primary/20 transition-all duration-300"
+                font-semibold px-6 py-3 rounded-xl flex items-center gap-2 
+                shadow-lg hover:shadow-primary/20 transition-all duration-300"
                         >
                             <FaPlus className="w-5 h-5" />
                             Thêm dịch vụ mới
                         </motion.button>
                     </div>
 
-                    {/* Stats with improved layout */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    {/* Stats with improved layout for 3 items */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
                         {[
                             {
                                 label: 'Tổng số dịch vụ',
@@ -703,8 +716,8 @@ const ServiceList = () => {
                                 key={stat.label}
                                 variants={cardVariants}
                                 className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
-                                    rounded-xl shadow-lg transform transition-all duration-300 
-                                    hover:scale-105 hover:shadow-xl overflow-hidden`}
+                    rounded-xl shadow-lg transform transition-all duration-300 
+                    hover:scale-105 hover:shadow-xl overflow-hidden`}
                             >
                                 <div className="p-6">
                                     <div className="flex items-center gap-4">
@@ -734,32 +747,27 @@ const ServiceList = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
                 >
-                    <FilterBar />
+                    <FilterBar
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                        selectedStatus={selectedStatus}
+                        setSelectedStatus={setSelectedStatus}
+                        handleSearch={handleSearch}
+                        setActualSearchTerm={setActualSearchTerm}
+                        actualSearchTerm={actualSearchTerm}
+                    />
                 </motion.div>
 
                 {/* Service Grid with improved layout */}
                 <motion.div
-                    variants={{
-                        initial: { opacity: 0 },
-                        animate: {
-                            opacity: 1,
-                            transition: {
-                                staggerChildren: 0.1
-                            }
-                        }
-                    }}
-                    initial="initial"
-                    animate="animate"
+                    variants={itemVariants}
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
                 >
-                    {paginatedServices.map((service) => (
-                        <ServiceCard
-                            key={service.id}
-                            service={service}
-                            onEdit={handleEditService}
-                            onDelete={handleDeleteClick}
-                        />
-                    ))}
+                    <AnimatePresence>
+                        {paginatedServices.map((service) => (
+                            <ServiceCard key={service.id} service={service} onEdit={handleEditService} onDelete={handleDeleteClick} />
+                        ))}
+                    </AnimatePresence>
                 </motion.div>
 
                 {/* Enhanced Empty State */}
@@ -770,7 +778,7 @@ const ServiceList = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
-                  shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
+                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
                         >
                             <div className="text-gray-400 dark:text-gray-500 mb-4">
                                 <FaTag className="mx-auto w-16 h-16" />
@@ -787,8 +795,8 @@ const ServiceList = () => {
                                 <button
                                     onClick={handleAddService}
                                     className="inline-flex items-center px-6 py-3 bg-primary text-white 
-                      font-semibold rounded-xl hover:bg-primary-dark transition-all 
-                      duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
+                                        font-semibold rounded-xl hover:bg-primary-dark transition-all 
+                                        duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
                                 >
                                     <FaPlus className="w-5 h-5 mr-2" />
                                     Thêm dịch vụ

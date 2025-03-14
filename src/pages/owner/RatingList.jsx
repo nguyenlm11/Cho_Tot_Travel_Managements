@@ -51,19 +51,148 @@ const cardVariants = {
     }
 };
 
-function useDebounce(value, delay) {
-    const [debouncedValue, setDebouncedValue] = useState(value);
+const FilterBar = ({ searchTerm, setSearchTerm, selectedScore, setSelectedScore, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
+    const searchInputRef = useRef(null);
 
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
 
-        return () => clearTimeout(handler);
-    }, [value, delay]);
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
-    return [debouncedValue];
-}
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setActualSearchTerm('');
+        searchInputRef.current?.focus();
+    };
+
+    const scoreOptions = [
+        { value: 'all', label: 'Tất cả đánh giá', icon: <FaFilter className="text-gray-400" /> },
+        { value: '5', label: '5 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> },
+        { value: '4', label: '4 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> },
+        { value: '3', label: '3 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> },
+        { value: '2', label: '2 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> },
+        { value: '1', label: '1 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> }
+    ];
+
+    return (
+        <div className="mb-8 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+                {/* Search Input */}
+                <div className="flex-1 relative group flex">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
+                    </div>
+                    <input
+                        ref={searchInputRef}
+                        type="text"
+                        placeholder="Tìm kiếm theo tên khách hàng hoặc nội dung..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        onKeyDown={handleKeyDown}
+                        className="flex-1 pl-10 pr-[140px] py-3 rounded-l-xl border border-gray-200 
+                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                            focus:border-primary transition-all duration-200
+                            hover:border-primary/50 hover:shadow-md"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={handleSearchClear}
+                            className="absolute right-[140px] top-1/2 -translate-y-1/2 p-1.5
+                                text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
+                                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
+                                transition-all duration-200"
+                        >
+                            <IoClose className="w-5 h-5" />
+                        </button>
+                    )}
+                    <button
+                        onClick={handleSearch}
+                        className="px-6 bg-primary hover:bg-primary-dark text-white font-medium 
+                            rounded-r-xl flex items-center gap-2 transition-all duration-200
+                            hover:shadow-lg hover:shadow-primary/20 min-w-[120px] justify-center
+                            border-l-0"
+                    >
+                        <FaSearch className="w-4 h-4" />
+                        Tìm kiếm
+                    </button>
+                </div>
+
+                {/* Score Filter */}
+                <div className="relative min-w-[220px]">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaStar className="text-yellow-400" />
+                    </div>
+                    <select
+                        value={selectedScore}
+                        onChange={(e) => setSelectedScore(e.target.value)}
+                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
+                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                            focus:border-primary transition-all duration-200
+                            hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
+                    >
+                        {scoreOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            {/* Active Filters */}
+            {(actualSearchTerm || selectedScore !== 'all') && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-wrap gap-2"
+                >
+                    {actualSearchTerm && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                            bg-primary/10 text-primary text-sm font-medium"
+                        >
+                            <FaSearch className="w-3 h-3" />
+                            {actualSearchTerm}
+                            <button
+                                onClick={handleSearchClear}
+                                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                                    transition-colors duration-200"
+                            >
+                                <IoClose className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                    {selectedScore !== 'all' && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                            bg-primary/10 text-primary text-sm font-medium"
+                        >
+                            <FaStar className="w-3 h-3 text-yellow-400" />
+                            {selectedScore} sao
+                            <button
+                                onClick={() => setSelectedScore('all')}
+                                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                                    transition-colors duration-200"
+                            >
+                                <IoClose className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                </motion.div>
+            )}
+        </div>
+    );
+};
 
 const RatingCard = ({ rating, onReply, onDelete }) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -199,118 +328,9 @@ const RatingCard = ({ rating, onReply, onDelete }) => {
     );
 };
 
-const FilterBar = ({ searchTerm, setSearchTerm, selectedScore, setSelectedScore }) => {
-    const searchInputRef = useRef(null);
-
-    const scoreOptions = [
-        { value: 'all', label: 'Tất cả đánh giá', icon: <FaFilter className="text-gray-400" /> },
-        { value: '5', label: '5 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> },
-        { value: '4', label: '4 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> },
-        { value: '3', label: '3 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> },
-        { value: '2', label: '2 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> },
-        { value: '1', label: '1 sao', icon: <div className="flex"><FaStar className="text-yellow-400" /></div> }
-    ];
-
-    return (
-        <div className="mb-8 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-                {/* Search Input */}
-                <div className="flex-1 relative group">
-                    <div className="absolute inset-y-0 left-3 flex items-center">
-                        <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
-                    </div>
-                    <input
-                        ref={searchInputRef}
-                        type="text"
-                        placeholder="Tìm kiếm theo tên khách hàng hoặc nội dung..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
-                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-                            focus:border-primary transition-all duration-200
-                            hover:border-primary/50 hover:shadow-md"
-                    />
-                    {searchTerm && (
-                        <button
-                            onClick={() => setSearchTerm('')}
-                            className="absolute inset-y-0 right-3 flex items-center text-gray-400 
-                                hover:text-gray-600 dark:hover:text-gray-300"
-                        >
-                            <IoClose className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-
-                {/* Score Filter */}
-                <div className="relative min-w-[220px]">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                        <FaStar className="text-yellow-400" />
-                    </div>
-                    <select
-                        value={selectedScore}
-                        onChange={(e) => setSelectedScore(e.target.value)}
-                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
-                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-                            focus:border-primary transition-all duration-200
-                            hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
-                    >
-                        {scoreOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            {/* Active Filters */}
-            {(searchTerm || selectedScore !== 'all') && (
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-wrap gap-2"
-                >
-                    {searchTerm && (
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
-                            bg-primary/10 text-primary text-sm">
-                            <FaSearch className="w-3 h-3" />
-                            {searchTerm}
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="hover:bg-primary/20 rounded-full p-1"
-                            >
-                                <IoClose className="w-3 h-3" />
-                            </button>
-                        </span>
-                    )}
-                    {selectedScore !== 'all' && (
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full
-                            bg-primary/10 text-primary text-sm">
-                            <FaStar className="w-3 h-3 text-yellow-400" />
-                            {selectedScore} sao
-                            <button
-                                onClick={() => setSelectedScore('all')}
-                                className="hover:bg-primary/20 rounded-full p-1"
-                            >
-                                <IoClose className="w-3 h-3" />
-                            </button>
-                        </span>
-                    )}
-                </motion.div>
-            )}
-        </div>
-    );
-};
-
 const RatingList = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [selectedScore, setSelectedScore] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -343,16 +363,19 @@ const RatingList = () => {
         },
     ]);
 
-    const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    const handleSearch = () => {
+        setActualSearchTerm(searchTerm);
+        setCurrentPage(1);
+    };
 
     const filteredRatings = useMemo(() => {
         return ratings.filter(rating => {
-            const matchesSearch = rating.userName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                rating.comment.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+            const matchesSearch = rating.userName.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+                rating.comment.toLowerCase().includes(actualSearchTerm.toLowerCase());
             const matchesScore = selectedScore === 'all' || rating.score === parseInt(selectedScore);
             return matchesSearch && matchesScore;
         });
-    }, [ratings, debouncedSearchTerm, selectedScore]);
+    }, [ratings, actualSearchTerm, selectedScore]);
 
     const totalPages = Math.ceil(filteredRatings.length / itemsPerPage);
     const paginatedRatings = filteredRatings.slice(
@@ -370,7 +393,7 @@ const RatingList = () => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, selectedScore]);
+    }, [actualSearchTerm, selectedScore]);
 
     return (
         <motion.div
@@ -388,9 +411,7 @@ const RatingList = () => {
                 >
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                         <div>
-                            <h1 className="text-4xl font-bold bg-clip-text text-transparent 
-                                bg-gradient-to-r from-primary via-primary-dark to-primary 
-                                tracking-tight mb-2">
+                            <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
                                 Đánh giá từ khách hàng
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
@@ -468,6 +489,9 @@ const RatingList = () => {
                         setSearchTerm={setSearchTerm}
                         selectedScore={selectedScore}
                         setSelectedScore={setSelectedScore}
+                        handleSearch={handleSearch}
+                        setActualSearchTerm={setActualSearchTerm}
+                        actualSearchTerm={actualSearchTerm}
                     />
                 </motion.div>
 
