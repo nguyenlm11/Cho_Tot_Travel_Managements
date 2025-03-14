@@ -33,19 +33,6 @@ const pageVariants = {
     exit: { opacity: 0 }
 };
 
-const itemVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            type: "spring",
-            stiffness: 100,
-            damping: 15
-        }
-    }
-};
-
 const cardVariants = {
     initial: { opacity: 0, scale: 0.95 },
     animate: {
