@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft, FaTag, FaStar, FaChevronDown } from 'react-icons/fa';
 
-const Sidebar = ({ selectedHomestay, role = 'owner' }) => {
+const Sidebar = ({ selectedHomestay }) => {
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState({});
 
@@ -11,65 +11,47 @@ const Sidebar = ({ selectedHomestay, role = 'owner' }) => {
     {
       title: 'Quản lý nhà nghỉ',
       icon: <FaHome />,
-      submenu: [
-        { title: 'Tất cả nhà nghỉ', path: '/owner/homestays' },
-        { title: 'Thêm nhà nghỉ', path: '/owner/homestays/add' },
-      ],
+      path: '/owner/homestays',
     },
     {
-      title: 'Quản lý nhân viên',
-      icon: <FaUsers />,
-      submenu: [
-        { title: 'Tất cả nhân viên', path: '/owner/staff' },
-        { title: 'Thêm nhân viên', path: '/owner/staff/add' },
-      ],
+      title: 'Thêm nhà nghỉ',
+      icon: <FaPlus />,
+      path: '/owner/homestays/add',
     },
   ];
 
-  // Menu khi quản lý nhà nghỉ
-  const homestayMenuItems = {
-    owner: [
-      { title: 'Dashboard', path: `/owner/homestays/${selectedHomestay}/dashboard`, icon: <FaChartLine /> },
-      { title: 'Thông tin nhà nghỉ', path: `/owner/homestays/${selectedHomestay}/info`, icon: <FaInfoCircle /> },
-      { title: 'Loại phòng', path: `/owner/homestays/${selectedHomestay}/room-types`, icon: <FaBed /> },
-      { title: 'Dịch vụ', path: `/owner/homestays/${selectedHomestay}/services`, icon: <FaTag /> },
-      {
-        title: 'Đặt phòng',
-        path: `/owner/homestays/${selectedHomestay}/bookings`,
-        icon: <FaCalendarAlt />,
-        submenu: [
-          { title: 'Tất cả đặt phòng', path: `/owner/homestays/${selectedHomestay}/bookings` },
-          { title: 'Chờ xác nhận', path: `/owner/homestays/${selectedHomestay}/bookings/pending` },
-        ],
-      },
-      { title: 'Khách hàng', path: `/owner/homestays/${selectedHomestay}/customers`, icon: <FaUsers /> },
-      { title: 'Mã giảm giá', path: `/owner/homestays/${selectedHomestay}/vouchers`, icon: <FaTicketAlt /> },
-      { title: 'Đánh giá', path: `/owner/homestays/${selectedHomestay}/ratings`, icon: <FaStar /> },
-      { title: 'Quay lại danh sách', path: '/owner/homestays', icon: <FaArrowLeft />, className: 'mt-8 pt-4 border-t border-white/10 dark:border-gray-700' },
-    ],
-    staff: [
-      { title: 'Dashboard', path: `/staff/homestays/${selectedHomestay}/dashboard`, icon: <FaChartLine /> },
-      { title: 'Thông tin nhà nghỉ', path: `/staff/homestays/${selectedHomestay}/info`, icon: <FaInfoCircle /> },
-      { title: 'Đặt phòng', path: `/staff/homestays/${selectedHomestay}/bookings`, icon: <FaCalendarAlt /> },
-      { title: 'Nhiệm vụ', path: `/staff/homestays/${selectedHomestay}/tasks`, icon: <FaUsers /> },
-    ],
-  };
+  // Menu khi quản lý nhà nghỉ cho Owner
+  const homestayMenuItems = [
+    { title: 'Dashboard', path: `/owner/homestays/${selectedHomestay}/dashboard`, icon: <FaChartLine /> },
+    { title: 'Thông tin nhà nghỉ', path: `/owner/homestays/${selectedHomestay}/info`, icon: <FaInfoCircle /> },
+    { title: 'Loại phòng', path: `/owner/homestays/${selectedHomestay}/room-types`, icon: <FaBed /> },
+    { title: 'Dịch vụ', path: `/owner/homestays/${selectedHomestay}/services`, icon: <FaTag /> },
+    {
+      title: 'Đặt phòng',
+      path: `/owner/homestays/${selectedHomestay}/bookings`,
+      icon: <FaCalendarAlt />,
+      submenu: [
+        { title: 'Tất cả đặt phòng', path: `/owner/homestays/${selectedHomestay}/bookings` },
+        { title: 'Chờ xác nhận', path: `/owner/homestays/${selectedHomestay}/bookings/pending` },
+      ],
+    },
+    { title: 'Khách hàng', path: `/owner/homestays/${selectedHomestay}/customers`, icon: <FaUsers /> },
+    { title: 'Mã giảm giá', path: `/owner/homestays/${selectedHomestay}/vouchers`, icon: <FaTicketAlt /> },
+    { title: 'Đánh giá', path: `/owner/homestays/${selectedHomestay}/ratings`, icon: <FaStar /> },
+    { title: 'Quay lại danh sách', path: '/owner/homestays', icon: <FaArrowLeft />, className: 'mt-8 pt-4 border-t border-white/10 dark:border-gray-700' },
+  ];
 
   const isManagingHomestay =
-    location.pathname.match(/^\/(owner|staff)\/homestays\/[^/]+(?!\/add)/) && !location.pathname.includes('/add');
-  const menuItems = role === 'staff' || (role === 'owner' && isManagingHomestay)
-    ? homestayMenuItems[role]
-    : defaultMenuItems;
+    location.pathname.match(/^\/(owner)\/homestays\/[^/]+(?!\/add)/) && !location.pathname.includes('/add');
+  const menuItems = isManagingHomestay ? homestayMenuItems : defaultMenuItems;
 
   const isActive = (path) => {
-    // Nếu path không tồn tại (undefined), trả về false
     if (!path) return false;
     if (path === location.pathname) return true;
     if (path.includes('/bookings') && location.pathname.includes('/bookings')) return true;
     return false;
   };
 
-  // Kiểm tra submenu active
   const isSubmenuActive = (path) => {
     return location.pathname === path;
   };
@@ -87,7 +69,7 @@ const Sidebar = ({ selectedHomestay, role = 'owner' }) => {
         <div className="flex items-center gap-3 mb-8 px-2">
           <FaHome className="text-3xl text-white dark:text-primary" />
           <h2 className="font-bold text-xl text-white dark:text-primary">
-            {role === 'owner' && !isManagingHomestay ? 'Owner Panel' : 'Quản lý nhà nghỉ'}
+            {!isManagingHomestay ? 'Owner Panel' : 'Quản lý nhà nghỉ'}
           </h2>
         </div>
 
