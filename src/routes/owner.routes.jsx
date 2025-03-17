@@ -7,6 +7,7 @@ import HomestayDetail from '../pages/owner/HomestayDetail';
 import RoomTypeList from '../pages/owner/RoomTypeList';
 import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
 import RatingList from '../pages/owner/RatingList';
+import AddHomestay from '../pages/owner/AddHomestay';
 
 
 export const ownerRoutes = [
@@ -16,7 +17,7 @@ export const ownerRoutes = [
   },
   {
     path: "/owner/homestays/add",
-    element: null, // <OwnerAddHomestay />
+    element: <AddHomestay />
   },
   {
     path: "/owner/homestays/:id/dashboard",
