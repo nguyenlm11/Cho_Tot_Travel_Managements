@@ -26,6 +26,7 @@ const Login = () => {
         setLoading(true);
         try {
             // API call here
+            await new Promise(resolve => setTimeout(resolve, 1000));
             toast.success('Đăng nhập thành công!', {
                 duration: 3000,
                 position: 'top-right',
@@ -35,7 +36,7 @@ const Login = () => {
                     border: '1px solid #6EE7B7'
                 }
             });
-            navigate('/dashboard');
+            navigate('/owner/homestays');
         } catch (error) {
             toast.error('Email hoặc mật khẩu không chính xác!', {
                 duration: 3000,
@@ -58,9 +59,9 @@ const Login = () => {
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                 {/* Background Image với Overlay */}
                 <div className="absolute inset-0">
-                    <img 
-                        src="https://images.unsplash.com/photo-1584132915807-fd1f5fbc078f" 
-                        alt="Luxury Homestay" 
+                    <img
+                        src="https://images.unsplash.com/photo-1584132915807-fd1f5fbc078f"
+                        alt="Luxury Homestay"
                         className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary-dark/90" />
@@ -85,10 +86,10 @@ const Login = () => {
                 {/* Additional Decorative Elements */}
                 <div className="absolute top-0 right-0 z-10">
                     <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
-                        <path 
-                            d="M200 0L200 200L0 200" 
-                            stroke="white" 
-                            strokeOpacity="0.1" 
+                        <path
+                            d="M200 0L200 200L0 200"
+                            stroke="white"
+                            strokeOpacity="0.1"
                             strokeWidth="40"
                         />
                     </svg>
