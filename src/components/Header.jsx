@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '../contexts/ThemeContext';
@@ -9,6 +9,7 @@ const Header = () => {
   const { isDarkMode } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications] = useState([]);
+  const navigate = useNavigate();
 
   const menuVariants = {
     hidden: { opacity: 0, y: -10 },
@@ -120,6 +121,7 @@ const Header = () => {
 
                   <div className="border-t border-gray-200 dark:border-gray-700 py-1">
                     <button
+                      onClick={() => navigate('/login')}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 
                         hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
                     >
