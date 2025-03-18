@@ -1,0 +1,244 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FaEnvelope, FaLock, FaGoogle, FaFacebook, FaApple, FaHome } from 'react-icons/fa';
+import { toast, Toaster } from 'react-hot-toast';
+
+const Login = () => {
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        remember: false
+    });
+    const [loading, setLoading] = useState(false);
+
+    const handleInputChange = (e) => {
+        const { name, value, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === 'remember' ? checked : value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            // API call here
+            toast.success('Đăng nhập thành công!', {
+                duration: 3000,
+                position: 'top-right',
+                style: {
+                    background: '#ECFDF5',
+                    color: '#065F46',
+                    border: '1px solid #6EE7B7'
+                }
+            });
+            navigate('/dashboard');
+        } catch (error) {
+            toast.error('Email hoặc mật khẩu không chính xác!', {
+                duration: 3000,
+                position: 'top-right',
+                style: {
+                    background: '#FEE2E2',
+                    color: '#991B1B',
+                    border: '1px solid #FCA5A5'
+                }
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex">
+            <Toaster />
+            {/* Left Section */}
+            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary-dark p-12 relative">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex flex-col justify-center"
+                >
+                    <h1 className="text-6xl font-bold text-white mb-6">
+                        Homestay<br />Manager
+                    </h1>
+                    <p className="text-white/80 text-lg">
+                        Nền tảng quản lý nhà nghỉ chuyên nghiệp dành cho chủ nhà và quản trị viên
+                    </p>
+                </motion.div>
+                <div className="absolute bottom-0 right-0">
+                    <svg width="300" height="300" viewBox="0 0 300 300" fill="none">
+                        <circle cx="150" cy="150" r="100" stroke="white" strokeOpacity="0.1" strokeWidth="2" />
+                        <circle cx="150" cy="150" r="50" fill="white" fillOpacity="0.1" />
+                    </svg>
+                </div>
+            </div>
+
+            {/* Right Section */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="max-w-md w-full"
+                >
+                    {/* Logo */}
+                    <div className="text-center mb-8">
+                        <div className="flex items-center justify-center gap-2 mb-6">
+                            <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-xl">
+                                <FaHome className="w-8 h-8 text-primary" />
+                            </div>
+                            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-dark 
+                bg-clip-text text-transparent">
+                                Homestay Manager
+                            </span>
+                        </div>
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                            Đăng nhập vào tài khoản
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Chào mừng bạn trở lại! Vui lòng đăng nhập để tiếp tục.
+                        </p>
+                    </div>
+
+                    {/* Login Form */}
+                    <motion.form
+                        onSubmit={handleSubmit}
+                        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border 
+              border-gray-200 dark:border-gray-700 p-8 space-y-6"
+                    >
+                        {/* Email Field */}
+                        <div>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                Email
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-4 flex items-center">
+                                    <FaEnvelope className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    required
+                                    className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                    focus:ring-4 focus:ring-primary/20 focus:border-primary
+                    transition-all duration-200"
+                                    placeholder="Nhập email của bạn"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password Field */}
+                        <div>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                Mật khẩu
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-4 flex items-center">
+                                    <FaLock className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    required
+                                    className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                    focus:ring-4 focus:ring-primary/20 focus:border-primary
+                    transition-all duration-200"
+                                    placeholder="Nhập mật khẩu của bạn"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Remember & Forgot Password */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    name="remember"
+                                    checked={formData.remember}
+                                    onChange={handleInputChange}
+                                    className="h-4 w-4 text-primary focus:ring-primary 
+                    border-gray-300 rounded"
+                                />
+                                <label className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                                    Ghi nhớ đăng nhập
+                                </label>
+                            </div>
+                            <Link
+                                to="/forgot-password"
+                                className="text-sm text-primary hover:text-primary-dark transition-colors"
+                            >
+                                Quên mật khẩu?
+                            </Link>
+                        </div>
+
+                        {/* Login Button */}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-dark
+                text-white rounded-xl font-medium transition-all duration-200 
+                hover:shadow-lg hover:shadow-primary/25
+                disabled:opacity-50 disabled:cursor-not-allowed
+                flex items-center justify-center gap-2"
+                        >
+                            {loading ? (
+                                <span className="animate-spin">⏳</span>
+                            ) : 'Đăng nhập'}
+                        </button>
+
+                        {/* Divider */}
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">hoặc</span>
+                            </div>
+                        </div>
+
+                        {/* Social Login */}
+                        <div className="flex justify-center space-x-4">
+                            {[FaGoogle, FaFacebook, FaApple].map((Icon, index) => (
+                                <motion.button
+                                    key={index}
+                                    type="button"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600
+                    hover:border-primary dark:hover:border-primary
+                    hover:bg-primary/5 dark:hover:bg-primary/10
+                    transition-all duration-200"
+                                >
+                                    <Icon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                                </motion.button>
+                            ))}
+                        </div>
+                    </motion.form>
+
+                    {/* Register Link */}
+                    <p className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
+                        Chưa có tài khoản?{' '}
+                        <Link
+                            to="/register"
+                            className="font-medium text-primary hover:text-primary-dark 
+                transition-colors duration-200"
+                        >
+                            Đăng ký ngay
+                        </Link>
+                    </p>
+                </motion.div>
+            </div>
+        </div>
+    );
+};
+
+export default Login; 
