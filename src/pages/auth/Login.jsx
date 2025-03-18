@@ -55,24 +55,42 @@ const Login = () => {
         <div className="min-h-screen flex">
             <Toaster />
             {/* Left Section */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary-dark p-12 relative">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="flex flex-col justify-center"
-                >
-                    <h1 className="text-6xl font-bold text-white mb-6">
-                        Homestay<br />Manager
-                    </h1>
-                    <p className="text-white/80 text-lg">
-                        Nền tảng quản lý nhà nghỉ chuyên nghiệp dành cho chủ nhà và quản trị viên
-                    </p>
-                </motion.div>
-                <div className="absolute bottom-0 right-0">
-                    <svg width="300" height="300" viewBox="0 0 300 300" fill="none">
-                        <circle cx="150" cy="150" r="100" stroke="white" strokeOpacity="0.1" strokeWidth="2" />
-                        <circle cx="150" cy="150" r="50" fill="white" fillOpacity="0.1" />
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+                {/* Background Image với Overlay */}
+                <div className="absolute inset-0">
+                    <img 
+                        src="https://images.unsplash.com/photo-1584132915807-fd1f5fbc078f" 
+                        alt="Luxury Homestay" 
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary-dark/90" />
+                </div>
+
+                {/* Content */}
+                <div className="relative z-10 p-12 flex flex-col justify-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <h1 className="text-6xl font-bold text-white mb-6">
+                            Homestay<br />Manager
+                        </h1>
+                        <p className="text-white/80 text-lg">
+                            Nền tảng quản lý nhà nghỉ chuyên nghiệp dành cho chủ nhà và quản trị viên
+                        </p>
+                    </motion.div>
+                </div>
+
+                {/* Additional Decorative Elements */}
+                <div className="absolute top-0 right-0 z-10">
+                    <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
+                        <path 
+                            d="M200 0L200 200L0 200" 
+                            stroke="white" 
+                            strokeOpacity="0.1" 
+                            strokeWidth="40"
+                        />
                     </svg>
                 </div>
             </div>
