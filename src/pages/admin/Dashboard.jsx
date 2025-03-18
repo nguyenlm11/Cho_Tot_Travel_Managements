@@ -129,8 +129,22 @@ export default function AdminDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-12 -mt-1">Trang quản lý doanh thu</h1>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+            <div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-8 flex justify-between items-center"
+            >
+                <div>
+                    <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                        Trang quản lý doanh thu
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-400">
+                        Xem thông tin chi tiết của tất cả doanh thu
+                    </p>
+                </div>
+
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 {/* Tổng số khách hàng */}

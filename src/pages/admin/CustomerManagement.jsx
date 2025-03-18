@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { FaSearch, FaUserEdit, FaTrashAlt, FaUserPlus, FaEye, FaLock, FaUnlock } from 'react-icons/fa';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FaSearch, FaUserEdit, FaTrashAlt, FaUserPlus, FaEye, FaLock, FaUnlock, FaUser, FaEnvelope, FaPhone, FaSort, FaArrowDown, FaArrowUp } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 
 const mockData = Array.from({ length: 20 }, (_, index) => ({
@@ -15,7 +15,49 @@ export default function CustomerManagement() {
     const [customers, setCustomers] = useState(mockData);
     const [searchText, setSearchText] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [sortDirection, setSortDirection] = useState(null); // null, 'asc', or 'desc'
     const itemsPerPage = 10;
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newCustomer, setNewCustomer] = useState({
+        fullName: '',
+        email: '',
+        phone: '',
+        status: 'active'
+    });
+
+    // Tính toán số lượng khách hàng
+    const totalCustomers = customers.length;
+    const activeCustomers = customers.filter(customer => customer.status === 'active').length;
+    const inactiveCustomers = customers.filter(customer => customer.status === 'inactive').length;
+
+    const handleSort = () => {
+        const newDirection = sortDirection === null ? 'asc' : sortDirection === 'asc' ? 'desc' : null;
+        setSortDirection(newDirection);
+
+        if (newDirection === null) {
+            setCustomers(mockData); // Reset to original order
+            return;
+        }
+
+        const sortedCustomers = [...customers].sort((a, b) => {
+            const numA = parseInt(a.fullName.match(/\d+/)[0]);
+            const numB = parseInt(b.fullName.match(/\d+/)[0]);
+
+            if (newDirection === 'asc') {
+                return numA - numB; // Sắp xếp tăng dần theo số
+            } else {
+                return numB - numA; // Sắp xếp giảm dần theo số
+            }
+        });
+
+        setCustomers(sortedCustomers);
+    };
+
+    const getSortIcon = () => {
+        if (sortDirection === null) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
+        if (sortDirection === 'asc') return <FaArrowDown className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
+        return <FaArrowUp className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
+    };
 
     const filteredCustomers = customers.filter(customer =>
         customer.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -43,11 +85,24 @@ export default function CustomerManagement() {
         );
     };
 
+    const handleAddCustomer = () => {
+        if (newCustomer.fullName && newCustomer.email && newCustomer.phone) {
+            setCustomers(prev => [
+                ...prev,
+                { id: customers.length + 1, ...newCustomer }
+            ]);
+            setNewCustomer({ fullName: '', email: '', phone: '', status: 'active' });
+            setIsModalOpen(false);
+        } else {
+            alert("Vui lòng điền đầy đủ thông tin!");
+        }
+    };
+
     return (
         <div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="min-h-screen bg-gray-50 p-6"
+            className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6"
         >
             <div
                 initial={{ opacity: 0, y: -20 }}
@@ -55,20 +110,126 @@ export default function CustomerManagement() {
                 className="mb-8 flex justify-between items-center"
             >
                 <div>
-                    <h1 className="text-4xl font-bold text-gray-800 mb-2">
+                    <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
                         Quản lý khách hàng
                     </h1>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400">
                         Xem thông tin chi tiết của tất cả khách hàng
                     </p>
                 </div>
-                <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
-                    Thêm người dùng
-                </button>
+
             </div>
 
-            <div className="mb-4">
-                <div className="relative max-w-xs">
+            {/* Hiển thị tổng số khách hàng */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 
+                        dark:from-blue-600 dark:to-blue-700 rounded-xl p-6"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/10 rounded-lg">
+                            <FaUser className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-white/80 text-sm">Tổng số khách hàng</p>
+                            <p className="text-white text-2xl font-bold">{totalCustomers}</p>
+                        </div>
+                    </div>
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-green-500 to-green-600 
+                        dark:from-green-600 dark:to-green-700 rounded-xl p-6"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/10 rounded-lg">
+                            <FaUser className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-white/80 text-sm">Tổng số khách hàng hoạt động</p>
+                            <p className="text-white text-2xl font-bold">{activeCustomers}</p>
+                        </div>
+                    </div>
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-red-500 to-red-600 
+                        dark:from-red-600 dark:to-red-700 rounded-xl p-6"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/10 rounded-lg">
+                            <FaUser className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-white/80 text-sm">Tổng số khách hàng không hoạt động</p>
+                            <p className="text-white text-2xl font-bold">{inactiveCustomers}</p>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+
+            {isModalOpen && (
+                <motion.div
+                    className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                >
+                    <div className="bg-white dark:bg-gray-800 overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 w-96">
+                        <div className="flex justify-between items-center mb-8">
+                            <h2 className="text-2xl font-bold">Thêm người dùng</h2>
+                            <button onClick={() => setIsModalOpen(false)}>
+                                <IoClose className="w-6 h-6 text-gray-500" />
+                            </button>
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-white">Họ và tên</label>
+                            <input
+                                type="text"
+                                value={newCustomer.fullName}
+                                onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value })}
+                                className="mt-1 block w-full border border-gray-300 text-gray-800 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                placeholder="Nhập họ và tên"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-white">Email</label>
+                            <input
+                                type="email"
+                                value={newCustomer.email}
+                                onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                                className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                placeholder="Nhập email"
+                            />
+                        </div>
+                        <div className="mb-8">
+                            <label className="block text-sm font-medium text-white">Số điện thoại</label>
+                            <input
+                                type="text"
+                                value={newCustomer.phone}
+                                onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                                className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                placeholder="Nhập số điện thoại"
+                            />
+                        </div>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleAddCustomer}
+                                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
+                            >
+                                Thêm
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
+            <div className="mb-4 flex justify-between items-center">
+                <div className="relative w-2/6">
                     <input
                         type="text"
                         className="w-full p-3 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-800"
@@ -86,67 +247,130 @@ export default function CustomerManagement() {
                         </button>
                     )}
                 </div>
-
+                <div>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                    >
+                        <div className="flex justify-center items-center">
+                            <FaUserPlus className="mr-2" />
+                            <p>Thêm người dùng</p>
+                        </div>
+                    </button>
+                </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-blue-100">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-blue-800">Họ và tên</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-blue-800">Email</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-blue-800">Số điện thoại</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-blue-800">Trạng thái</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-blue-800">Thao tác</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">
+                                    <button
+                                        onClick={handleSort}
+                                        className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none"
+                                    >
+                                        Họ và tên
+                                        {getSortIcon()}
+                                    </button>
+                                </th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Email</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Số điện thoại</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Trạng thái</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             <AnimatePresence>
-                                {paginatedCustomers.map(customer => (
-                                    <tr
+                                {paginatedCustomers.map((customer, index) => (
+                                    <motion.tr
                                         key={customer.id}
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
-                                        transition={{ delay: 0.1 }}
-                                        className="hover:bg-blue-50 transition-colors"
+                                        transition={{ delay: index * 0.05 }}
+                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
-                                        <td className="py-3 px-6 text-sm text-gray-700">{customer.fullName}</td>
-                                        <td className="py-3 px-6 text-sm text-gray-700">{customer.email}</td>
-                                        <td className="py-3 px-6 text-sm text-gray-700">{customer.phone}</td>
-                                        <td className="py-3 px-6 text-sm text-gray-700">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${customer.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                                    <FaUser className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                                </div>
+                                                <div className="font-medium text-gray-900 dark:text-white">
+                                                    {customer.fullName}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-2">
+                                                <FaEnvelope className="text-primary w-4 h-4" />
+                                                <span className="text-gray-600 dark:text-gray-400">
+                                                    {customer.email}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-2">
+                                                <FaPhone className="text-primary w-4 h-4" />
+                                                <span className="text-gray-600 dark:text-gray-400">
+                                                    {customer.phone}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${customer.status === 'active'
+                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                                }`}>
                                                 {customer.status === 'active' ? 'Hoạt động' : 'Đã khóa'}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-6 text-sm text-gray-700">
-                                            <div className="flex items-center space-x-4">
-                                                <button className="text-blue-500 hover:text-blue-700">
-                                                    <FaEye />
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-3">
+                                                <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                                    <FaEye className="w-4 h-4 text-blue-500 hover:text-blue-600" />
                                                 </button>
-                                                <button className="text-yellow-500 hover:text-yellow-700">
-                                                    <FaUserEdit />
+                                                <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                                    <FaUserEdit className="w-4 h-4 text-yellow-500 hover:text-yellow-600" />
                                                 </button>
                                                 <button
-                                                    className="text-red-500 hover:text-red-700"
+                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                                                     onClick={() => handleDelete(customer.id)}
                                                 >
-                                                    <FaTrashAlt />
+                                                    <FaTrashAlt className="w-4 h-4 text-red-500 hover:text-red-600" />
                                                 </button>
                                                 <button
-                                                    className="text-gray-500 hover:text-gray-700"
+                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                                                     onClick={() => handleStatusChange(customer.id)}
                                                 >
-                                                    {customer.status === 'active' ? <FaLock /> : <FaUnlock />}
+                                                    {customer.status === 'active'
+                                                        ? <FaLock className="w-4 h-4 text-gray-500 hover:text-gray-600" />
+                                                        : <FaUnlock className="w-4 h-4 text-gray-500 hover:text-gray-600" />
+                                                    }
                                                 </button>
                                             </div>
                                         </td>
-                                    </tr>
+                                    </motion.tr>
                                 ))}
                             </AnimatePresence>
                         </tbody>
                     </table>
+
+                    {paginatedCustomers.length === 0 && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center py-12"
+                        >
+                            <FaUser className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-600 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                Không tìm thấy khách hàng
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400">
+                                Thử tìm kiếm với từ khóa khác
+                            </p>
+                        </motion.div>
+                    )}
                 </div>
             </div>
 
