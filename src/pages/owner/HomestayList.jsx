@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaMapMarkerAlt, FaStar, FaRegClock, FaEdit, FaTrash, FaSearch, FaFilter, FaChevronLeft, FaChevronRight, FaChartLine, FaHome, FaBed } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import { Toaster } from 'react-hot-toast';
 
 // Animation variants
 const pageVariants = {
@@ -380,179 +381,182 @@ const HomestayList = () => {
   };
 
   return (
-    <motion.div
-      variants={pageVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      className="min-h-screen bg-gray-50 dark:bg-gray-900"
-    >
-      {/* Header Section */}
+    <>
+      <Toaster />
       <motion.div
-        variants={itemVariants}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8"
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        className="min-h-screen bg-gray-50 dark:bg-gray-900"
       >
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-              Danh sách nhà nghỉ
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Quản lý tất cả các nhà nghỉ của bạn tại đây
-            </p>
-          </div>
-          <Link
-            to="/owner/homestays/add"
-            className="bg-primary hover:bg-primary-dark text-white font-semibold 
+        {/* Header Section */}
+        <motion.div
+          variants={itemVariants}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                Danh sách nhà nghỉ
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Quản lý tất cả các nhà nghỉ của bạn tại đây
+              </p>
+            </div>
+            <Link
+              to="/owner/homestays/add"
+              className="bg-primary hover:bg-primary-dark text-white font-semibold 
               px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 
               transform hover:scale-105 shadow-lg hover:shadow-primary/20"
-          >
-            <FaPlus className="w-5 h-5" />
-            Thêm nhà nghỉ mới
-          </Link>
-        </div>
-
-        {/* Stats Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-          {[
-            {
-              label: 'Tổng số nhà nghỉ',
-              value: homestays.length,
-              color: 'bg-blue-500',
-              icon: <FaHome className="w-6 h-6" />
-            },
-            {
-              label: 'Đang hoạt động',
-              value: homestays.filter(h => h.status === 'active').length,
-              color: 'bg-green-500',
-              icon: <FaHome className="w-6 h-6" />
-            },
-            {
-              label: 'Chờ duyệt',
-              value: homestays.filter(h => h.status === 'pending').length,
-              color: 'bg-yellow-500',
-              icon: <FaHome className="w-6 h-6" />
-            },
-            {
-              label: 'Không hoạt động',
-              value: homestays.filter(h => h.status === 'inactive').length,
-              color: 'bg-red-500',
-              icon: <FaHome className="w-6 h-6" />
-            }
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              variants={itemVariants}
-              className={`${stat.color} rounded-xl p-6 text-white`}
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-lg">
-                  {stat.icon}
+              <FaPlus className="w-5 h-5" />
+              Thêm nhà nghỉ mới
+            </Link>
+          </div>
+
+          {/* Stats Summary */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+            {[
+              {
+                label: 'Tổng số nhà nghỉ',
+                value: homestays.length,
+                color: 'bg-blue-500',
+                icon: <FaHome className="w-6 h-6" />
+              },
+              {
+                label: 'Đang hoạt động',
+                value: homestays.filter(h => h.status === 'active').length,
+                color: 'bg-green-500',
+                icon: <FaHome className="w-6 h-6" />
+              },
+              {
+                label: 'Chờ duyệt',
+                value: homestays.filter(h => h.status === 'pending').length,
+                color: 'bg-yellow-500',
+                icon: <FaHome className="w-6 h-6" />
+              },
+              {
+                label: 'Không hoạt động',
+                value: homestays.filter(h => h.status === 'inactive').length,
+                color: 'bg-red-500',
+                icon: <FaHome className="w-6 h-6" />
+              }
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                variants={itemVariants}
+                className={`${stat.color} rounded-xl p-6 text-white`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-lg">
+                    {stat.icon}
+                  </div>
+                  <div>
+                    <p className="text-white/80 text-sm">{stat.label}</p>
+                    <h3 className="text-2xl font-bold">{stat.value}</h3>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-white/80 text-sm">{stat.label}</p>
-                  <h3 className="text-2xl font-bold">{stat.value}</h3>
-                </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Filter Bar */}
+        <FilterBar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          handleSearch={handleSearch}
+          setActualSearchTerm={setActualSearchTerm}
+          actualSearchTerm={actualSearchTerm}
+        />
+
+        {/* Grid Layout */}
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {paginatedHomestays.map((homestay, index) => (
+            <HomestayCard key={homestay.id} homestay={homestay} index={index} />
           ))}
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* Filter Bar */}
-      <FilterBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-        handleSearch={handleSearch}
-        setActualSearchTerm={setActualSearchTerm}
-        actualSearchTerm={actualSearchTerm}
-      />
-
-      {/* Grid Layout */}
-      <motion.div
-        variants={itemVariants}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        {paginatedHomestays.map((homestay, index) => (
-          <HomestayCard key={homestay.id} homestay={homestay} index={index} />
-        ))}
-      </motion.div>
-
-      {/* Empty State */}
-      <AnimatePresence>
-        {filteredHomestays.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl
+        {/* Empty State */}
+        <AnimatePresence>
+          {filteredHomestays.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl
               border border-gray-100 dark:border-gray-700 mt-6"
-          >
-            <div className="text-gray-400 dark:text-gray-500 mb-4">
-              <FaSearch className="mx-auto w-16 h-16" />
-            </div>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-              {homestays.length === 0 ? "Chưa có nhà nghỉ nào" : "Không tìm thấy kết quả"}
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {homestays.length === 0
-                ? "Bắt đầu bằng cách thêm nhà nghỉ đầu tiên của bạn"
-                : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
-            </p>
-            {homestays.length === 0 && (
-              <Link
-                to="/owner/homestays/add"
-                className="inline-flex items-center px-6 py-3 bg-primary text-white 
+            >
+              <div className="text-gray-400 dark:text-gray-500 mb-4">
+                <FaSearch className="mx-auto w-16 h-16" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                {homestays.length === 0 ? "Chưa có nhà nghỉ nào" : "Không tìm thấy kết quả"}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                {homestays.length === 0
+                  ? "Bắt đầu bằng cách thêm nhà nghỉ đầu tiên của bạn"
+                  : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
+              </p>
+              {homestays.length === 0 && (
+                <Link
+                  to="/owner/homestays/add"
+                  className="inline-flex items-center px-6 py-3 bg-primary text-white 
                   font-semibold rounded-xl hover:bg-primary-dark transition-all 
                   duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
-              >
-                <FaPlus className="w-5 h-5 mr-2" />
-                Thêm nhà nghỉ
-              </Link>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                >
+                  <FaPlus className="w-5 h-5 mr-2" />
+                  Thêm nhà nghỉ
+                </Link>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            className={`p-2 rounded-lg ${currentPage === 1
-              ? 'text-gray-400 cursor-not-allowed'
-              : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-          >
-            <FaChevronLeft className="w-5 h-5" />
-          </button>
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8">
             <button
-              key={number}
-              onClick={() => setCurrentPage(number)}
-              className={`w-10 h-10 rounded-lg ${number === currentPage
-                ? 'bg-primary text-white'
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-lg ${currentPage === 1
+                ? 'text-gray-400 cursor-not-allowed'
                 : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
             >
-              {number}
+              <FaChevronLeft className="w-5 h-5" />
             </button>
-          ))}
 
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-            className={`p-2 rounded-lg ${currentPage === totalPages
-              ? 'text-gray-400 cursor-not-allowed'
-              : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-          >
-            <FaChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      )}
-    </motion.div>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+              <button
+                key={number}
+                onClick={() => setCurrentPage(number)}
+                className={`w-10 h-10 rounded-lg ${number === currentPage
+                  ? 'bg-primary text-white'
+                  : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+              >
+                {number}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-lg ${currentPage === totalPages
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+            >
+              <FaChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+      </motion.div>
+    </>
   );
 };
 

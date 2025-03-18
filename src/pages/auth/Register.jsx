@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-    FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt, 
-    FaGoogle, FaFacebook, FaApple, FaHome, FaEye, FaEyeSlash 
-} from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt, FaGoogle, FaFacebook, FaApple, FaHome, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
 
 const Register = () => {
@@ -51,16 +48,8 @@ const Register = () => {
 
         try {
             // API call here
-            toast.success('Đăng ký thành công!', {
-                duration: 3000,
-                position: 'top-right',
-                style: {
-                    background: '#ECFDF5',
-                    color: '#065F46',
-                    border: '1px solid #6EE7B7'
-                }
-            });
-            navigate('/login');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            navigate('/otp-verification', { state: { email: formData.email } });
         } catch (error) {
             toast.error('Có lỗi xảy ra khi đăng ký!', {
                 duration: 3000,
@@ -83,9 +72,9 @@ const Register = () => {
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                 {/* Background Image với Overlay */}
                 <div className="absolute inset-0">
-                    <img 
-                        src="https://images.unsplash.com/photo-1582719508461-905c673771fd" 
-                        alt="Luxury Homestay" 
+                    <img
+                        src="https://images.unsplash.com/photo-1582719508461-905c673771fd"
+                        alt="Luxury Homestay"
                         className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary-dark/90" />
