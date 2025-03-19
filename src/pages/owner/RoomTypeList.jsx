@@ -464,174 +464,172 @@ const RoomTypeList = () => {
             exit="exit"
             className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
-            <div className="container">
-                {/* Header Section */}
-                <motion.div
-                    variants={itemVariants}
-                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
-                >
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div>
-                            <h1 className="text-4xl font-bold bg-clip-text text-transparent 
+            {/* Header Section */}
+            <motion.div
+                variants={itemVariants}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
+            >
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h1 className="text-4xl font-bold bg-clip-text text-transparent 
                 bg-gradient-to-r from-primary via-primary-dark to-primary 
                 tracking-tight mb-2 dark:text-white">
-                                Quản lý loại phòng
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Quản lý tất cả các loại phòng của nhà nghỉ
-                            </p>
-                        </div>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                                setSelectedRoomType(null);
-                                setIsModalOpen(true);
-                            }}
-                            className="bg-gradient-to-r from-primary to-primary-dark text-white 
+                            Quản lý loại phòng
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Quản lý tất cả các loại phòng của nhà nghỉ
+                        </p>
+                    </div>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                            setSelectedRoomType(null);
+                            setIsModalOpen(true);
+                        }}
+                        className="bg-gradient-to-r from-primary to-primary-dark text-white 
                 font-semibold px-6 py-3 rounded-xl flex items-center gap-2 
                 shadow-lg hover:shadow-primary/20 transition-all duration-300"
-                        >
-                            <FaPlus className="text-white" />
-                            Thêm loại phòng mới
-                        </motion.button>
-                    </div>
-
-                    {/* Stats Grid adjusted for 3 items */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                        {[
-                            {
-                                label: 'Tổng số loại phòng',
-                                value: roomTypes.length,
-                                icon: <FaBed className="w-6 h-6" />,
-                                gradient: 'from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700',
-                                iconBg: 'bg-blue-400/20',
-                                hoverGradient: 'hover:from-blue-600 hover:to-blue-700'
-                            },
-                            {
-                                label: 'Đang hoạt động',
-                                value: roomTypes.filter(r => r.status === 'active').length,
-                                icon: <FaCheckCircle className="w-6 h-6" />,
-                                gradient: 'from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700',
-                                iconBg: 'bg-emerald-400/20',
-                                hoverGradient: 'hover:from-emerald-600 hover:to-emerald-700'
-                            },
-                            {
-                                label: 'Không hoạt động',
-                                value: roomTypes.filter(r => r.status === 'inactive').length,
-                                icon: <FaTimesCircle className="w-6 h-6" />,
-                                gradient: 'from-rose-500 to-rose-600 dark:from-rose-600 dark:to-rose-700',
-                                iconBg: 'bg-rose-400/20',
-                                hoverGradient: 'hover:from-rose-600 hover:to-rose-700'
-                            }
-                        ].map((stat, index) => (
-                            <motion.div
-                                key={stat.label}
-                                className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
-                    rounded-xl shadow-lg dark:shadow-gray-900/30`}
-                            >
-                                <div className="p-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-3 rounded-lg ${stat.iconBg}`}>
-                                            <div className="text-white">
-                                                {stat.icon}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p className="text-white/80 text-sm font-medium">
-                                                {stat.label}
-                                            </p>
-                                            <h3 className="text-white text-2xl font-bold mt-1">
-                                                {stat.value.toLocaleString()}
-                                            </h3>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-
-                {/* Enhanced FilterBar */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
-                >
-                    <FilterBar
-                        searchTerm={searchTerm}
-                        setSearchTerm={setSearchTerm}
-                        selectedStatus={selectedStatus}
-                        setSelectedStatus={setSelectedStatus}
-                        handleSearch={handleSearch}
-                        setActualSearchTerm={setActualSearchTerm}
-                        actualSearchTerm={actualSearchTerm}
-                    />
-                </motion.div>
-
-                {/* Room Type Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <AnimatePresence>
-                        {paginatedRoomTypes.map((roomType) => (
-                            <RoomTypeCard
-                                key={roomType.id}
-                                roomType={roomType}
-                                onView={handleViewRoomType}
-                                onEdit={handleEditRoomType}
-                                onDelete={handleDeleteRoomType}
-                            />
-                        ))}
-                    </AnimatePresence>
+                    >
+                        <FaPlus className="text-white" />
+                        Thêm loại phòng mới
+                    </motion.button>
                 </div>
 
-                {/* Empty State */}
-                <AnimatePresence>
-                    {filteredRoomTypes.length === 0 && (
+                {/* Stats Grid adjusted for 3 items */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                    {[
+                        {
+                            label: 'Tổng số loại phòng',
+                            value: roomTypes.length,
+                            icon: <FaBed className="w-6 h-6" />,
+                            gradient: 'from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700',
+                            iconBg: 'bg-blue-400/20',
+                            hoverGradient: 'hover:from-blue-600 hover:to-blue-700'
+                        },
+                        {
+                            label: 'Đang hoạt động',
+                            value: roomTypes.filter(r => r.status === 'active').length,
+                            icon: <FaCheckCircle className="w-6 h-6" />,
+                            gradient: 'from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700',
+                            iconBg: 'bg-emerald-400/20',
+                            hoverGradient: 'hover:from-emerald-600 hover:to-emerald-700'
+                        },
+                        {
+                            label: 'Không hoạt động',
+                            value: roomTypes.filter(r => r.status === 'inactive').length,
+                            icon: <FaTimesCircle className="w-6 h-6" />,
+                            gradient: 'from-rose-500 to-rose-600 dark:from-rose-600 dark:to-rose-700',
+                            iconBg: 'bg-rose-400/20',
+                            hoverGradient: 'hover:from-rose-600 hover:to-rose-700'
+                        }
+                    ].map((stat, index) => (
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
-                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
+                            key={stat.label}
+                            className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
+                    rounded-xl shadow-lg dark:shadow-gray-900/30`}
                         >
-                            <div className="text-gray-400 dark:text-gray-500 mb-4">
-                                <FaBed className="mx-auto w-16 h-16" />
+                            <div className="p-6">
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-3 rounded-lg ${stat.iconBg}`}>
+                                        <div className="text-white">
+                                            {stat.icon}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-white/80 text-sm font-medium">
+                                            {stat.label}
+                                        </p>
+                                        <h3 className="text-white text-2xl font-bold mt-1">
+                                            {stat.value.toLocaleString()}
+                                        </h3>
+                                    </div>
+                                </div>
                             </div>
-                            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                                {roomTypes.length === 0 ? "Chưa có loại phòng nào" : "Không tìm thấy kết quả"}
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-400 mb-6">
-                                {roomTypes.length === 0
-                                    ? "Bắt đầu bằng cách thêm loại phòng đầu tiên"
-                                    : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
-                            </p>
-                            {roomTypes.length === 0 && (
-                                <button
-                                    onClick={() => {
-                                        setSelectedRoomType(null);
-                                        setIsModalOpen(true);
-                                    }}
-                                    className="inline-flex items-center px-6 py-3 bg-primary text-white 
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
+
+            {/* Enhanced FilterBar */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
+            >
+                <FilterBar
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    selectedStatus={selectedStatus}
+                    setSelectedStatus={setSelectedStatus}
+                    handleSearch={handleSearch}
+                    setActualSearchTerm={setActualSearchTerm}
+                    actualSearchTerm={actualSearchTerm}
+                />
+            </motion.div>
+
+            {/* Room Type Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence>
+                    {paginatedRoomTypes.map((roomType) => (
+                        <RoomTypeCard
+                            key={roomType.id}
+                            roomType={roomType}
+                            onView={handleViewRoomType}
+                            onEdit={handleEditRoomType}
+                            onDelete={handleDeleteRoomType}
+                        />
+                    ))}
+                </AnimatePresence>
+            </div>
+
+            {/* Empty State */}
+            <AnimatePresence>
+                {filteredRoomTypes.length === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
+                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
+                    >
+                        <div className="text-gray-400 dark:text-gray-500 mb-4">
+                            <FaBed className="mx-auto w-16 h-16" />
+                        </div>
+                        <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                            {roomTypes.length === 0 ? "Chưa có loại phòng nào" : "Không tìm thấy kết quả"}
+                        </h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">
+                            {roomTypes.length === 0
+                                ? "Bắt đầu bằng cách thêm loại phòng đầu tiên"
+                                : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
+                        </p>
+                        {roomTypes.length === 0 && (
+                            <button
+                                onClick={() => {
+                                    setSelectedRoomType(null);
+                                    setIsModalOpen(true);
+                                }}
+                                className="inline-flex items-center px-6 py-3 bg-primary text-white 
                                         font-semibold rounded-xl hover:bg-primary-dark transition-all 
                                         duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
-                                >
-                                    <FaPlus className="text-white" />
-                                    Thêm loại phòng
-                                </button>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                            >
+                                <FaPlus className="text-white" />
+                                Thêm loại phòng
+                            </button>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                {/* Pagination */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="mt-8"
-                >
-                    <Pagination />
-                </motion.div>
-            </div>
+            {/* Pagination */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-8"
+            >
+                <Pagination />
+            </motion.div>
         </motion.div>
     );
 };

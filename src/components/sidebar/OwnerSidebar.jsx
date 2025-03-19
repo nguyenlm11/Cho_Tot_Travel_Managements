@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft, FaTag, FaStar, FaChevronDown } from 'react-icons/fa';
+import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft, FaTag, FaStar, FaChevronDown, FaChevronRight, FaBars } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Sidebar = ({ selectedHomestay }) => {
+const Sidebar = ({ selectedHomestay, isCollapsed }) => {
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState({});
 
@@ -64,91 +65,106 @@ const Sidebar = ({ selectedHomestay }) => {
   };
 
   return (
-    <div className="w-72 h-screen bg-primary dark:bg-gray-900 text-white fixed left-0 top-0 overflow-y-auto">
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-8 px-2">
-          <FaHome className="text-3xl text-white dark:text-primary" />
-          <h2 className="font-bold text-xl text-white dark:text-primary">
-            {!isManagingHomestay ? 'Owner Panel' : 'Quản lý nhà nghỉ'}
-          </h2>
+    <motion.div
+      className={`${isCollapsed ? 'w-20' : 'w-72'} h-screen bg-primary dark:bg-gray-900 
+        text-white fixed left-0 top-0 overflow-y-auto transition-all duration-300`}
+    >
+      <div className={`${isCollapsed ? 'p-4' : 'p-6'}`}>
+        {/* Header */}
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-8`}>
+          <AnimatePresence mode="wait">
+            {!isCollapsed && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-3"
+              >
+                <FaHome className="text-3xl text-white dark:text-primary" />
+                <h2 className="font-bold text-xl text-white dark:text-primary">
+                  {!isManagingHomestay ? 'Owner Panel' : 'Quản lý nhà nghỉ'}
+                </h2>
+              </motion.div>
+            )}
+            {isCollapsed && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <FaHome className="text-3xl text-white dark:text-primary" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <nav className="space-y-2">
+        {/* Menu Items */}
+        <div className="space-y-2">
           {menuItems.map((item, index) => (
-            <div key={index}>
-              {item.submenu ? (
-                <div className="space-y-1">
-                  <button
-                    onClick={() => toggleSubmenu(index)}
-                    className={`w-full flex items-center justify-between gap-3 rounded-lg
-                      ${item.className || ''}
-                      ${isActive(item.path)
-                        ? 'bg-white dark:bg-primary text-primary dark:text-white font-semibold'
-                        : 'text-white/90 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-primary/20'}
-                      transition-all duration-200 ease-in-out group p-3 px-4`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`text-xl group-hover:scale-110 transition-transform duration-200
-                          ${isActive(item.path)
-                            ? 'text-primary dark:text-white'
-                            : 'text-white/90 dark:text-gray-300'}`}
-                      >
-                        {item.icon}
-                      </span>
-                      <span className="whitespace-nowrap">{item.title}</span>
-                    </div>
-                    <FaChevronDown
-                      className={`transition-transform duration-200 ${expandedMenus[index] ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-
-                  <div
-                    className={`overflow-hidden transition-all duration-200 ${expandedMenus[index] ? 'max-h-48' : 'max-h-0'
-                      }`}
-                  >
-                    {item.submenu.map((subItem, subIndex) => (
-                      <Link
-                        key={subIndex}
-                        to={subItem.path}
-                        className={`flex items-center pl-12 py-2 rounded-lg
-                          ${isSubmenuActive(subItem.path)
-                            ? 'bg-white/10 dark:bg-primary/10 text-white font-semibold'
-                            : 'text-white/80 dark:text-gray-400 hover:bg-white/5 dark:hover:bg-primary/5'}
-                          transition-all duration-200`}
-                      >
-                        <span className="whitespace-nowrap">{subItem.title}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  to={item.path}
-                  className={`flex items-center gap-3 rounded-lg
-                    ${item.className || ''}
-                    ${isActive(item.path)
-                      ? 'bg-white dark:bg-primary text-primary dark:text-white font-semibold'
-                      : 'text-white/90 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-primary/20'}
-                    transition-all duration-200 ease-in-out group p-3 px-4`}
-                >
-                  <span
-                    className={`text-xl group-hover:scale-110 transition-transform duration-200
-                      ${isActive(item.path)
-                        ? 'text-primary dark:text-white'
-                        : 'text-white/90 dark:text-gray-300'}
-                      ${item.title === 'Quay lại danh sách' ? 'group-hover:-translate-x-1' : ''}`}
-                  >
+            <div key={item.path}>
+              <Link
+                to={item.path}
+                className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} 
+                  px-4 py-3 rounded-xl transition-all duration-200
+                  ${isActive(item.path)
+                    ? 'bg-primary text-white font-medium'
+                    : 'hover:bg-white/10 text-white/80 hover:text-white'}
+                  ${item.className || ''}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={'w-5 h-5 content-center'}>
                     {item.icon}
-                  </span>
-                  <span className="whitespace-nowrap">{item.title}</span>
-                </Link>
+                  </div>
+                  <AnimatePresence mode="wait">
+                    {!isCollapsed && (
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        {item.title}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+                {!isCollapsed && item.submenu && (
+                  <FaChevronDown
+                    className={`w-4 h-4 transition-transform duration-200
+                      ${expandedMenus[index] ? 'rotate-180' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleSubmenu(index);
+                    }}
+                  />
+                )}
+              </Link>
+
+              {/* Submenu */}
+              {!isCollapsed && item.submenu && expandedMenus[index] && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="ml-12 mt-2 space-y-2"
+                >
+                  {item.submenu.map((subItem) => (
+                    <Link
+                      key={subItem.path}
+                      to={subItem.path}
+                      className={`block py-2 px-4 rounded-lg transition-colors
+                        ${isSubmenuActive(subItem.path)
+                          ? 'bg-primary text-white font-medium'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+                    >
+                      {subItem.title}
+                    </Link>
+                  ))}
+                </motion.div>
               )}
             </div>
           ))}
-        </nav>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

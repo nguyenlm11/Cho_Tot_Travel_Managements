@@ -403,183 +403,181 @@ const RatingList = () => {
             exit="exit"
             className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
-            <div className="container">
-                {/* Header Section */}
-                <motion.div
-                    variants={itemVariants}
-                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
-                >
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div>
-                            <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                                Đánh giá từ khách hàng
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Quản lý đánh giá và phản hồi khách hàng
-                            </p>
-                        </div>
+            {/* Header Section */}
+            <motion.div
+                variants={itemVariants}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
+            >
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                            Đánh giá từ khách hàng
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Quản lý đánh giá và phản hồi khách hàng
+                        </p>
                     </div>
+                </div>
 
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-                        {[
-                            {
-                                label: 'Tổng số đánh giá',
-                                value: ratings.length,
-                                icon: <FaStar className="w-6 h-6" />,
-                                gradient: 'from-blue-500 to-blue-600',
-                                iconBg: 'bg-blue-400/20'
-                            },
-                            {
-                                label: 'Điểm trung bình',
-                                value: (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1),
-                                icon: <FaStar className="w-6 h-6" />,
-                                gradient: 'from-yellow-500 to-yellow-600',
-                                iconBg: 'bg-yellow-400/20'
-                            },
-                            {
-                                label: 'Chưa phản hồi',
-                                value: ratings.filter(r => !r.reply).length,
-                                icon: <FaExclamationTriangle className="w-6 h-6" />,
-                                gradient: 'from-red-500 to-red-600',
-                                iconBg: 'bg-red-400/20'
-                            },
-                            {
-                                label: 'Đã phản hồi',
-                                value: ratings.filter(r => r.reply).length,
-                                icon: <FaCheckCircle className="w-6 h-6" />,
-                                gradient: 'from-green-500 to-green-600',
-                                iconBg: 'bg-green-400/20'
-                            }
-                        ].map((stat, index) => (
-                            <motion.div
-                                key={stat.label}
-                                variants={itemVariants}
-                                className={`bg-gradient-to-r ${stat.gradient} rounded-xl shadow-lg`}
-                            >
-                                <div className="p-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-3 rounded-lg ${stat.iconBg}`}>
-                                            <div className="text-white">
-                                                {stat.icon}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p className="text-white/80 text-sm font-medium">
-                                                {stat.label}
-                                            </p>
-                                            <h3 className="text-white text-2xl font-bold mt-1">
-                                                {stat.value}
-                                            </h3>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    {[
+                        {
+                            label: 'Tổng số đánh giá',
+                            value: ratings.length,
+                            icon: <FaStar className="w-6 h-6" />,
+                            gradient: 'from-blue-500 to-blue-600',
+                            iconBg: 'bg-blue-400/20'
+                        },
+                        {
+                            label: 'Điểm trung bình',
+                            value: (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1),
+                            icon: <FaStar className="w-6 h-6" />,
+                            gradient: 'from-yellow-500 to-yellow-600',
+                            iconBg: 'bg-yellow-400/20'
+                        },
+                        {
+                            label: 'Chưa phản hồi',
+                            value: ratings.filter(r => !r.reply).length,
+                            icon: <FaExclamationTriangle className="w-6 h-6" />,
+                            gradient: 'from-red-500 to-red-600',
+                            iconBg: 'bg-red-400/20'
+                        },
+                        {
+                            label: 'Đã phản hồi',
+                            value: ratings.filter(r => r.reply).length,
+                            icon: <FaCheckCircle className="w-6 h-6" />,
+                            gradient: 'from-green-500 to-green-600',
+                            iconBg: 'bg-green-400/20'
+                        }
+                    ].map((stat, index) => (
+                        <motion.div
+                            key={stat.label}
+                            variants={itemVariants}
+                            className={`bg-gradient-to-r ${stat.gradient} rounded-xl shadow-lg`}
+                        >
+                            <div className="p-6">
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-3 rounded-lg ${stat.iconBg}`}>
+                                        <div className="text-white">
+                                            {stat.icon}
                                         </div>
                                     </div>
+                                    <div>
+                                        <p className="text-white/80 text-sm font-medium">
+                                            {stat.label}
+                                        </p>
+                                        <h3 className="text-white text-2xl font-bold mt-1">
+                                            {stat.value}
+                                        </h3>
+                                    </div>
                                 </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-
-                {/* Filter Bar */}
-                <motion.div
-                    variants={itemVariants}
-                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
-                >
-                    <FilterBar
-                        searchTerm={searchTerm}
-                        setSearchTerm={setSearchTerm}
-                        selectedScore={selectedScore}
-                        setSelectedScore={setSelectedScore}
-                        handleSearch={handleSearch}
-                        setActualSearchTerm={setActualSearchTerm}
-                        actualSearchTerm={actualSearchTerm}
-                    />
-                </motion.div>
-
-                {/* Ratings List */}
-                <motion.div
-                    variants={{
-                        initial: { opacity: 0 },
-                        animate: {
-                            opacity: 1,
-                            transition: {
-                                staggerChildren: 0.1
-                            }
-                        }
-                    }}
-                    initial="initial"
-                    animate="animate"
-                    className="space-y-6"
-                >
-                    {paginatedRatings.map((rating) => (
-                        <RatingCard
-                            key={rating.id}
-                            rating={rating}
-                            onReply={handleReply}
-                            onDelete={handleDelete}
-                        />
-                    ))}
-                </motion.div>
-
-                {/* Empty State */}
-                <AnimatePresence>
-                    {filteredRatings.length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
-                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
-                        >
-                            <div className="text-gray-400 dark:text-gray-500 mb-4">
-                                <FaStar className="mx-auto w-16 h-16" />
                             </div>
-                            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                                Không tìm thấy đánh giá nào
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-400">
-                                Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc
-                            </p>
                         </motion.div>
-                    )}
-                </AnimatePresence>
+                    ))}
+                </div>
+            </motion.div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-2 mt-8">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                            disabled={currentPage === 1}
-                            className={`p-2 rounded-lg ${currentPage === 1
-                                ? 'text-gray-400 cursor-not-allowed'
-                                : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                        >
-                            <FaChevronLeft className="w-5 h-5" />
-                        </button>
+            {/* Filter Bar */}
+            <motion.div
+                variants={itemVariants}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
+            >
+                <FilterBar
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    selectedScore={selectedScore}
+                    setSelectedScore={setSelectedScore}
+                    handleSearch={handleSearch}
+                    setActualSearchTerm={setActualSearchTerm}
+                    actualSearchTerm={actualSearchTerm}
+                />
+            </motion.div>
 
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                            <button
-                                key={number}
-                                onClick={() => setCurrentPage(number)}
-                                className={`w-10 h-10 rounded-lg ${number === currentPage
-                                    ? 'bg-primary text-white'
-                                    : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                            >
-                                {number}
-                            </button>
-                        ))}
+            {/* Ratings List */}
+            <motion.div
+                variants={{
+                    initial: { opacity: 0 },
+                    animate: {
+                        opacity: 1,
+                        transition: {
+                            staggerChildren: 0.1
+                        }
+                    }
+                }}
+                initial="initial"
+                animate="animate"
+                className="space-y-6"
+            >
+                {paginatedRatings.map((rating) => (
+                    <RatingCard
+                        key={rating.id}
+                        rating={rating}
+                        onReply={handleReply}
+                        onDelete={handleDelete}
+                    />
+                ))}
+            </motion.div>
 
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                            disabled={currentPage === totalPages}
-                            className={`p-2 rounded-lg ${currentPage === totalPages
-                                ? 'text-gray-400 cursor-not-allowed'
-                                : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                        >
-                            <FaChevronRight className="w-5 h-5" />
-                        </button>
-                    </div>
+            {/* Empty State */}
+            <AnimatePresence>
+                {filteredRatings.length === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
+                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
+                    >
+                        <div className="text-gray-400 dark:text-gray-500 mb-4">
+                            <FaStar className="mx-auto w-16 h-16" />
+                        </div>
+                        <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                            Không tìm thấy đánh giá nào
+                        </h3>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc
+                        </p>
+                    </motion.div>
                 )}
-            </div>
+            </AnimatePresence>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className={`p-2 rounded-lg ${currentPage === 1
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                    >
+                        <FaChevronLeft className="w-5 h-5" />
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                        <button
+                            key={number}
+                            onClick={() => setCurrentPage(number)}
+                            className={`w-10 h-10 rounded-lg ${number === currentPage
+                                ? 'bg-primary text-white'
+                                : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                        >
+                            {number}
+                        </button>
+                    ))}
+
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`p-2 rounded-lg ${currentPage === totalPages
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                    >
+                        <FaChevronRight className="w-5 h-5" />
+                    </button>
+                </div>
+            )}
         </motion.div>
     );
 };

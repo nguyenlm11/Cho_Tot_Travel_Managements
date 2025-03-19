@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import OwnerSidebar from './OwnerSidebar';
 
-const Sidebar = () => {
+const Sidebar = ({ isCollapsed }) => {
   const location = useLocation();
   const path = location.pathname;
   
@@ -20,9 +20,12 @@ const Sidebar = () => {
   return (
     <>
       {isAdmin ? (
-        <AdminSidebar />
+        <AdminSidebar isCollapsed={isCollapsed} />
       ) : (
-        <OwnerSidebar selectedHomestay={getSelectedHomestay()} />
+        <OwnerSidebar 
+          selectedHomestay={getSelectedHomestay()} 
+          isCollapsed={isCollapsed}
+        />
       )}
     </>
   );
