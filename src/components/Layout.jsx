@@ -11,10 +11,9 @@ const Layout = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   return (
-    <div className={`min-h-screen transition-colors duration-200
+    <div className={`min-h-screen flex relative overflow-hidden
       ${isDarkMode ? 'dark' : ''}
-      dark:bg-dark-background bg-light-background
-      flex relative`}
+      dark:bg-dark-background bg-light-background`}
     >
       {/* Sidebar Container */}
       <div className={`fixed left-0 top-0 h-screen z-30
@@ -54,13 +53,11 @@ const Layout = ({ children }) => {
       {/* Main Content */}
       <motion.div
         layout
-        className="min-h-screen flex-1"
-        animate={{
+        className={`flex-1 min-h-screen overflow-hidden
+          transition-all duration-300 ease-in-out`}
+        style={{
           marginLeft: isCollapsed ? '5rem' : '18rem',
-        }}
-        transition={{ 
-          duration: 0.3,
-          ease: [0.4, 0, 0.2, 1]
+          width: `calc(100% - ${isCollapsed ? '5rem' : '18rem'})`
         }}
       >
         {/* Header */}
@@ -70,7 +67,7 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Main Content */}
-        <main className="p-6 relative z-10
+        <main className="relative z-10 p-6 overflow-x-hidden
           min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))]
           dark:text-dark-text-primary text-light-text-primary">
           {children}
