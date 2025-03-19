@@ -4,6 +4,9 @@ import { Route } from 'react-router-dom';
 // Import admin components
 import AdminDashboard from '../pages/admin/Dashboard';
 import CustomerManagement from '../pages/admin/CustomerManagement';
+import PendingHomestay from '../pages/admin/PendingHomestay';
+import OwnerManagement from '../pages/admin/OwnerManagement';
+import TransactionHistory from '../pages/admin/TransactionHistory';
 // import AdminCustomers from '../pages/admin/Customers';
 // import AdminOwners from '../pages/admin/Owners';
 // import AdminHomestays from '../pages/admin/Homestays';
@@ -20,12 +23,8 @@ export const adminRoutes = [
     element: <CustomerManagement />
   },
   {
-    path: "/admin/users/customers",
-    element: null, // <AdminCustomers />
-  },
-  {
     path: "/admin/users/owners",
-    element: null, // <AdminOwners />
+    element: <OwnerManagement />, // <AdminOwners />
   },
   {
     path: "/admin/homestays/all",
@@ -33,11 +32,11 @@ export const adminRoutes = [
   },
   {
     path: "/admin/homestays/pending",
-    element: null, // <AdminPendingHomestays />
+    element: <PendingHomestay /> // <AdminPendingHomestays />
   },
   {
-    path: "/admin/revenue",
-    element: null, // <AdminRevenue />
+    path: "/admin/revenue/transactions",
+    element: <TransactionHistory />, // <AdminRevenue />
   },
 ];
 
