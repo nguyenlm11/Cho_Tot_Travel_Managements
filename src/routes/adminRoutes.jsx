@@ -8,7 +8,11 @@ export const adminRoutes = [
     element: <Dashboard />
   },
   {
-    path: 'customers',
+    path: 'users/owners',
     element: <CustomerManagement />
-  }
+  },
+  {
+    path: 'users/customers',
+    element: <CustomerManagement />
+  },
 ]; 
