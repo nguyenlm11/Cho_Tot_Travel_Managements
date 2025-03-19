@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaMapMarkerAlt, FaStar, FaRegClock, FaEdit, FaTrash, FaSearch, FaFilter, FaChevronLeft, FaChevronRight, FaChartLine, FaHome, FaBed } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { Toaster } from 'react-hot-toast';
+import CountUp from 'react-countup';
 
 // Animation variants
 const pageVariants = {
@@ -380,6 +381,27 @@ const HomestayList = () => {
     setCurrentPage(1);
   };
 
+  const statsData = [
+    {
+      label: 'Đang hoạt động',
+      value: homestays.filter(h => h.status === 'active').length,
+      color: 'bg-green-500',
+      icon: <FaHome className="w-6 h-6" />
+    },
+    {
+      label: 'Chờ phê duyệt',
+      value: homestays.filter(h => h.status === 'pending').length,
+      color: 'bg-yellow-500',
+      icon: <FaHome className="w-6 h-6" />
+    },
+    {
+      label: 'Không hoạt động',
+      value: homestays.filter(h => h.status === 'inactive').length,
+      color: 'bg-red-500',
+      icon: <FaHome className="w-6 h-6" />
+    }
+  ];
+
   return (
     <>
       <Toaster />
@@ -416,37 +438,15 @@ const HomestayList = () => {
           </div>
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-            {[
-              {
-                label: 'Tổng số nhà nghỉ',
-                value: homestays.length,
-                color: 'bg-blue-500',
-                icon: <FaHome className="w-6 h-6" />
-              },
-              {
-                label: 'Đang hoạt động',
-                value: homestays.filter(h => h.status === 'active').length,
-                color: 'bg-green-500',
-                icon: <FaHome className="w-6 h-6" />
-              },
-              {
-                label: 'Chờ duyệt',
-                value: homestays.filter(h => h.status === 'pending').length,
-                color: 'bg-yellow-500',
-                icon: <FaHome className="w-6 h-6" />
-              },
-              {
-                label: 'Không hoạt động',
-                value: homestays.filter(h => h.status === 'inactive').length,
-                color: 'bg-red-500',
-                icon: <FaHome className="w-6 h-6" />
-              }
-            ].map((stat, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {statsData.map((stat, index) => (
               <motion.div
                 key={stat.label}
                 variants={itemVariants}
                 className={`${stat.color} rounded-xl p-6 text-white`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
               >
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white/10 rounded-lg">
@@ -454,7 +454,29 @@ const HomestayList = () => {
                   </div>
                   <div>
                     <p className="text-white/80 text-sm">{stat.label}</p>
-                    <h3 className="text-2xl font-bold">{stat.value}</h3>
+                    <h3 className="text-2xl font-bold">
+                      <CountUp
+                        end={stat.value}
+                        duration={2}
+                        separator=","
+                        delay={0.5}
+                        enableScrollSpy
+                        scrollSpyOnce
+                      >
+                        {({ countUpRef }) => (
+                          <motion.span
+                            ref={countUpRef}
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 100,
+                              delay: index * 0.2
+                            }}
+                          />
+                        )}
+                      </CountUp>
+                    </h3>
                   </div>
                 </div>
               </motion.div>
