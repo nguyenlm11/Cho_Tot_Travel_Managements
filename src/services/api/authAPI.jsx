@@ -1,40 +1,48 @@
-import axios from 'axios';
-import { API_CONFIG } from '../config';
+import axiosInstance from '../config';
+import { jwtDecode } from 'jwt-decode';
 
 const authService = {
     login: async (username, password) => {
         try {
-            const response = await axios.post(`${API_CONFIG.BASE_URL}/account/login`, {
+            const response = await axiosInstance.post('/account/login', {
                 username,
                 password
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': '*/*',
-                },
-                withCredentials: true
             });
 
             if (response.data) {
-                const { token, refreshToken, userID, userName, email, name, roles } = response.data;
-                
-                // Lưu thông tin vào localStorage
+                const { token, refreshToken } = response.data;
+
+                const decodedToken = jwtDecode(token);
+                const {
+                    AccountID,
+                    given_name,
+                    email,
+                    role,
+                    exp,
+                    iat
+                } = decodedToken;
+
                 localStorage.setItem('token', token);
                 localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('userInfo', JSON.stringify({
-                    userID,
-                    userName,
+                    AccountID,
+                    given_name,
                     email,
-                    name,
-                    roles
+                    role,
+                    tokenExp: exp,
+                    tokenIat: iat
                 }));
                 localStorage.setItem('isAuthenticated', 'true');
-                
-                return response.data;
+
+                return {
+                    token,
+                    refreshToken,
+                    user: decodedToken
+                };
             }
         } catch (error) {
-            localStorage.clear(); // Đảm bảo xóa hết data nếu có lỗi
-            throw error?.response?.data || error.message;
+            localStorage.clear();
+            throw error?.response?.data || error;
         }
     },
 
@@ -42,43 +50,70 @@ const authService = {
         localStorage.clear();
     },
 
-    register: async (userData) => {
+    register: async (formData) => {
         try {
-            const response = await axios.post(`${API_CONFIG.BASE_URL}/account/register-Owner`, {
-                userName: userData.username,
-                email: userData.email,
-                password: userData.password,
-                name: userData.fullName,
-                address: userData.address,
-                phone: userData.phone,
-                taxcode: "string",
-                bankAccountNumber: "string"
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': '*/*',
-                }
-            });
+            const response = await axiosInstance.post('/account/register', formData);
             return response.data;
         } catch (error) {
-            throw error?.response?.data || error.message;
+            throw error?.response?.data || error;
         }
     },
 
     verifyOTP: async (email, otp) => {
         try {
-            const response = await axios.post(
-                `${API_CONFIG.BASE_URL}/account/confirmation/${email}/${otp}`,
-                '', // empty body
-                {
-                    headers: {
-                        'Accept': '*/*',
-                    }
-                }
-            );
+            const response = await axiosInstance.post('/account/verify-otp', {
+                email,
+                otp
+            });
             return response.data;
         } catch (error) {
-            throw error?.response?.data || error.message;
+            throw error?.response?.data || error;
+        }
+    },
+
+    resetToken: async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const refreshToken = localStorage.getItem('refreshToken');
+
+            const response = await axiosInstance.post('/account/resetToken', {
+                accessToken: token,
+                refreshToken: refreshToken
+            });
+
+            if (response.data) {
+                const { token: newToken, refreshToken: newRefreshToken } = response.data;
+
+                const decodedToken = jwtDecode(newToken);
+                const {
+                    AccountID,
+                    given_name,
+                    email,
+                    role,
+                    exp,
+                    iat
+                } = decodedToken;
+
+                localStorage.setItem('token', newToken);
+                localStorage.setItem('refreshToken', newRefreshToken);
+                localStorage.setItem('userInfo', JSON.stringify({
+                    AccountID,
+                    given_name,
+                    email,
+                    role,
+                    tokenExp: exp,
+                    tokenIat: iat
+                }));
+
+                return {
+                    token: newToken,
+                    refreshToken: newRefreshToken,
+                    user: decodedToken
+                };
+            }
+        } catch (error) {
+            localStorage.clear();
+            throw error?.response?.data || error;
         }
     }
 };

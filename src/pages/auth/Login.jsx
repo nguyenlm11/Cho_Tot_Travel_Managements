@@ -20,7 +20,7 @@ const Login = () => {
         const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
         if (isAuthenticated) {
             const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            if (userInfo?.roles?.includes('Admin')) {
+            if (userInfo?.role?.includes('Admin')) {
                 navigate('/admin/dashboard', { replace: true });
             } else {
                 navigate('/owner/homestays', { replace: true });
@@ -40,13 +40,10 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await authService.login(formData.username, formData.password);
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-
+            const { user } = await authService.login(formData.username, formData.password);
             toast.success('Đăng nhập thành công!', API_CONFIG.TOAST_CONFIG.SUCCESS);
 
-            // Sử dụng replace thay vì push để tránh quay lại trang login
-            if (userInfo.roles.includes('Admin')) {
+            if (user.role.includes('Admin')) {
                 navigate('/admin/dashboard', { replace: true });
             } else {
                 navigate('/owner/homestays', { replace: true });
