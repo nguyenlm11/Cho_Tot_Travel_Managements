@@ -52,11 +52,11 @@ const AdminSidebar = ({ isCollapsed }) => {
       path: '/admin/revenue',
       icon: <FaMoneyBillWave />,
       submenu: [
-        {
-          title: 'Thống kê doanh thu',
-          path: '/admin/revenue/statistics',
-          icon: <FaChartBar />
-        },
+        // {
+        //   title: 'Thống kê doanh thu',
+        //   path: '/admin/revenue/statistics',
+        //   icon: <FaChartBar />
+        // },
         {
           title: 'Lịch sử giao dịch',
           path: '/admin/revenue/transactions',
