@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaFilter, FaDollarSign, FaClock, FaTag, FaPlus, FaEdit, FaTrash, FaCheckCircle, FaExclamationCircle, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaDollarSign, FaClock, FaTag, FaPlus, FaEdit, FaTrash, FaCheckCircle, FaExclamationCircle, FaTimes, FaChevronLeft, FaChevronRight, FaCheck, FaChartLine } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import ServiceModal from '../../components/modals/ServiceModal';
+import CountUp from 'react-countup';
 
 // Animation variants
 const pageVariants = {
@@ -635,18 +636,33 @@ const ServiceList = () => {
         }
     };
 
-    // Thêm hàm handleViewService vào cùng vị trí với các hàm xử lý khác trong ServiceList component
-    const handleViewService = (service) => {
-        // Tạm thời chỉ log thông tin service, sau này có thể thêm logic để xem chi tiết
-        console.log('View service:', service);
-        // Có thể thêm logic để mở modal xem chi tiết
-    };
-
     // Thêm hàm handleSearch
     const handleSearch = () => {
         setActualSearchTerm(searchTerm);
         setCurrentPage(1);
     };
+
+    const statsData = [
+        {
+            label: 'Tổng số dịch vụ',
+            value: services.length,
+            color: 'from-blue-500 to-blue-600',
+            icon: <FaTag className="w-6 h-6" />
+        },
+        {
+            label: 'Đang hoạt động',
+            value: services.filter(s => s.status === 'active').length,
+            color: 'from-green-500 to-green-600',
+            icon: <FaCheck className="w-6 h-6" />
+        },
+        {
+            label: 'Doanh thu từ dịch vụ',
+            value: services.reduce((acc, curr) => acc + (curr.revenue || 0), 0),
+            color: 'from-purple-500 to-purple-600',
+            icon: <FaChartLine className="w-6 h-6" />,
+            isCurrency: true
+        }
+    ];
 
     return (
         <motion.div
@@ -683,56 +699,54 @@ const ServiceList = () => {
                     </motion.button>
                 </div>
 
-                {/* Stats with improved layout for 3 items */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                    {[
-                        {
-                            label: 'Tổng số dịch vụ',
-                            value: services.length,
-                            icon: <FaTag className="w-6 h-6" />,
-                            gradient: 'from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700',
-                            iconBg: 'bg-blue-400/20',
-                            hoverGradient: 'hover:from-blue-600 hover:to-blue-700'
-                        },
-                        {
-                            label: 'Đang hoạt động',
-                            value: services.filter(s => s.status === 'active').length,
-                            icon: <FaTag className="w-6 h-6" />,
-                            gradient: 'from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700',
-                            iconBg: 'bg-emerald-400/20',
-                            hoverGradient: 'hover:from-emerald-600 hover:to-emerald-700'
-                        },
-                        {
-                            label: 'Không hoạt động',
-                            value: services.filter(s => s.status === 'inactive').length,
-                            icon: <FaTag className="w-6 h-6" />,
-                            gradient: 'from-rose-500 to-rose-600 dark:from-rose-600 dark:to-rose-700',
-                            iconBg: 'bg-rose-400/20',
-                            hoverGradient: 'hover:from-rose-600 hover:to-rose-700'
-                        }
-                    ].map((stat, index) => (
+                {/* Stats Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    {statsData.map((stat, index) => (
                         <motion.div
                             key={stat.label}
-                            variants={cardVariants}
-                            className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
-                    rounded-xl shadow-lg transform transition-all duration-300 
-                    hover:scale-105 hover:shadow-xl overflow-hidden`}
+                            variants={itemVariants}
+                            transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
+                            className={`bg-gradient-to-r ${stat.color} 
+                                rounded-xl p-6 transform transition-all duration-300 
+                                hover:scale-105 hover:shadow-xl hover:shadow-${stat.color.split('-')[1]}/20`}
                         >
-                            <div className="p-6">
-                                <div className="flex items-center gap-4">
-                                    <div className={`p-3 rounded-lg ${stat.iconBg}`}>
-                                        <div className="text-white">
-                                            {stat.icon}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p className="text-white/80 text-sm font-medium">
-                                            {stat.label}
-                                        </p>
-                                        <h3 className="text-white text-2xl font-bold mt-1">
-                                            {stat.value.toLocaleString()}
-                                        </h3>
-                                    </div>
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white/10 rounded-lg">
+                                    {stat.icon}
+                                </div>
+                                <div>
+                                    <p className="text-white/80 text-sm font-medium">
+                                        {stat.label}
+                                    </p>
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.5 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{
+                                            type: "spring",
+                                            stiffness: 100,
+                                            delay: index * 0.2
+                                        }}
+                                        className="text-2xl font-bold text-white flex items-center gap-1"
+                                    >
+                                        {stat.isCurrency && <span>₫</span>}
+                                        <CountUp
+                                            end={stat.value}
+                                            duration={2}
+                                            separator=","
+                                            decimal="."
+                                            decimals={stat.isCurrency ? 0 : 0}
+                                            delay={0.5}
+                                            enableScrollSpy
+                                            scrollSpyOnce
+                                        >
+                                            {({ countUpRef }) => (
+                                                <span ref={countUpRef} />
+                                            )}
+                                        </CountUp>
+                                        {stat.isCurrency && (
+                                            <span className="text-sm font-normal ml-1">VNĐ</span>
+                                        )}
+                                    </motion.div>
                                 </div>
                             </div>
                         </motion.div>

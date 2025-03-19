@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaStar, FaFilter, FaUser, FaCalendar, FaReply, FaTrash, FaChevronLeft, FaChevronRight, FaExclamationTriangle, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaSearch, FaStar, FaFilter, FaReply, FaTrash, FaChevronLeft, FaChevronRight, FaExclamationTriangle, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import CountUp from 'react-countup';
 
 // Animation variants
 const pageVariants = {
@@ -395,6 +396,34 @@ const RatingList = () => {
         setCurrentPage(1);
     }, [actualSearchTerm, selectedScore]);
 
+    const averageRating = (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1);
+
+    const statsData = [
+        {
+            label: 'Đánh giá trung bình',
+            value: averageRating,
+            icon: <FaStar className="w-6 h-6" />,
+            gradient: 'from-yellow-500 to-yellow-600',
+            iconBg: 'bg-yellow-400/20',
+            suffix: '/5',
+            decimals: 1
+        },
+        {
+            label: 'Chưa phản hồi',
+            value: ratings.filter(r => !r.reply).length,
+            icon: <FaExclamationTriangle className="w-6 h-6" />,
+            gradient: 'from-red-500 to-red-600',
+            iconBg: 'bg-red-400/20'
+        },
+        {
+            label: 'Đã phản hồi',
+            value: ratings.filter(r => r.reply).length,
+            icon: <FaCheckCircle className="w-6 h-6" />,
+            gradient: 'from-green-500 to-green-600',
+            iconBg: 'bg-green-400/20'
+        }
+    ];
+
     return (
         <motion.div
             variants={pageVariants}
@@ -419,58 +448,60 @@ const RatingList = () => {
                     </div>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-                    {[
-                        {
-                            label: 'Tổng số đánh giá',
-                            value: ratings.length,
-                            icon: <FaStar className="w-6 h-6" />,
-                            gradient: 'from-blue-500 to-blue-600',
-                            iconBg: 'bg-blue-400/20'
-                        },
-                        {
-                            label: 'Điểm trung bình',
-                            value: (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1),
-                            icon: <FaStar className="w-6 h-6" />,
-                            gradient: 'from-yellow-500 to-yellow-600',
-                            iconBg: 'bg-yellow-400/20'
-                        },
-                        {
-                            label: 'Chưa phản hồi',
-                            value: ratings.filter(r => !r.reply).length,
-                            icon: <FaExclamationTriangle className="w-6 h-6" />,
-                            gradient: 'from-red-500 to-red-600',
-                            iconBg: 'bg-red-400/20'
-                        },
-                        {
-                            label: 'Đã phản hồi',
-                            value: ratings.filter(r => r.reply).length,
-                            icon: <FaCheckCircle className="w-6 h-6" />,
-                            gradient: 'from-green-500 to-green-600',
-                            iconBg: 'bg-green-400/20'
-                        }
-                    ].map((stat, index) => (
+                {/* Stats Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    {statsData.map((stat, index) => (
                         <motion.div
                             key={stat.label}
                             variants={itemVariants}
-                            className={`bg-gradient-to-r ${stat.gradient} rounded-xl shadow-lg`}
+                            transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
+                            className={`bg-gradient-to-r ${stat.gradient} 
+                                rounded-xl p-6 transform transition-all duration-300 
+                                hover:scale-105 hover:shadow-xl group`}
                         >
-                            <div className="p-6">
-                                <div className="flex items-center gap-4">
-                                    <div className={`p-3 rounded-lg ${stat.iconBg}`}>
-                                        <div className="text-white">
-                                            {stat.icon}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p className="text-white/80 text-sm font-medium">
-                                            {stat.label}
-                                        </p>
-                                        <h3 className="text-white text-2xl font-bold mt-1">
-                                            {stat.value}
-                                        </h3>
-                                    </div>
+                            <div className="flex items-center gap-4">
+                                <div className={`p-3 rounded-lg ${stat.iconBg} 
+                                    transition-all duration-300 group-hover:bg-white/20`}>
+                                    <motion.div
+                                        initial={{ rotate: 0 }}
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                                    >
+                                        {stat.icon}
+                                    </motion.div>
+                                </div>
+                                <div>
+                                    <p className="text-white/80 text-sm font-medium">
+                                        {stat.label}
+                                    </p>
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.5 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{
+                                            type: "spring",
+                                            stiffness: 100,
+                                            delay: index * 0.2
+                                        }}
+                                        className="text-2xl font-bold text-white flex items-center"
+                                    >
+                                        <CountUp
+                                            end={stat.value}
+                                            duration={2}
+                                            decimals={stat.decimals || 0}
+                                            decimal="."
+                                            separator=","
+                                            delay={0.5}
+                                            enableScrollSpy
+                                            scrollSpyOnce
+                                        >
+                                            {({ countUpRef }) => (
+                                                <span ref={countUpRef} />
+                                            )}
+                                        </CountUp>
+                                        {stat.suffix && (
+                                            <span className="ml-1">{stat.suffix}</span>
+                                        )}
+                                    </motion.div>
                                 </div>
                             </div>
                         </motion.div>
