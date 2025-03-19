@@ -656,165 +656,163 @@ const ServiceList = () => {
             exit="exit"
             className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
-            <div className="container">
-                {/* Header Section with improved styling */}
-                <motion.div
-                    variants={itemVariants}
-                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
-                >
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div>
-                            <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                                Quản lý dịch vụ
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Quản lý tất cả các dịch vụ của nhà nghỉ
-                            </p>
-                        </div>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={handleAddService}
-                            className="bg-gradient-to-r from-primary to-primary-dark text-white 
+            {/* Header Section with improved styling */}
+            <motion.div
+                variants={itemVariants}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
+            >
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                            Quản lý dịch vụ
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Quản lý tất cả các dịch vụ của nhà nghỉ
+                        </p>
+                    </div>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleAddService}
+                        className="bg-gradient-to-r from-primary to-primary-dark text-white 
                 font-semibold px-6 py-3 rounded-xl flex items-center gap-2 
                 shadow-lg hover:shadow-primary/20 transition-all duration-300"
-                        >
-                            <FaPlus className="w-5 h-5" />
-                            Thêm dịch vụ mới
-                        </motion.button>
-                    </div>
+                    >
+                        <FaPlus className="w-5 h-5" />
+                        Thêm dịch vụ mới
+                    </motion.button>
+                </div>
 
-                    {/* Stats with improved layout for 3 items */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                        {[
-                            {
-                                label: 'Tổng số dịch vụ',
-                                value: services.length,
-                                icon: <FaTag className="w-6 h-6" />,
-                                gradient: 'from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700',
-                                iconBg: 'bg-blue-400/20',
-                                hoverGradient: 'hover:from-blue-600 hover:to-blue-700'
-                            },
-                            {
-                                label: 'Đang hoạt động',
-                                value: services.filter(s => s.status === 'active').length,
-                                icon: <FaTag className="w-6 h-6" />,
-                                gradient: 'from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700',
-                                iconBg: 'bg-emerald-400/20',
-                                hoverGradient: 'hover:from-emerald-600 hover:to-emerald-700'
-                            },
-                            {
-                                label: 'Không hoạt động',
-                                value: services.filter(s => s.status === 'inactive').length,
-                                icon: <FaTag className="w-6 h-6" />,
-                                gradient: 'from-rose-500 to-rose-600 dark:from-rose-600 dark:to-rose-700',
-                                iconBg: 'bg-rose-400/20',
-                                hoverGradient: 'hover:from-rose-600 hover:to-rose-700'
-                            }
-                        ].map((stat, index) => (
-                            <motion.div
-                                key={stat.label}
-                                variants={cardVariants}
-                                className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
+                {/* Stats with improved layout for 3 items */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                    {[
+                        {
+                            label: 'Tổng số dịch vụ',
+                            value: services.length,
+                            icon: <FaTag className="w-6 h-6" />,
+                            gradient: 'from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700',
+                            iconBg: 'bg-blue-400/20',
+                            hoverGradient: 'hover:from-blue-600 hover:to-blue-700'
+                        },
+                        {
+                            label: 'Đang hoạt động',
+                            value: services.filter(s => s.status === 'active').length,
+                            icon: <FaTag className="w-6 h-6" />,
+                            gradient: 'from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700',
+                            iconBg: 'bg-emerald-400/20',
+                            hoverGradient: 'hover:from-emerald-600 hover:to-emerald-700'
+                        },
+                        {
+                            label: 'Không hoạt động',
+                            value: services.filter(s => s.status === 'inactive').length,
+                            icon: <FaTag className="w-6 h-6" />,
+                            gradient: 'from-rose-500 to-rose-600 dark:from-rose-600 dark:to-rose-700',
+                            iconBg: 'bg-rose-400/20',
+                            hoverGradient: 'hover:from-rose-600 hover:to-rose-700'
+                        }
+                    ].map((stat, index) => (
+                        <motion.div
+                            key={stat.label}
+                            variants={cardVariants}
+                            className={`bg-gradient-to-r ${stat.gradient} ${stat.hoverGradient} 
                     rounded-xl shadow-lg transform transition-all duration-300 
                     hover:scale-105 hover:shadow-xl overflow-hidden`}
-                            >
-                                <div className="p-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-3 rounded-lg ${stat.iconBg}`}>
-                                            <div className="text-white">
-                                                {stat.icon}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p className="text-white/80 text-sm font-medium">
-                                                {stat.label}
-                                            </p>
-                                            <h3 className="text-white text-2xl font-bold mt-1">
-                                                {stat.value.toLocaleString()}
-                                            </h3>
+                        >
+                            <div className="p-6">
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-3 rounded-lg ${stat.iconBg}`}>
+                                        <div className="text-white">
+                                            {stat.icon}
                                         </div>
                                     </div>
+                                    <div>
+                                        <p className="text-white/80 text-sm font-medium">
+                                            {stat.label}
+                                        </p>
+                                        <h3 className="text-white text-2xl font-bold mt-1">
+                                            {stat.value.toLocaleString()}
+                                        </h3>
+                                    </div>
                                 </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-
-                {/* Enhanced FilterBar */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
-                >
-                    <FilterBar
-                        searchTerm={searchTerm}
-                        setSearchTerm={setSearchTerm}
-                        selectedStatus={selectedStatus}
-                        setSelectedStatus={setSelectedStatus}
-                        handleSearch={handleSearch}
-                        setActualSearchTerm={setActualSearchTerm}
-                        actualSearchTerm={actualSearchTerm}
-                    />
-                </motion.div>
-
-                {/* Service Grid with improved layout */}
-                <motion.div
-                    variants={itemVariants}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-                >
-                    <AnimatePresence>
-                        {paginatedServices.map((service) => (
-                            <ServiceCard key={service.id} service={service} onEdit={handleEditService} onDelete={handleDeleteClick} />
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
-
-                {/* Enhanced Empty State */}
-                <AnimatePresence>
-                    {filteredServices.length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
-                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
-                        >
-                            <div className="text-gray-400 dark:text-gray-500 mb-4">
-                                <FaTag className="mx-auto w-16 h-16" />
                             </div>
-                            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                                {services.length === 0 ? "Chưa có dịch vụ nào" : "Không tìm thấy kết quả"}
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-400 mb-6">
-                                {services.length === 0
-                                    ? "Bắt đầu bằng cách thêm dịch vụ đầu tiên"
-                                    : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
-                            </p>
-                            {services.length === 0 && (
-                                <button
-                                    onClick={handleAddService}
-                                    className="inline-flex items-center px-6 py-3 bg-primary text-white 
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
+
+            {/* Enhanced FilterBar */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
+            >
+                <FilterBar
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    selectedStatus={selectedStatus}
+                    setSelectedStatus={setSelectedStatus}
+                    handleSearch={handleSearch}
+                    setActualSearchTerm={setActualSearchTerm}
+                    actualSearchTerm={actualSearchTerm}
+                />
+            </motion.div>
+
+            {/* Service Grid with improved layout */}
+            <motion.div
+                variants={itemVariants}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+                <AnimatePresence>
+                    {paginatedServices.map((service) => (
+                        <ServiceCard key={service.id} service={service} onEdit={handleEditService} onDelete={handleDeleteClick} />
+                    ))}
+                </AnimatePresence>
+            </motion.div>
+
+            {/* Enhanced Empty State */}
+            <AnimatePresence>
+                {filteredServices.length === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
+                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
+                    >
+                        <div className="text-gray-400 dark:text-gray-500 mb-4">
+                            <FaTag className="mx-auto w-16 h-16" />
+                        </div>
+                        <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                            {services.length === 0 ? "Chưa có dịch vụ nào" : "Không tìm thấy kết quả"}
+                        </h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">
+                            {services.length === 0
+                                ? "Bắt đầu bằng cách thêm dịch vụ đầu tiên"
+                                : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
+                        </p>
+                        {services.length === 0 && (
+                            <button
+                                onClick={handleAddService}
+                                className="inline-flex items-center px-6 py-3 bg-primary text-white 
                                         font-semibold rounded-xl hover:bg-primary-dark transition-all 
                                         duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
-                                >
-                                    <FaPlus className="w-5 h-5 mr-2" />
-                                    Thêm dịch vụ
-                                </button>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                            >
+                                <FaPlus className="w-5 h-5 mr-2" />
+                                Thêm dịch vụ
+                            </button>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                {/* Enhanced Pagination */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="mt-8"
-                >
-                    <Pagination />
-                </motion.div>
-            </div>
+            {/* Enhanced Pagination */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-8"
+            >
+                <Pagination />
+            </motion.div>
 
             {/* Add the DeleteConfirmationModal */}
             <DeleteConfirmationModal
