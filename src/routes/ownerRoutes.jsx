@@ -5,6 +5,8 @@ import ServiceList from '../pages/owner/ServiceList';
 import RoomTypeList from '../pages/owner/RoomTypeList';
 import CustomerList from '../pages/owner/CustomerList';
 import RatingList from '../pages/owner/RatingList';
+import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
+import Dashboard from '../pages/owner/Dashboard';
 
 export const ownerRoutes = [
   {
@@ -14,6 +16,10 @@ export const ownerRoutes = [
   {
     path: 'homestays/add',
     element: <AddHomestay />
+  },
+  {
+    path: 'homestays/:id/dashboard',
+    element: <Dashboard />
   },
   {
     path: 'homestays/:id/info',
@@ -26,6 +32,10 @@ export const ownerRoutes = [
   {
     path: 'homestays/:id/room-types',
     element: <RoomTypeList />
+  },
+  {
+    path: 'homestays/:id/room-types/:roomTypeId',
+    element: <RoomTypeDetail />
   },
   {
     path: 'homestays/:id/customers',
