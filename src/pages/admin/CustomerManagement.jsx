@@ -1,352 +1,348 @@
-import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { FaSearch, FaUserEdit, FaTrashAlt, FaUserPlus, FaEye, FaLock, FaUnlock, FaUser, FaEnvelope, FaPhone, FaSort, FaArrowDown, FaArrowUp } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaUsers, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaUserCheck, FaUserTimes } from 'react-icons/fa';
+import { toast, Toaster } from 'react-hot-toast';
+import axios from 'axios';
+import { API_CONFIG } from '../../services/config';
+import CountUp from 'react-countup';
 import { IoClose } from 'react-icons/io5';
 
-const mockData = Array.from({ length: 20 }, (_, index) => ({
-    id: index + 1,
-    fullName: `Khách hàng ${index + 1}`,
-    email: `customer${index + 1}@example.com`,
-    phone: `098${String(index + 1).padStart(7, '0')}`,
-    status: index % 3 === 0 ? 'inactive' : 'active'
-}));
-
-export default function CustomerManagement() {
-    const [customers, setCustomers] = useState(mockData);
-    const [searchText, setSearchText] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [sortDirection, setSortDirection] = useState(null); // null, 'asc', or 'desc'
-    const itemsPerPage = 10;
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newCustomer, setNewCustomer] = useState({
-        fullName: '',
-        email: '',
-        phone: '',
-        status: 'active'
-    });
-
-    // Tính toán số lượng khách hàng
-    const totalCustomers = customers.length;
-    const activeCustomers = customers.filter(customer => customer.status === 'active').length;
-    const inactiveCustomers = customers.filter(customer => customer.status === 'inactive').length;
-
-    const handleSort = () => {
-        const newDirection = sortDirection === null ? 'asc' : sortDirection === 'asc' ? 'desc' : null;
-        setSortDirection(newDirection);
-
-        if (newDirection === null) {
-            setCustomers(mockData); // Reset to original order
-            return;
+// Animation variants
+const pageVariants = {
+    initial: { opacity: 0 },
+    animate: {
+        opacity: 1,
+        transition: {
+            duration: 0.3,
+            when: "beforeChildren",
+            staggerChildren: 0.1
         }
+    },
+    exit: { opacity: 0 }
+};
 
-        const sortedCustomers = [...customers].sort((a, b) => {
-            const numA = parseInt(a.fullName.match(/\d+/)[0]);
-            const numB = parseInt(b.fullName.match(/\d+/)[0]);
+const itemVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            type: "spring",
+            stiffness: 100
+        }
+    }
+};
 
-            if (newDirection === 'asc') {
-                return numA - numB; // Sắp xếp tăng dần theo số
-            } else {
-                return numB - numA; // Sắp xếp giảm dần theo số
-            }
-        });
+const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
+    const searchInputRef = useRef(null);
 
-        setCustomers(sortedCustomers);
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
     };
 
-    const getSortIcon = () => {
-        if (sortDirection === null) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
-        if (sortDirection === 'asc') return <FaArrowDown className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
-        return <FaArrowUp className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setActualSearchTerm('');
+        searchInputRef.current?.focus();
+    };
+
+    return (
+        <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+                <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Tìm kiếm khách hàng..."
+                    className="w-full px-4 py-2.5 pl-12 pr-12 text-gray-700 bg-white 
+                    border border-gray-300 rounded-xl 
+                    focus:outline-none focus:ring-2 focus:ring-primary/20 
+                    focus:border-primary transition-colors duration-200
+                    dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+                />
+                <FaSearch
+                    className="absolute left-4 top-1/2 -translate-y-1/2 
+                    text-gray-400 w-4 h-4 pointer-events-none"
+                />
+                {searchTerm && (
+                    <button
+                        onClick={handleSearchClear}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1
+                        text-gray-400 hover:text-gray-600 
+                        dark:hover:text-gray-300 hover:bg-gray-100 
+                        dark:hover:bg-gray-700 rounded-full
+                        transition-all duration-200"
+                    >
+                        <IoClose className="w-5 h-5" />
+                    </button>
+                )}
+            </div>
+            <button
+                onClick={handleSearch}
+                className="px-6 py-2.5 bg-primary hover:bg-primary-dark 
+                text-white font-medium rounded-xl 
+                flex items-center gap-2
+                transition-all duration-200
+                hover:shadow-lg hover:shadow-primary/20"
+            >
+                <FaSearch className="w-4 h-4" />
+                Tìm kiếm
+            </button>
+        </div>
+    );
+};
+
+const CustomerManagement = () => {
+    const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [actualSearchTerm, setActualSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+    const itemsPerPage = 10;
+
+    useEffect(() => {
+        fetchCustomers();
+    }, []);
+
+    const fetchCustomers = async () => {
+        try {
+            const response = await axios.get(`${API_CONFIG.BASE_URL}/account/Get-all-accounts`);
+            // Lọc chỉ lấy các tài khoản có role là Customer
+            const customerAccounts = response.data.filter(account =>
+                !account.roles.includes('Owner') && !account.roles.includes('Admin')
+            );
+            setCustomers(customerAccounts);
+            setLoading(false);
+        } catch (error) {
+            toast.error('Không thể tải danh sách khách hàng');
+            setLoading(false);
+        }
+    };
+
+    const handleSearch = () => {
+        setActualSearchTerm(searchTerm);
+        setCurrentPage(1);
+    };
+
+    const handleSort = (key) => {
+        setSortConfig(prev => ({
+            key,
+            direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+        }));
     };
 
     const filteredCustomers = customers.filter(customer =>
-        customer.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchText.toLowerCase()) ||
-        customer.phone.includes(searchText)
+        customer.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+        customer.email.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+        customer.phone.includes(actualSearchTerm)
     );
 
-    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-    const paginatedCustomers = filteredCustomers.slice(
+    const sortedCustomers = [...filteredCustomers].sort((a, b) => {
+        if (!sortConfig.key) return 0;
+
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (sortConfig.direction === 'asc') {
+            return aValue > bValue ? 1 : -1;
+        } else {
+            return aValue < bValue ? 1 : -1;
+        }
+    });
+
+    const totalPages = Math.ceil(sortedCustomers.length / itemsPerPage);
+    const paginatedCustomers = sortedCustomers.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
-    const handleDelete = (id) => {
-        setCustomers(prev => prev.filter(customer => customer.id !== id));
-    };
-
-    const handleStatusChange = (id) => {
-        setCustomers(prev =>
-            prev.map(customer =>
-                customer.id === id
-                    ? { ...customer, status: customer.status === 'active' ? 'inactive' : 'active' }
-                    : customer
-            )
+    const TableHeader = ({ label, sortKey }) => {
+        const isSorted = sortConfig.key === sortKey;
+        return (
+            <th
+                onClick={() => handleSort(sortKey)}
+                className="px-6 py-3 text-left cursor-pointer group hover:bg-gray-100 
+                    dark:hover:bg-gray-800/50 transition-colors"
+            >
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">
+                        {label}
+                    </span>
+                    <div className={`transition-colors ${isSorted ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
+                        {isSorted && (
+                            sortConfig.direction === 'asc'
+                                ? <FaSortAmountUp className="w-4 h-4" />
+                                : <FaSortAmountDown className="w-4 h-4" />
+                        )}
+                    </div>
+                </div>
+            </th>
         );
     };
 
-    const handleAddCustomer = () => {
-        if (newCustomer.fullName && newCustomer.email && newCustomer.phone) {
-            setCustomers(prev => [
-                ...prev,
-                { id: customers.length + 1, ...newCustomer }
-            ]);
-            setNewCustomer({ fullName: '', email: '', phone: '', status: 'active' });
-            setIsModalOpen(false);
-        } else {
-            alert("Vui lòng điền đầy đủ thông tin!");
+    const statsData = [
+        {
+            label: 'Tổng số khách hàng',
+            value: customers.length,
+            icon: <FaUsers className="w-6 h-6 text-white" />,
+            gradient: 'from-blue-500 to-blue-600'
+        },
+        {
+            label: 'Khách hàng hoạt động',
+            value: customers.filter(customer => customer.token !== null).length,
+            icon: <FaUserCheck className="w-6 h-6 text-white" />,
+            gradient: 'from-green-500 to-green-600'
+        },
+        {
+            label: 'Khách hàng không hoạt động',
+            value: customers.filter(customer => customer.token === null).length,
+            icon: <FaUserTimes className="w-6 h-6 text-white" />,
+            gradient: 'from-red-500 to-red-600'
         }
-    };
+    ];
 
     return (
-        <div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+        <motion.div
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
             className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6"
         >
-            <div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-8 flex justify-between items-center"
-            >
-                <div>
-                    <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                        Quản lý khách hàng
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        Xem thông tin chi tiết của tất cả khách hàng
-                    </p>
-                </div>
+            <Toaster />
 
-            </div>
+            {/* Header */}
+            <motion.div variants={itemVariants} className="mb-8">
+                <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                    Quản lý khách hàng
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                    Xem và quản lý thông tin của tất cả khách hàng
+                </p>
+            </motion.div>
 
-            {/* Hiển thị tổng số khách hàng */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 
-                        dark:from-blue-600 dark:to-blue-700 rounded-xl p-6"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-white/80 text-sm">Tổng số khách hàng</p>
-                            <p className="text-white text-2xl font-bold">{totalCustomers}</p>
-                        </div>
-                    </div>
-                </motion.div>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-green-500 to-green-600 
-                        dark:from-green-600 dark:to-green-700 rounded-xl p-6"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-white/80 text-sm">Tổng số khách hàng hoạt động</p>
-                            <p className="text-white text-2xl font-bold">{activeCustomers}</p>
-                        </div>
-                    </div>
-                </motion.div>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-red-500 to-red-600 
-                        dark:from-red-600 dark:to-red-700 rounded-xl p-6"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-white/80 text-sm">Tổng số khách hàng không hoạt động</p>
-                            <p className="text-white text-2xl font-bold">{inactiveCustomers}</p>
-                        </div>
-                    </div>
-                </motion.div>
-            </div>
-
-            {isModalOpen && (
-                <motion.div
-                    className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                >
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 w-96">
-                        <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-2xl font-bold">Thêm người dùng</h2>
-                            <button onClick={() => setIsModalOpen(false)}>
-                                <IoClose className="w-6 h-6 text-gray-500" />
-                            </button>
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-white">Họ và tên</label>
-                            <input
-                                type="text"
-                                value={newCustomer.fullName}
-                                onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value })}
-                                className="mt-1 block w-full border border-gray-300 text-gray-800 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                placeholder="Nhập họ và tên"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-white">Email</label>
-                            <input
-                                type="email"
-                                value={newCustomer.email}
-                                onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                                className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                placeholder="Nhập email"
-                            />
-                        </div>
-                        <div className="mb-8">
-                            <label className="block text-sm font-medium text-white">Số điện thoại</label>
-                            <input
-                                type="text"
-                                value={newCustomer.phone}
-                                onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                                className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                placeholder="Nhập số điện thoại"
-                            />
-                        </div>
-                        <div className="flex justify-end">
-                            <button
-                                onClick={handleAddCustomer}
-                                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
-                            >
-                                Thêm
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
-            )}
-
-            <div className="mb-4 flex justify-between items-center">
-                <div className="relative w-2/6">
-                    <input
-                        type="text"
-                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-800"
-                        placeholder="Tìm kiếm theo tên, email, số điện thoại..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                    />
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    {searchText && (
-                        <button
-                            onClick={() => setSearchText('')}
-                            className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
-                        >
-                            <IoClose className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-                <div>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {statsData.map((stat, index) => (
+                    <motion.div
+                        key={index}
+                        variants={itemVariants}
+                        whileHover={{ y: -5 }}
+                        className={`bg-gradient-to-r ${stat.gradient} rounded-xl p-6`}
                     >
-                        <div className="flex justify-center items-center">
-                            <FaUserPlus className="mr-2" />
-                            <p>Thêm người dùng</p>
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-white/10 rounded-lg">
+                                {stat.icon}
+                            </div>
+                            <div>
+                                <p className="text-white/80 text-sm">{stat.label}</p>
+                                <h3 className="text-white text-2xl font-bold">
+                                    <CountUp end={stat.value} duration={2} />
+                                </h3>
+                            </div>
                         </div>
-                    </button>
-                </div>
+                    </motion.div>
+                ))}
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            {/* Search Bar */}
+            <motion.div variants={itemVariants} className="mb-6">
+                <FilterBar
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    handleSearch={handleSearch}
+                    setActualSearchTerm={setActualSearchTerm}
+                />
+            </motion.div>
+
+            {/* Customers Table */}
+            <motion.div
+                variants={itemVariants}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
+            >
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-900/50">
+                    <table className="min-w-full">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">
-                                    <button
-                                        onClick={handleSort}
-                                        className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none"
-                                    >
-                                        Họ và tên
-                                        {getSortIcon()}
-                                    </button>
-                                </th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Email</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Số điện thoại</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Trạng thái</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Thao tác</th>
+                                <TableHeader label="Tên khách hàng" sortKey="name" />
+                                <TableHeader label="Email" sortKey="email" />
+                                <TableHeader label="Số điện thoại" sortKey="phone" />
+                                <TableHeader label="Địa chỉ" sortKey="address" />
+                                <TableHeader label="Trạng thái" sortKey="status" />
+                                <th className="px-6 py-3 text-left">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody>
                             <AnimatePresence>
                                 {paginatedCustomers.map((customer, index) => (
                                     <motion.tr
-                                        key={customer.id}
+                                        key={customer.userID}
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                        transition={{ delay: index * 0.1 }}
+                                        className="border-b dark:border-gray-700 hover:bg-gray-50 
+                                            dark:hover:bg-gray-700/50 transition-colors"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                                    <FaUser className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                                <div className="w-10 h-10 rounded-full bg-gray-200 
+                                                    dark:bg-gray-700 flex items-center justify-center">
+                                                    <FaUsers className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                                                 </div>
-                                                <div className="font-medium text-gray-900 dark:text-white">
-                                                    {customer.fullName}
-                                                </div>
+                                                <span className="font-medium">{customer.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaEnvelope className="text-primary w-4 h-4" />
-                                                <span className="text-gray-600 dark:text-gray-400">
-                                                    {customer.email}
-                                                </span>
+                                                <FaEnvelope className="text-gray-400" />
+                                                <span>{customer.email}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaPhone className="text-primary w-4 h-4" />
-                                                <span className="text-gray-600 dark:text-gray-400">
-                                                    {customer.phone}
-                                                </span>
+                                                <FaPhone className="text-gray-400" />
+                                                <span>{customer.phone}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${customer.status === 'active'
-                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                                }`}>
-                                                {customer.status === 'active' ? 'Hoạt động' : 'Đã khóa'}
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <FaMapMarkerAlt className="text-gray-400" />
+                                                <span>{customer.address}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-sm font-medium
+                                                ${customer.token ?
+                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                                                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}>
+                                                {customer.token ? 'Hoạt động' : 'Không hoạt động'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-3">
-                                                <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
-                                                    <FaEye className="w-4 h-4 text-blue-500 hover:text-blue-600" />
-                                                </button>
-                                                <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
-                                                    <FaUserEdit className="w-4 h-4 text-yellow-500 hover:text-yellow-600" />
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg
+                                                        dark:hover:bg-blue-900/20 transition-colors"
+                                                    onClick={() => {/* Handle edit */ }}
+                                                >
+                                                    <FaEdit className="w-5 h-5" />
                                                 </button>
                                                 <button
-                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                                                    onClick={() => handleDelete(customer.id)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg
+                                                        dark:hover:bg-red-900/20 transition-colors"
+                                                    onClick={() => {/* Handle delete */ }}
                                                 >
-                                                    <FaTrashAlt className="w-4 h-4 text-red-500 hover:text-red-600" />
-                                                </button>
-                                                <button
-                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                                                    onClick={() => handleStatusChange(customer.id)}
-                                                >
-                                                    {customer.status === 'active'
-                                                        ? <FaLock className="w-4 h-4 text-gray-500 hover:text-gray-600" />
-                                                        : <FaUnlock className="w-4 h-4 text-gray-500 hover:text-gray-600" />
-                                                    }
+                                                    <FaTrash className="w-5 h-5" />
                                                 </button>
                                             </div>
                                         </td>
@@ -356,13 +352,14 @@ export default function CustomerManagement() {
                         </tbody>
                     </table>
 
-                    {paginatedCustomers.length === 0 && (
+                    {/* Empty State */}
+                    {filteredCustomers.length === 0 && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             className="text-center py-12"
                         >
-                            <FaUser className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-600 mb-4" />
+                            <FaUsers className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-600 mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                                 Không tìm thấy khách hàng
                             </h3>
@@ -372,8 +369,9 @@ export default function CustomerManagement() {
                         </motion.div>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
+            {/* Pagination */}
             {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-8">
                     <button
@@ -381,43 +379,28 @@ export default function CustomerManagement() {
                         disabled={currentPage === 1}
                         className={`p-2 rounded-lg ${currentPage === 1
                             ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-gray-600 hover:bg-gray-100'
+                            : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
                             }`}
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                d="M15 19l-7-7 7-7" />
-                        </svg>
+                        <FaChevronLeft className="w-5 h-5" />
                     </button>
-
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                        <button
-                            key={number}
-                            onClick={() => setCurrentPage(number)}
-                            className={`w-10 h-10 rounded-lg ${number === currentPage
-                                ? 'bg-blue-500 text-white'
-                                : 'text-gray-600 hover:bg-gray-100'
-                                }`}
-                        >
-                            {number}
-                        </button>
-                    ))}
-
+                    <span className="text-gray-600 dark:text-gray-400">
+                        Trang {currentPage} / {totalPages}
+                    </span>
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                         disabled={currentPage === totalPages}
                         className={`p-2 rounded-lg ${currentPage === totalPages
                             ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-gray-600 hover:bg-gray-100'
+                            : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
                             }`}
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                d="M9 5l7 7-7 7" />
-                        </svg>
+                        <FaChevronRight className="w-5 h-5" />
                     </button>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
-} 
+};
+
+export default CustomerManagement; 

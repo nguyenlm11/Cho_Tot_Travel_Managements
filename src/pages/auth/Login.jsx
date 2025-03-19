@@ -1,17 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaEnvelope, FaLock, FaGoogle, FaFacebook, FaApple, FaHome } from 'react-icons/fa';
+import { FaLock, FaGoogle, FaFacebook, FaApple, FaHome, FaUser } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
+import authService from '../../services/api/authAPI';
+import { API_CONFIG } from '../../services/config';
 
 const Login = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        email: '',
+        username: '',
         password: '',
         remember: false
     });
     const [loading, setLoading] = useState(false);
+
+    // Kiểm tra nếu đã đăng nhập thì redirect
+    useEffect(() => {
+        const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+        if (isAuthenticated) {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            if (userInfo?.role?.includes('Admin')) {
+                navigate('/admin/dashboard', { replace: true });
+            } else {
+                navigate('/owner/homestays', { replace: true });
+            }
+        }
+    }, [navigate]);
 
     const handleInputChange = (e) => {
         const { name, value, checked } = e.target;
@@ -25,28 +40,19 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            // API call here
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            toast.success('Đăng nhập thành công!', {
-                duration: 3000,
-                position: 'top-right',
-                style: {
-                    background: '#ECFDF5',
-                    color: '#065F46',
-                    border: '1px solid #6EE7B7'
-                }
-            });
-            navigate('/owner/homestays');
+            const { user } = await authService.login(formData.username, formData.password);
+            toast.success('Đăng nhập thành công!', API_CONFIG.TOAST_CONFIG.SUCCESS);
+
+            if (user.role.includes('Admin')) {
+                navigate('/admin/dashboard', { replace: true });
+            } else {
+                navigate('/owner/homestays', { replace: true });
+            }
         } catch (error) {
-            toast.error('Email hoặc mật khẩu không chính xác!', {
-                duration: 3000,
-                position: 'top-right',
-                style: {
-                    background: '#FEE2E2',
-                    color: '#991B1B',
-                    border: '1px solid #FCA5A5'
-                }
-            });
+            toast.error(
+                error?.message || 'Email hoặc mật khẩu không chính xác!',
+                API_CONFIG.TOAST_CONFIG.ERROR
+            );
         } finally {
             setLoading(false);
         }
@@ -128,31 +134,29 @@ const Login = () => {
                         className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border 
               border-gray-200 dark:border-gray-700 p-8 space-y-6"
                     >
-                        {/* Email Field */}
                         <div>
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                Email
+                                Tên người dùng
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-4 flex items-center">
-                                    <FaEnvelope className="h-5 w-5 text-gray-400" />
+                                    <FaUser className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
+                                    type="text"
+                                    name="username"
+                                    value={formData.username}
                                     onChange={handleInputChange}
                                     required
                                     className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
                     rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                     focus:ring-4 focus:ring-primary/20 focus:border-primary
                     transition-all duration-200"
-                                    placeholder="Nhập email của bạn"
+                                    placeholder="Nhập tên người dùng"
                                 />
                             </div>
                         </div>
 
-                        {/* Password Field */}
                         <div>
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                                 Mật khẩu

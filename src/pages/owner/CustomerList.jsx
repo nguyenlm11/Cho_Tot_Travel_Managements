@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa';
+import { FaSearch, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import CountUp from 'react-countup';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -27,7 +28,7 @@ const itemVariants = {
 };
 
 // Move FilterBar outside to prevent re-renders
-const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
+const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
     const searchInputRef = useRef(null);
 
     const handleSearchChange = (e) => {
@@ -190,6 +191,21 @@ const CustomerList = () => {
         );
     };
 
+    const statsData = [
+        {
+            label: 'Tổng số khách hàng',
+            value: customers.length,
+            icon: <FaUsers className="w-6 h-6 text-white" />,
+            gradient: 'from-blue-500 to-blue-600'
+        },
+        {
+            label: 'Tổng lượt đặt phòng',
+            value: customers.reduce((acc, curr) => acc + curr.totalBookings, 0),
+            icon: <FaCalendarAlt className="w-6 h-6 text-white" />,
+            gradient: 'from-green-500 to-green-600'
+        }
+    ];
+
     return (
         <motion.div
             variants={pageVariants}
@@ -212,43 +228,64 @@ const CustomerList = () => {
             </motion.div>
 
             {/* Stats Summary */}
-            <div className="grid grid-cols-2 gap-6 mb-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 
-                        dark:from-blue-600 dark:to-blue-700 rounded-xl p-6"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {statsData.map((stat, index) => (
+                    <motion.div
+                        key={stat.label}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                            delay: index * 0.1,
+                            type: "spring",
+                            stiffness: 100
+                        }}
+                        className={`bg-gradient-to-r ${stat.gradient} 
+                            dark:from-${stat.gradient.split('-')[1]}-600 
+                            dark:to-${stat.gradient.split('-')[1]}-700 
+                            rounded-xl p-6 transform transition-all duration-300
+                            hover:scale-105 hover:shadow-xl group`}
+                    >
+                        <div className="flex items-center gap-4">
+                            <motion.div
+                                className="p-3 bg-white/10 rounded-lg transition-all duration-300
+                                    group-hover:bg-white/20"
+                                initial={{ rotate: 0 }}
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 0.6, delay: index * 0.1 }}
+                            >
+                                {stat.icon}
+                            </motion.div>
+                            <div>
+                                <p className="text-white/80 text-sm font-medium">
+                                    {stat.label}
+                                </p>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{
+                                        type: "spring",
+                                        stiffness: 100,
+                                        delay: index * 0.2
+                                    }}
+                                    className="text-2xl font-bold text-white"
+                                >
+                                    <CountUp
+                                        end={stat.value}
+                                        duration={2}
+                                        separator=","
+                                        delay={0.5}
+                                        enableScrollSpy
+                                        scrollSpyOnce
+                                    >
+                                        {({ countUpRef }) => (
+                                            <span ref={countUpRef} />
+                                        )}
+                                    </CountUp>
+                                </motion.div>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-white/80 text-sm">Tổng số khách hàng</p>
-                            <p className="text-white text-2xl font-bold">{customers.length}</p>
-                        </div>
-                    </div>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="bg-gradient-to-r from-green-500 to-green-600 
-                        dark:from-green-600 dark:to-green-700 rounded-xl p-6"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-white/80 text-sm">Tổng lượt đặt phòng</p>
-                            <p className="text-white text-2xl font-bold">
-                                {customers.reduce((acc, curr) => acc + curr.totalBookings, 0)}
-                            </p>
-                        </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                ))}
             </div>
 
             {/* Filter Bar */}
@@ -257,7 +294,6 @@ const CustomerList = () => {
                 setSearchTerm={setSearchTerm}
                 handleSearch={handleSearch}
                 setActualSearchTerm={setActualSearchTerm}
-                actualSearchTerm={actualSearchTerm}
             />
 
             {/* Table */}
