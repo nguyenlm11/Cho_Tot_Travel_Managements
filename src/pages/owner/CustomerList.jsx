@@ -28,7 +28,7 @@ const itemVariants = {
 };
 
 // Move FilterBar outside to prevent re-renders
-const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
+const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
     const searchInputRef = useRef(null);
 
     const handleSearchChange = (e) => {
@@ -234,10 +234,10 @@ const CustomerList = () => {
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ 
+                        transition={{
                             delay: index * 0.1,
                             type: "spring",
-                            stiffness: 100 
+                            stiffness: 100
                         }}
                         className={`bg-gradient-to-r ${stat.gradient} 
                             dark:from-${stat.gradient.split('-')[1]}-600 
@@ -246,7 +246,7 @@ const CustomerList = () => {
                             hover:scale-105 hover:shadow-xl group`}
                     >
                         <div className="flex items-center gap-4">
-                            <motion.div 
+                            <motion.div
                                 className="p-3 bg-white/10 rounded-lg transition-all duration-300
                                     group-hover:bg-white/20"
                                 initial={{ rotate: 0 }}
@@ -294,7 +294,6 @@ const CustomerList = () => {
                 setSearchTerm={setSearchTerm}
                 handleSearch={handleSearch}
                 setActualSearchTerm={setActualSearchTerm}
-                actualSearchTerm={actualSearchTerm}
             />
 
             {/* Table */}

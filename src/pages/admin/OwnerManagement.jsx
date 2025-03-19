@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUsers, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaUserCheck, FaUserTimes } from 'react-icons/fa';
+import { FaUserTie, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { API_CONFIG } from '../../services/config';
-import CountUp from 'react-countup';
 import { IoClose } from 'react-icons/io5';
 
-// Animation variants
 const pageVariants = {
     initial: { opacity: 0 },
     animate: {
@@ -33,7 +31,7 @@ const itemVariants = {
     }
 };
 
-const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
+const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
     const searchInputRef = useRef(null);
 
     const handleSearchChange = (e) => {
@@ -100,8 +98,8 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
     );
 };
 
-const CustomerManagement = () => {
-    const [customers, setCustomers] = useState([]);
+const OwnerManagement = () => {
+    const [owners, setOwners] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
@@ -110,20 +108,19 @@ const CustomerManagement = () => {
     const itemsPerPage = 10;
 
     useEffect(() => {
-        fetchCustomers();
+        fetchOwners();
     }, []);
 
-    const fetchCustomers = async () => {
+    const fetchOwners = async () => {
         try {
             const response = await axios.get(`${API_CONFIG.BASE_URL}/account/Get-all-accounts`);
-            // Lọc chỉ lấy các tài khoản có role là Customer
-            const customerAccounts = response.data.filter(account =>
-                !account.roles.includes('Owner') && !account.roles.includes('Admin')
+            const ownerAccounts = response.data.filter(account =>
+                account.roles.includes('Owner')
             );
-            setCustomers(customerAccounts);
+            setOwners(ownerAccounts);
             setLoading(false);
         } catch (error) {
-            toast.error('Không thể tải danh sách khách hàng');
+            toast.error('Không thể tải danh sách chủ nhà');
             setLoading(false);
         }
     };
@@ -140,13 +137,13 @@ const CustomerManagement = () => {
         }));
     };
 
-    const filteredCustomers = customers.filter(customer =>
-        customer.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
-        customer.phone.includes(actualSearchTerm)
+    const filteredOwners = owners.filter(owner =>
+        owner.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+        owner.email.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+        owner.phone.includes(actualSearchTerm)
     );
 
-    const sortedCustomers = [...filteredCustomers].sort((a, b) => {
+    const sortedOwners = [...filteredOwners].sort((a, b) => {
         if (!sortConfig.key) return 0;
 
         const aValue = a[sortConfig.key];
@@ -159,8 +156,8 @@ const CustomerManagement = () => {
         }
     });
 
-    const totalPages = Math.ceil(sortedCustomers.length / itemsPerPage);
-    const paginatedCustomers = sortedCustomers.slice(
+    const totalPages = Math.ceil(sortedOwners.length / itemsPerPage);
+    const paginatedOwners = sortedOwners.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -191,22 +188,16 @@ const CustomerManagement = () => {
 
     const statsData = [
         {
-            label: 'Tổng số khách hàng',
-            value: customers.length,
-            icon: <FaUsers className="w-6 h-6 text-white" />,
+            label: 'Tổng số chủ nhà',
+            value: owners.length,
+            icon: <FaUserTie className="w-6 h-6 text-white" />,
             gradient: 'from-blue-500 to-blue-600'
         },
         {
-            label: 'Khách hàng hoạt động',
-            value: customers.filter(customer => customer.token !== null).length,
-            icon: <FaUserCheck className="w-6 h-6 text-white" />,
+            label: 'Chủ nhà đang hoạt động',
+            value: owners.filter(owner => owner.token !== null).length,
+            icon: <FaUserTie className="w-6 h-6 text-white" />,
             gradient: 'from-green-500 to-green-600'
-        },
-        {
-            label: 'Khách hàng không hoạt động',
-            value: customers.filter(customer => customer.token === null).length,
-            icon: <FaUserTimes className="w-6 h-6 text-white" />,
-            gradient: 'from-red-500 to-red-600'
         }
     ];
 
@@ -223,20 +214,19 @@ const CustomerManagement = () => {
             {/* Header */}
             <motion.div variants={itemVariants} className="mb-8">
                 <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                    Quản lý khách hàng
+                    Quản lý chủ nhà
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                    Xem và quản lý thông tin của tất cả khách hàng
+                    Xem và quản lý thông tin của tất cả chủ nhà
                 </p>
             </motion.div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Stats Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {statsData.map((stat, index) => (
                     <motion.div
                         key={index}
                         variants={itemVariants}
-                        whileHover={{ y: -5 }}
                         className={`bg-gradient-to-r ${stat.gradient} rounded-xl p-6`}
                     >
                         <div className="flex items-center gap-4">
@@ -245,9 +235,7 @@ const CustomerManagement = () => {
                             </div>
                             <div>
                                 <p className="text-white/80 text-sm">{stat.label}</p>
-                                <h3 className="text-white text-2xl font-bold">
-                                    <CountUp end={stat.value} duration={2} />
-                                </h3>
+                                <p className="text-white text-2xl font-bold">{stat.value}</p>
                             </div>
                         </div>
                     </motion.div>
@@ -256,7 +244,7 @@ const CustomerManagement = () => {
 
             {/* Search Bar */}
             <motion.div variants={itemVariants} className="mb-6">
-                <FilterBar
+                <SearchBar
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
                     handleSearch={handleSearch}
@@ -264,7 +252,7 @@ const CustomerManagement = () => {
                 />
             </motion.div>
 
-            {/* Customers Table */}
+            {/* Owners Table */}
             <motion.div
                 variants={itemVariants}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
@@ -273,19 +261,19 @@ const CustomerManagement = () => {
                     <table className="min-w-full">
                         <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <TableHeader label="Tên khách hàng" sortKey="name" />
+                                <TableHeader label="Tên chủ nhà" sortKey="name" />
                                 <TableHeader label="Email" sortKey="email" />
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
-                                <TableHeader label="Trạng thái" sortKey="status" />
+                                {/* <TableHeader label="Mã số thuế" sortKey="taxcode" /> */}
                                 <th className="px-6 py-3 text-left">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             <AnimatePresence>
-                                {paginatedCustomers.map((customer, index) => (
+                                {paginatedOwners.map((owner, index) => (
                                     <motion.tr
-                                        key={customer.userID}
+                                        key={owner.userID}
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
@@ -295,39 +283,29 @@ const CustomerManagement = () => {
                                     >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gray-200 
-                                                    dark:bg-gray-700 flex items-center justify-center">
-                                                    <FaUsers className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                                                </div>
-                                                <span className="font-medium">{customer.name}</span>
+                                                <span className="font-medium">{owner.name}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaEnvelope className="text-gray-400" />
-                                                <span>{customer.email}</span>
+                                                <span>{owner.email}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaPhone className="text-gray-400" />
-                                                <span>{customer.phone}</span>
+                                                <span>{owner.phone}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaMapMarkerAlt className="text-gray-400" />
-                                                <span>{customer.address}</span>
+                                                <span>{owner.address}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-sm font-medium
-                                                ${customer.token ?
-                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
-                                                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}>
-                                                {customer.token ? 'Hoạt động' : 'Không hoạt động'}
-                                            </span>
-                                        </td>
+                                        {/* <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <span>{owner.taxcode}</span>
+                                            </div>
+                                        </td> */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <button
@@ -353,15 +331,15 @@ const CustomerManagement = () => {
                     </table>
 
                     {/* Empty State */}
-                    {filteredCustomers.length === 0 && (
+                    {filteredOwners.length === 0 && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             className="text-center py-12"
                         >
-                            <FaUsers className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-600 mb-4" />
+                            <FaUserTie className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-600 mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                                Không tìm thấy khách hàng
+                                Không tìm thấy chủ nhà
                             </h3>
                             <p className="text-gray-500 dark:text-gray-400">
                                 Thử tìm kiếm với từ khóa khác
@@ -403,4 +381,4 @@ const CustomerManagement = () => {
     );
 };
 
-export default CustomerManagement; 
+export default OwnerManagement; 

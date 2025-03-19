@@ -14,7 +14,7 @@ const Dashboard = () => {
         datasets: [{
             label: 'Doanh thu (triệu VNĐ)',
             data: [5.2, 4.8, 6.1, 5.5, 7.2, 8.1, 7.8],
-            fill: true,git
+            fill: true,
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderColor: 'rgba(75, 192, 192, 1)',
             tension: 0.4
