@@ -1,15 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaHome, FaRedo } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
+import authService from '../../services/api/authAPI';
 
 const OTPVerification = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { email, maskedEmail } = location.state || {};
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [loading, setLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState(60);
     const inputs = useRef([]);
+
+    useEffect(() => {
+        if (!email) {
+            navigate('/register');
+            return;
+        }
+    }, [email, navigate]);
 
     useEffect(() => {
         if (timeLeft > 0) {
@@ -58,8 +68,7 @@ const OTPVerification = () => {
 
         setLoading(true);
         try {
-            // API call here
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+            await authService.verifyOTP(email, otpValue);
             toast.success('Xác thực thành công!', {
                 duration: 3000,
                 position: 'top-right',
@@ -71,7 +80,9 @@ const OTPVerification = () => {
             });
             navigate('/login');
         } catch (error) {
-            toast.error('Mã OTP không chính xác!');
+            toast.error(error?.message || 'Mã OTP không chính xác!');
+            setOtp(['', '', '', '', '', '']);
+            inputs.current[0]?.focus();
         } finally {
             setLoading(false);
         }
