@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt, FaGoogle, FaFacebook, FaApple, FaHome, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
+import authService from '../../services/api/authAPI';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -47,11 +48,24 @@ const Register = () => {
         }
 
         try {
-            // API call here
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            navigate('/otp-verification', { state: { email: formData.email } });
+            const response = await authService.register(formData);
+            toast.success('Đăng ký thành công! Vui lòng kiểm tra email để xác thực.', {
+                duration: 3000,
+                position: 'top-right',
+                style: {
+                    background: '#ECFDF5',
+                    color: '#065F46',
+                    border: '1px solid #6EE7B7'
+                }
+            });
+            navigate('/verify-otp', { 
+                state: { 
+                    email: formData.email,
+                    maskedEmail: formData.email.replace(/(.{3})(.*)(@.*)/, '$1***$3')
+                } 
+            });
         } catch (error) {
-            toast.error('Có lỗi xảy ra khi đăng ký!', {
+            toast.error(error?.message || 'Có lỗi xảy ra khi đăng ký!', {
                 duration: 3000,
                 position: 'top-right',
                 style: {

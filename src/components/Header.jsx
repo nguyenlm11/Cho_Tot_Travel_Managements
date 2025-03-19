@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
-import { useTheme } from '../contexts/ThemeContext';
-import { FaHome, FaBell, FaUserCircle, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { FaBell, FaUserCircle, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import authService from '../services/api/authAPI';
+
 
 const Header = () => {
-  const { isDarkMode } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications] = useState([]);
   const navigate = useNavigate();
+  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
   const menuVariants = {
     hidden: { opacity: 0, y: -10 },
@@ -29,6 +30,11 @@ const Header = () => {
         duration: 0.2
       }
     }
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -71,10 +77,10 @@ const Header = () => {
               </div>
               <div className="hidden sm:block text-left">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Admin Name
+                  {userInfo.name}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  admin@example.com
+                  {userInfo.email}
                 </p>
               </div>
             </button>
@@ -89,15 +95,6 @@ const Header = () => {
                   className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl 
                     shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
                 >
-                  <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Admin Name
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      admin@example.com
-                    </p>
-                  </div>
-
                   <div className="py-1">
                     <Link
                       to="/profile"
@@ -121,7 +118,7 @@ const Header = () => {
 
                   <div className="border-t border-gray-200 dark:border-gray-700 py-1">
                     <button
-                      onClick={() => navigate('/login')}
+                      onClick={() => handleLogout()}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 
                         hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
                     >

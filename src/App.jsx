@@ -1,18 +1,23 @@
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useRoutes } from 'react-router-dom';
+import { routes } from './routes';
 import { ThemeProvider } from './contexts/ThemeContext';
-import Layout from './components/Layout';
-import AppRoutes from './routes';
 
-function App() {
+const App = () => {
+  const routing = useRoutes(routes);
+
   return (
     <ThemeProvider>
-      <Router>
-        <Layout>
-          <AppRoutes />
-        </Layout>
-      </Router>
+      {routing}
     </ThemeProvider>
   );
-}
+};
 
-export default App;
+const AppWrapper = () => {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+};
+
+export default AppWrapper;
