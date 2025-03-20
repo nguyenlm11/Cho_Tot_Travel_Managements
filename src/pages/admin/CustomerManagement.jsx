@@ -295,28 +295,21 @@ const CustomerManagement = () => {
                                     >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gray-200 
-                                                    dark:bg-gray-700 flex items-center justify-center">
-                                                    <FaUsers className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                                                </div>
                                                 <span className="font-medium">{customer.name}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaEnvelope className="text-gray-400" />
                                                 <span>{customer.email}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaPhone className="text-gray-400" />
                                                 <span>{customer.phone}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaMapMarkerAlt className="text-gray-400" />
                                                 <span>{customer.address}</span>
                                             </div>
                                         </td>

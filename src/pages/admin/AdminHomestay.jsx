@@ -1,0 +1,414 @@
+import React, { useState, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FaSearch, FaSort, FaArrowDown, FaArrowUp, FaUser, FaFilter } from 'react-icons/fa';
+import { IoClose } from 'react-icons/io5';
+
+// Mock data với trạng thái active/inactive
+const mockData = Array.from({ length: 20 }, (_, index) => ({
+    id: index + 1,
+    name: `HomeStay ${index + 1}`,
+    address: `Địa chỉ ${index + 1}`,
+    status: 'approved',
+    isActive: index % 2 === 0 // true/false để thể hiện đang hoạt động hay không
+}));
+
+// Thêm component FilterBar
+const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
+    const searchInputRef = useRef(null);
+
+    const statusOptions = [
+        { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
+        { value: 'active', label: 'Đang hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: 'inactive', label: 'Ngừng hoạt động', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
+    ];
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setActualSearchTerm('');
+        searchInputRef.current?.focus();
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    return (
+        <div className="mb-8 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative group flex">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
+                    </div>
+                    <input
+                        ref={searchInputRef}
+                        type="text"
+                        placeholder="Tìm kiếm theo tên hoặc địa chỉ..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        onKeyDown={handleKeyPress}
+                        className="flex-1 pl-10 pr-[140px] py-3 rounded-l-xl border border-gray-200 
+                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                            focus:border-primary transition-all duration-200
+                            hover:border-primary/50 hover:shadow-md"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={handleSearchClear}
+                            className="absolute right-[140px] top-1/2 -translate-y-1/2 p-1.5
+                                text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
+                                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
+                                transition-all duration-200"
+                        >
+                            <IoClose className="w-5 h-5" />
+                        </button>
+                    )}
+                    <button
+                        onClick={handleSearch}
+                        className="px-6 bg-primary hover:bg-primary-dark text-white font-medium 
+                            rounded-r-xl flex items-center gap-2 transition-all duration-200
+                            hover:shadow-lg hover:shadow-primary/20 min-w-[120px] justify-center
+                            border-l-0"
+                    >
+                        <FaSearch className="w-4 h-4" />
+                        Tìm kiếm
+                    </button>
+                </div>
+
+                <div className="relative min-w-[220px]">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaFilter className="text-gray-400" />
+                    </div>
+                    <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
+                            dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+                            dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+                            focus:border-primary transition-all duration-200
+                            hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
+                    >
+                        {statusOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            {(actualSearchTerm || selectedStatus !== 'all') && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-wrap gap-2"
+                >
+                    {actualSearchTerm && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                            bg-primary/10 text-primary text-sm font-medium"
+                        >
+                            <FaSearch className="w-3 h-3" />
+                            {actualSearchTerm}
+                            <button
+                                onClick={handleSearchClear}
+                                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                                    transition-colors duration-200"
+                            >
+                                <IoClose className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                    {selectedStatus !== 'all' && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+                            bg-primary/10 text-primary text-sm font-medium"
+                        >
+                            {statusOptions.find(opt => opt.value === selectedStatus)?.icon}
+                            {statusOptions.find(opt => opt.value === selectedStatus)?.label}
+                            <button
+                                onClick={() => setSelectedStatus('all')}
+                                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                                    transition-colors duration-200"
+                            >
+                                <IoClose className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                </motion.div>
+            )}
+        </div>
+    );
+};
+
+export default function AdminHomestay() {
+    const [homeStays, setHomeStays] = useState(mockData);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [actualSearchTerm, setActualSearchTerm] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortDirection, setSortDirection] = useState(null);
+    const itemsPerPage = 10;
+
+    // Thống kê
+    const totalHomeStays = homeStays.length;
+    const activeHomeStays = homeStays.filter(homeStay => homeStay.isActive).length;
+    const inactiveHomeStays = homeStays.filter(homeStay => !homeStay.isActive).length;
+
+    // Xử lý sắp xếp
+    const handleSort = () => {
+        const newDirection = sortDirection === null ? 'asc' : sortDirection === 'asc' ? 'desc' : null;
+        setSortDirection(newDirection);
+
+        if (newDirection === null) {
+            setHomeStays(mockData);
+            return;
+        }
+
+        const sortedHomeStays = [...homeStays].sort((a, b) => {
+            const numA = parseInt(a.name.match(/\d+/)[0]);
+            const numB = parseInt(b.name.match(/\d+/)[0]);
+            return newDirection === 'asc' ? numA - numB : numB - numA;
+        });
+
+        setHomeStays(sortedHomeStays);
+    };
+
+    const getSortIcon = () => {
+        if (sortDirection === null) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
+        if (sortDirection === 'asc') return <FaArrowDown className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
+        return <FaArrowUp className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
+    };
+
+    // Xử lý toggle trạng thái hoạt động
+    const handleToggleStatus = (id) => {
+        setHomeStays(prev => prev.map(homeStay =>
+            homeStay.id === id ? { ...homeStay, isActive: !homeStay.isActive } : homeStay
+        ));
+    };
+
+    // Cập nhật hàm lọc
+    const filteredHomeStays = homeStays.filter(homeStay => {
+        const matchesSearch = homeStay.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+            homeStay.address.toLowerCase().includes(actualSearchTerm.toLowerCase());
+        const matchesStatus = selectedStatus === 'all' ||
+            (selectedStatus === 'active' && homeStay.isActive) ||
+            (selectedStatus === 'inactive' && !homeStay.isActive);
+        return matchesSearch && matchesStatus;
+    });
+
+    const totalPages = Math.ceil(filteredHomeStays.length / itemsPerPage);
+    const currentItems = filteredHomeStays.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // Thêm hàm xử lý tìm kiếm
+    const handleSearch = () => {
+        setActualSearchTerm(searchTerm);
+        setCurrentPage(1);
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+            <div className="mb-8">
+                <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">Quản lý tất cả HomeStay</h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                    Xem và quản lý trạng thái hoạt động của các HomeStay
+                </p>
+            </div>
+
+            {/* Thống kê */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/10 rounded-lg">
+                            <FaUser className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-white/80 text-sm">Tổng số HomeStay</p>
+                            <p className="text-white text-2xl font-bold">{totalHomeStays}</p>
+                        </div>
+                    </div>
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/10 rounded-lg">
+                            <FaUser className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-white/80 text-sm">Đang hoạt động</p>
+                            <p className="text-white text-2xl font-bold">{activeHomeStays}</p>
+                        </div>
+                    </div>
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-6"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/10 rounded-lg">
+                            <FaUser className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-white/80 text-sm">Ngừng hoạt động</p>
+                            <p className="text-white text-2xl font-bold">{inactiveHomeStays}</p>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* Thay thế thanh tìm kiếm cũ bằng FilterBar mới */}
+            <FilterBar
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                selectedStatus={selectedStatus}
+                setSelectedStatus={setSelectedStatus}
+                handleSearch={handleSearch}
+                setActualSearchTerm={setActualSearchTerm}
+                actualSearchTerm={actualSearchTerm}
+            />
+
+            {/* Bảng danh sách */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-900/50">
+                            <tr>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
+                                    <button
+                                        onClick={handleSort}
+                                        className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                    >
+                                        Tên Homestay
+                                        {getSortIcon()}
+                                    </button>
+                                </th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">
+                                    Địa chỉ
+                                </th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
+                                    Trạng thái
+                                </th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
+                                    Thao tác
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {currentItems.map((homeStay, index) => (
+                                <motion.tr
+                                    key={homeStay.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap">{homeStay.name}</td>
+                                    <td className="px-6 py-4 break-words">{homeStay.address}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.isActive
+                                            ? 'bg-green-100 text-green-600'
+                                            : 'bg-red-100 text-red-800'
+                                            }`}>
+                                            {homeStay.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <button
+                                            onClick={() => handleToggleStatus(homeStay.id)}
+                                            className={`px-3 py-1.5 rounded-lg text-white text-sm ${homeStay.isActive
+                                                ? 'bg-red-500 hover:bg-red-600'
+                                                : 'bg-green-500 hover:bg-green-600'
+                                                } transition-colors`}
+                                        >
+                                            {homeStay.isActive ? 'Dừng hoạt động' : 'Kích hoạt'}
+                                        </button>
+                                    </td>
+                                </motion.tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {currentItems.length === 0 && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center py-12"
+                        >
+                            <FaUser className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-600 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                Không tìm thấy HomeStay
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400">
+                                Thử tìm kiếm với từ khóa khác
+                            </p>
+                        </motion.div>
+                    )}
+                </div>
+            </div>
+
+            {/* Phân trang */}
+            {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className={`p-2 rounded-lg ${currentPage === 1
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                            }`}
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                        <button
+                            key={number}
+                            onClick={() => setCurrentPage(number)}
+                            className={`w-10 h-10 rounded-lg ${number === currentPage
+                                ? 'bg-blue-500 text-white'
+                                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                                }`}
+                        >
+                            {number}
+                        </button>
+                    ))}
+
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`p-2 rounded-lg ${currentPage === totalPages
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                            }`}
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+} 
