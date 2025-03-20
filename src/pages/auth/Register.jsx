@@ -9,10 +9,12 @@ const Register = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
-        fullName: '',
+        name: '',
         address: '',
         email: '',
         phone: '',
+        bankAccountNumber: 'string',
+        taxCode: 'string',
         password: '',
         confirmPassword: ''
     });
@@ -58,11 +60,11 @@ const Register = () => {
                     border: '1px solid #6EE7B7'
                 }
             });
-            navigate('/verify-otp', { 
-                state: { 
+            navigate('/verify-otp', {
+                state: {
                     email: formData.email,
                     maskedEmail: formData.email.replace(/(.{3})(.*)(@.*)/, '$1***$3')
-                } 
+                }
             });
         } catch (error) {
             toast.error(error?.message || 'Có lỗi xảy ra khi đăng ký!', {
@@ -157,10 +159,10 @@ const Register = () => {
                         <InputField
                             icon={<FaUser />}
                             label="Họ và tên"
-                            name="fullName"
+                            name="name"
                             type="text"
                             placeholder="Nhập họ và tên"
-                            value={formData.fullName}
+                            value={formData.name}
                             onChange={handleInputChange}
                         />
 
@@ -218,17 +220,6 @@ const Register = () => {
                                         transition-all duration-200"
                                     placeholder="Nhập mật khẩu"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-4 flex items-center"
-                                >
-                                    {showPassword ? (
-                                        <FaEyeSlash className="h-5 w-5 text-gray-400" />
-                                    ) : (
-                                        <FaEye className="h-5 w-5 text-gray-400" />
-                                    )}
-                                </button>
                             </div>
                         </div>
 
@@ -253,17 +244,6 @@ const Register = () => {
                                         transition-all duration-200"
                                     placeholder="Xác nhận mật khẩu"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute inset-y-0 right-4 flex items-center"
-                                >
-                                    {showConfirmPassword ? (
-                                        <FaEyeSlash className="h-5 w-5 text-gray-400" />
-                                    ) : (
-                                        <FaEye className="h-5 w-5 text-gray-400" />
-                                    )}
-                                </button>
                             </div>
                         </div>
 
