@@ -144,22 +144,26 @@ const AddHomestay = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 
-                dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6"
+            className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 
+                dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6"
         >
             <div className="max-w-4xl mx-auto">
-                {/* Header Section */}
+                {/* Header Section với animation cải tiến */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                     className="text-center mb-10"
                 >
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-dark 
+                    <div className="inline-block p-2 bg-primary/10 dark:bg-primary/20 
+                        rounded-2xl mb-4 backdrop-blur-sm">
+                        <FaHome className="w-10 h-10 text-primary" />
+                    </div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-primary-dark to-primary 
                         bg-clip-text text-transparent mb-4">
                         Thêm nhà nghỉ mới
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400 text-lg">
+                    <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
                         Tạo không gian nghỉ dưỡng tuyệt vời cho khách hàng của bạn
                     </p>
                 </motion.div>
@@ -167,97 +171,119 @@ const AddHomestay = () => {
                 <motion.form
                     variants={formVariants}
                     onSubmit={handleSubmit}
-                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl 
-                        border border-gray-100 dark:border-gray-700 overflow-hidden"
+                    className="bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-xl 
+                        border border-gray-100 dark:border-gray-700 overflow-hidden
+                        backdrop-blur-sm"
                 >
-                    {/* Form Header */}
-                    <div className="bg-gradient-to-r from-primary/10 to-primary-dark/10 
-                        dark:from-primary/5 dark:to-primary-dark/5 px-8 py-6 border-b 
-                        border-gray-100 dark:border-gray-700">
+                    {/* Form Header với gradient cải tiến */}
+                    <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5
+                        dark:from-primary/10 dark:via-primary/20 dark:to-primary/10 
+                        px-8 py-6 border-b border-gray-100 dark:border-gray-700">
                         <h2 className="text-xl font-semibold text-gray-800 dark:text-white 
                             flex items-center gap-3">
                             <FaHome className="text-primary" />
-                            Thông tin cơ bản
+                            <span className="bg-gradient-to-r from-primary to-primary-dark 
+                                bg-clip-text text-transparent">
+                                Thông tin cơ bản
+                            </span>
                         </h2>
                     </div>
 
                     <div className="p-8 space-y-6">
-                        {/* Name Input */}
+                        {/* Name Input với hiệu ứng focus cải tiến */}
                         <motion.div variants={inputGroupVariants} className="group">
-                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                Tên nhà nghỉ <span className="text-red-500">*</span>
+                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 
+                                flex items-center gap-2">
+                                <span>Tên nhà nghỉ</span>
+                                <span className="text-red-500">*</span>
                             </label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 
-                                    dark:border-gray-600 bg-transparent
-                                    focus:border-primary dark:focus:border-primary
-                                    focus:ring-2 focus:ring-primary/20
-                                    transition-all duration-200"
-                                required
-                            />
+                            <div className="relative group">
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder='Nhập tên nhà nghỉ'
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 pl-11 rounded-xl border-2 border-gray-200 
+                                        dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
+                                        focus:border-primary dark:focus:border-primary
+                                        focus:ring-4 focus:ring-primary/20
+                                        transition-all duration-300"
+                                    required
+                                />
+                                <FaHome className="absolute left-4 top-1/2 -translate-y-1/2 
+                                    text-gray-400 group-focus-within:text-primary 
+                                    transition-colors duration-300" />
+                            </div>
                         </motion.div>
 
-                        {/* Description Input */}
+                        {/* Description Input với auto-resize */}
                         <motion.div variants={inputGroupVariants} className="group">
-                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                Mô tả <span className="text-red-500">*</span>
+                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 
+                                flex items-center gap-2">
+                                <span>Mô tả</span>
+                                <span className="text-red-500">*</span>
                             </label>
                             <textarea
                                 name="description"
+                                placeholder='Mô tả chi tiết về nhà nghỉ'
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 
-                                    dark:border-gray-600 bg-transparent
+                                    dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
                                     focus:border-primary dark:focus:border-primary
-                                    focus:ring-2 focus:ring-primary/20
-                                    transition-all duration-200 min-h-[100px]"
+                                    focus:ring-4 focus:ring-primary/20
+                                    transition-all duration-300 min-h-[120px] resize-y"
                                 required
                             />
                         </motion.div>
 
-                        {/* Address Input with Autocomplete */}
+                        {/* Address Input với Autocomplete cải tiến */}
                         <motion.div variants={inputGroupVariants} className="group relative">
-                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                Địa chỉ <span className="text-red-500">*</span>
+                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 
+                                flex items-center gap-2">
+                                <span>Địa chỉ</span>
+                                <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <input
                                     type="text"
+                                    placeholder='Nhập địa chỉ của nhà nghỉ'
                                     name="address"
                                     value={formData.address}
                                     onChange={handleInputChange}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border-2 
-                                        border-gray-200 dark:border-gray-600 bg-transparent
+                                    className="w-full pl-11 pr-4 py-3 rounded-xl border-2 
+                                        border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
                                         focus:border-primary dark:focus:border-primary
-                                        focus:ring-2 focus:ring-primary/20
-                                        transition-all duration-200"
+                                        focus:ring-4 focus:ring-primary/20
+                                        transition-all duration-300"
                                     required
                                 />
                                 <FaMapMarkerAlt className="absolute left-4 top-1/2 -translate-y-1/2 
-                                    text-gray-400 group-focus-within:text-primary transition-colors" />
+                                    text-gray-400 group-focus-within:text-primary 
+                                    transition-colors duration-300" />
                             </div>
-                            
-                            {/* Address Suggestions */}
+
+                            {/* Address Suggestions với animation cải tiến */}
                             <AnimatePresence>
                                 {showSuggestions && searchResults.length > 0 && (
                                     <motion.div
                                         initial={{ opacity: 0, y: -10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
-                                        className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 
-                                            rounded-xl shadow-lg border border-gray-100 
+                                        className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-700 
+                                            rounded-xl shadow-xl border border-gray-100 
                                             dark:border-gray-600 overflow-hidden"
                                     >
                                         {searchResults.map((result, index) => (
                                             <motion.div
                                                 key={index}
-                                                whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
-                                                className="px-4 py-3 cursor-pointer hover:bg-gray-50 
-                                                    dark:hover:bg-gray-600 transition-colors
+                                                whileHover={{
+                                                    backgroundColor: "rgba(var(--color-primary), 0.1)",
+                                                    x: 4
+                                                }}
+                                                className="px-4 py-3 cursor-pointer hover:bg-primary/5 
+                                                    dark:hover:bg-primary/20 transition-all duration-300
                                                     flex items-center gap-3"
                                                 onClick={() => handleSelectAddress(result)}
                                             >
@@ -272,32 +298,38 @@ const AddHomestay = () => {
                             </AnimatePresence>
                         </motion.div>
 
-                        {/* Area Input */}
+                        {/* Area Input với validation visual */}
                         <motion.div variants={inputGroupVariants} className="group">
                             <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                                 Khu vực
                             </label>
-                            <input
-                                type="text"
-                                name="area"
-                                value={formData.area}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 
-                                    dark:border-gray-600 bg-transparent
-                                    focus:border-primary dark:focus:border-primary
-                                    focus:ring-2 focus:ring-primary/20
-                                    transition-all duration-200"
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="area"
+                                    value={formData.area}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 
+                                        dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
+                                        focus:border-primary dark:focus:border-primary
+                                        focus:ring-4 focus:ring-primary/20
+                                        transition-all duration-300"
+                                />
+                            </div>
                         </motion.div>
 
-                        {/* Image Upload */}
+                        {/* Image Upload với drag & drop cải tiến */}
                         <motion.div variants={inputGroupVariants} className="space-y-4">
                             <label className="text-base font-medium text-gray-700 dark:text-gray-300 block">
                                 Hình ảnh
                             </label>
-                            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 
-                                rounded-xl p-6 text-center hover:border-primary dark:hover:border-primary 
-                                transition-colors cursor-pointer relative">
+                            <motion.div
+                                whileHover={{ scale: 1.01 }}
+                                className="border-2 border-dashed border-gray-300 dark:border-gray-600 
+                                    rounded-xl p-8 text-center hover:border-primary dark:hover:border-primary 
+                                    transition-all duration-300 cursor-pointer relative
+                                    bg-gray-50/50 dark:bg-gray-700/50 group"
+                            >
                                 <input
                                     type="file"
                                     multiple
@@ -305,41 +337,55 @@ const AddHomestay = () => {
                                     onChange={handleImageChange}
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
-                                <FaHome className="mx-auto h-12 w-12 text-gray-400" />
-                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                    Kéo thả hoặc click để tải ảnh lên
-                                </p>
-                            </div>
+                                <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="flex flex-col items-center"
+                                >
+                                    <FaHome className="w-12 h-12 text-gray-400 
+                                        group-hover:text-primary transition-colors duration-300" />
+                                    <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                                        Kéo thả hoặc click để tải ảnh lên
+                                    </p>
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Hỗ trợ: JPG, PNG (Tối đa 5MB)
+                                    </p>
+                                </motion.div>
+                            </motion.div>
 
-                            {/* Image Previews */}
+                            {/* Image Preview Grid với animation */}
                             {previewImages.length > 0 && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4"
+                                    className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6"
                                 >
                                     {previewImages.map((preview, index) => (
                                         <motion.div
                                             key={index}
                                             initial={{ opacity: 0, scale: 0.8 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            className="relative group rounded-lg overflow-hidden"
+                                            className="relative group rounded-lg overflow-hidden
+                                                shadow-md hover:shadow-xl transition-shadow duration-300"
                                         >
                                             <img
                                                 src={preview}
                                                 alt={`Preview ${index + 1}`}
-                                                className="w-full h-32 object-cover"
+                                                className="w-full h-32 object-cover transform 
+                                                    group-hover:scale-110 transition-transform duration-500"
                                             />
                                             <motion.button
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.9 }}
                                                 onClick={() => {
                                                     setPreviewImages(prev => prev.filter((_, i) => i !== index));
-                                                    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        images: prev.images.filter((_, i) => i !== index)
+                                                    }));
                                                 }}
-                                                className="absolute top-2 right-2 p-1.5 bg-red-500 
+                                                className="absolute top-2 right-2 p-1.5 bg-red-500/90 
                                                     text-white rounded-full opacity-0 group-hover:opacity-100 
-                                                    transition-opacity duration-200"
+                                                    transition-all duration-300 hover:bg-red-600"
                                             >
                                                 <FaTimes className="w-4 h-4" />
                                             </motion.button>
@@ -350,39 +396,41 @@ const AddHomestay = () => {
                         </motion.div>
                     </div>
 
-                    {/* Form Actions */}
-                    <div className="px-8 py-6 bg-gray-50 dark:bg-gray-800/50 border-t 
+                    {/* Form Actions với button cải tiến */}
+                    <div className="px-8 py-6 bg-gray-50/80 dark:bg-gray-800/80 border-t 
                         border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
                         <motion.button
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.02, x: -4 }}
                             whileTap={{ scale: 0.98 }}
                             type="button"
                             onClick={() => navigate('/owner/homestays')}
                             className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300
-                                hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+                                hover:bg-gray-100 dark:hover:bg-gray-700 
+                                transition-all duration-300 flex items-center gap-2"
                         >
-                            Hủy
+                            <span>Hủy</span>
                         </motion.button>
                         <motion.button
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.02, x: 4 }}
                             whileTap={{ scale: 0.98 }}
                             type="submit"
                             disabled={loading}
                             className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark
-                                text-white font-medium transition-all duration-200 
+                                text-white font-medium transition-all duration-300 
                                 hover:shadow-lg hover:shadow-primary/25
                                 disabled:opacity-50 disabled:cursor-not-allowed
                                 flex items-center gap-2"
                         >
                             {loading ? (
-                                <>
-                                    <span className="animate-spin">⏳</span>
-                                    Đang xử lý...
-                                </>
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                                />
                             ) : (
                                 <>
                                     <FaHome className="w-5 h-5" />
-                                    Thêm nhà nghỉ
+                                    <span>Thêm nhà nghỉ</span>
                                 </>
                             )}
                         </motion.button>

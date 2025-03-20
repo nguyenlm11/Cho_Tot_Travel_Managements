@@ -1,9 +1,30 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt, FaGoogle, FaFacebook, FaApple, FaHome, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
 import authService from '../../services/api/authAPI';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            duration: 0.6,
+            when: "beforeChildren",
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.4 }
+    }
+};
 
 const Register = () => {
     const navigate = useNavigate();
@@ -84,44 +105,65 @@ const Register = () => {
     return (
         <div className="min-h-screen flex">
             <Toaster />
-            {/* Left Section */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-                {/* Background Image với Overlay */}
+
+            {/* Left Section - Background */}
+            <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+            >
                 <div className="absolute inset-0">
                     <img
                         src="https://images.unsplash.com/photo-1582719508461-905c673771fd"
                         alt="Luxury Homestay"
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary-dark/90" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary-dark/90 backdrop-blur-sm" />
                 </div>
 
+                {/* Content */}
                 <div className="relative z-10 p-12 flex flex-col justify-center">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
                     >
-                        <h1 className="text-6xl font-bold text-white mb-6">
-                            Homestay<br />Manager
-                        </h1>
-                        <p className="text-white/80 text-lg">
-                            Tham gia cùng chúng tôi để quản lý nhà nghỉ của bạn một cách chuyên nghiệp
-                        </p>
+                        <motion.h1
+                            variants={itemVariants}
+                            className="text-6xl font-bold text-white mb-6"
+                        >
+                            Tạo tài khoản<br />Homestay Manager
+                        </motion.h1>
+                        <motion.p
+                            variants={itemVariants}
+                            className="text-white/80 text-lg"
+                        >
+                            Bắt đầu quản lý nhà nghỉ của bạn<br />một cách chuyên nghiệp
+                        </motion.p>
                     </motion.div>
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Right Section */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="max-w-md w-full"
-                >
-                    {/* Logo */}
-                    <div className="text-center mb-8">
-                        <div className="flex items-center justify-center gap-2 mb-6">
+            {/* Right Section - Register Form */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-900 overflow-y-auto"
+            >
+                <div className="max-w-md w-full">
+                    {/* Logo & Title */}
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="text-center mb-8"
+                    >
+                        <motion.div
+                            variants={itemVariants}
+                            className="flex items-center justify-center gap-2 mb-6"
+                        >
                             <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-xl">
                                 <FaHome className="w-8 h-8 text-primary" />
                             </div>
@@ -129,209 +171,255 @@ const Register = () => {
                                 bg-clip-text text-transparent">
                                 Homestay Manager
                             </span>
-                        </div>
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                        </motion.div>
+                        <motion.h2
+                            variants={itemVariants}
+                            className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
+                        >
                             Đăng ký tài khoản
-                        </h2>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Tạo tài khoản để bắt đầu quản lý nhà nghỉ của bạn
-                        </p>
-                    </div>
+                        </motion.h2>
+                        <motion.p
+                            variants={itemVariants}
+                            className="text-gray-600 dark:text-gray-400"
+                        >
+                            Điền thông tin để tạo tài khoản mới
+                        </motion.p>
+                    </motion.div>
 
                     {/* Register Form */}
                     <motion.form
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
                         onSubmit={handleSubmit}
-                        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border 
-                            border-gray-200 dark:border-gray-700 p-8 space-y-6"
+                        className="space-y-4"
                     >
-                        {/* Username Field */}
-                        <InputField
-                            icon={<FaUser />}
-                            label="Tên đăng nhập"
-                            name="username"
-                            type="text"
-                            placeholder="Nhập tên đăng nhập"
-                            value={formData.username}
-                            onChange={handleInputChange}
-                        />
+                        {/* Form Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Username Input */}
+                            <motion.div variants={itemVariants} className="group">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Tên đăng nhập <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="username"
+                                        value={formData.username}
+                                        onChange={handleInputChange}
+                                        className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                                    focus:ring-4 focus:ring-primary/20 focus:border-primary
+                                    transition-all duration-200"
+                                        placeholder="Nhập tên đăng nhập"
+                                        required
+                                    />
+                                    <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 
+                                        text-gray-400 group-focus-within:text-primary transition-colors" />
+                                </div>
+                            </motion.div>
 
-                        {/* Full Name Field */}
-                        <InputField
-                            icon={<FaUser />}
-                            label="Họ và tên"
-                            name="name"
-                            type="text"
-                            placeholder="Nhập họ và tên"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                        />
+                            {/* Full Name Input */}
+                            <motion.div variants={itemVariants} className="group">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Họ và tên <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                                    focus:ring-4 focus:ring-primary/20 focus:border-primary
+                                    transition-all duration-200"
+                                        placeholder="Nhập họ và tên"
+                                        required
+                                    />
+                                    <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 
+                                        text-gray-400 group-focus-within:text-primary transition-colors" />
+                                </div>
+                            </motion.div>
+                        </div>
 
-                        {/* Address Field */}
-                        <InputField
-                            icon={<FaMapMarkerAlt />}
-                            label="Địa chỉ"
-                            name="address"
-                            type="text"
-                            placeholder="Nhập địa chỉ"
-                            value={formData.address}
-                            onChange={handleInputChange}
-                        />
-
-                        {/* Email Field */}
-                        <InputField
-                            icon={<FaEnvelope />}
-                            label="Email"
-                            name="email"
-                            type="email"
-                            placeholder="Nhập email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                        />
-
-                        {/* Phone Field */}
-                        <InputField
-                            icon={<FaPhone />}
-                            label="Số điện thoại"
-                            name="phone"
-                            type="tel"
-                            placeholder="Nhập số điện thoại"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                        />
-
-                        {/* Password Field */}
-                        <div>
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                Mật khẩu
+                        {/* Email Input */}
+                        <motion.div variants={itemVariants} className="group">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Email <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-4 flex items-center">
-                                    <FaLock className="h-5 w-5 text-gray-400" />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                                    focus:ring-4 focus:ring-primary/20 focus:border-primary
+                                    transition-all duration-200"
+                                    placeholder="Nhập địa chỉ email"
+                                    required
+                                />
+                                <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 
+                                    text-gray-400 group-focus-within:text-primary transition-colors" />
+                            </div>
+                        </motion.div>
+
+                        {/* Phone & Address */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <motion.div variants={itemVariants} className="group">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Số điện thoại <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleInputChange}
+                                        className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                                    focus:ring-4 focus:ring-primary/20 focus:border-primary
+                                    transition-all duration-200"
+                                        placeholder="Nhập số điện thoại"
+                                        required
+                                    />
+                                    <FaPhone className="absolute left-4 top-1/2 -translate-y-1/2 
+                                        text-gray-400 group-focus-within:text-primary transition-colors" />
                                 </div>
+                            </motion.div>
+
+                            <motion.div variants={itemVariants} className="group">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Địa chỉ <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleInputChange}
+                                        className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                                        rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                                        focus:ring-4 focus:ring-primary/20 focus:border-primary
+                                        transition-all duration-200"
+                                        placeholder="Nhập địa chỉ"
+                                        required
+                                    />
+                                    <FaMapMarkerAlt className="absolute left-4 top-1/2 -translate-y-1/2 
+                                        text-gray-400 group-focus-within:text-primary transition-colors" />
+                                </div>
+                            </motion.div>
+                        </div>
+
+                        {/* Password Fields */}
+                        <motion.div variants={itemVariants} className="group">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Mật khẩu <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     name="password"
                                     value={formData.password}
                                     onChange={handleInputChange}
-                                    required
-                                    className="block w-full pl-12 pr-12 py-3 border-2 border-gray-200 dark:border-gray-600 
-                                        rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                                        focus:ring-4 focus:ring-primary/20 focus:border-primary
-                                        transition-all duration-200"
+                                    className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                                    focus:ring-4 focus:ring-primary/20 focus:border-primary
+                                    transition-all duration-200"
                                     placeholder="Nhập mật khẩu"
+                                    required
                                 />
+                                <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 
+                                    text-gray-400 group-focus-within:text-primary transition-colors" />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 
+                                        text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        {/* Confirm Password Field */}
-                        <div>
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                Xác nhận mật khẩu
+                        <motion.div variants={itemVariants} className="group">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Xác nhận mật khẩu <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-4 flex items-center">
-                                    <FaLock className="h-5 w-5 text-gray-400" />
-                                </div>
                                 <input
                                     type={showConfirmPassword ? "text" : "password"}
                                     name="confirmPassword"
                                     value={formData.confirmPassword}
                                     onChange={handleInputChange}
-                                    required
-                                    className="block w-full pl-12 pr-12 py-3 border-2 border-gray-200 dark:border-gray-600 
-                                        rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                                        focus:ring-4 focus:ring-primary/20 focus:border-primary
-                                        transition-all duration-200"
+                                    className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
+                                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                                    focus:ring-4 focus:ring-primary/20 focus:border-primary
+                                    transition-all duration-200"
                                     placeholder="Xác nhận mật khẩu"
+                                    required
                                 />
+                                <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 
+                                    text-gray-400 group-focus-within:text-primary transition-colors" />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 
+                                        text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        {/* Register Button */}
-                        <button
+                        {/* Submit Button */}
+                        <motion.button
+                            variants={itemVariants}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-dark
-                                text-white rounded-xl font-medium transition-all duration-200 
+                            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-primary to-primary-dark
+                                text-white font-medium transition-all duration-200
                                 hover:shadow-lg hover:shadow-primary/25
                                 disabled:opacity-50 disabled:cursor-not-allowed
-                                flex items-center justify-center gap-2"
+                                flex items-center justify-center gap-2 mt-6"
                         >
                             {loading ? (
-                                <span className="animate-spin">⏳</span>
-                            ) : 'Đăng ký'}
-                        </button>
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                                />
+                            ) : (
+                                <>
+                                    <FaUser className="w-5 h-5" />
+                                    Đăng ký
+                                </>
+                            )}
+                        </motion.button>
 
-                        {/* Divider */}
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">hoặc</span>
-                            </div>
-                        </div>
-
-                        {/* Social Register */}
-                        <div className="flex justify-center space-x-4">
-                            {[FaGoogle, FaFacebook, FaApple].map((Icon, index) => (
-                                <motion.button
-                                    key={index}
-                                    type="button"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600
-                                        hover:border-primary dark:hover:border-primary
-                                        hover:bg-primary/5 dark:hover:bg-primary/10
-                                        transition-all duration-200"
-                                >
-                                    <Icon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                                </motion.button>
-                            ))}
-                        </div>
-                    </motion.form>
-
-                    {/* Login Link */}
-                    <p className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
-                        Đã có tài khoản?{' '}
-                        <Link
-                            to="/login"
-                            className="font-medium text-primary hover:text-primary-dark 
-                                transition-colors duration-200"
+                        {/* Login Link */}
+                        <motion.p
+                            variants={itemVariants}
+                            className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6"
                         >
-                            Đăng nhập ngay
-                        </Link>
-                    </p>
-                </motion.div>
-            </div>
+                            Đã có tài khoản?{" "}
+                            <Link
+                                to="/login"
+                                className="text-primary hover:text-primary-dark font-medium 
+                                    transition-colors duration-200"
+                            >
+                                Đăng nhập ngay
+                            </Link>
+                        </motion.p>
+                    </motion.form>
+                </div>
+            </motion.div>
         </div>
     );
 };
-
-// Input Field Component
-const InputField = ({ icon, label, name, type, placeholder, value, onChange }) => (
-    <div>
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-            {label}
-        </label>
-        <div className="relative">
-            <div className="absolute inset-y-0 left-4 flex items-center">
-                {React.cloneElement(icon, { className: "h-5 w-5 text-gray-400" })}
-            </div>
-            <input
-                type={type}
-                name={name}
-                value={value}
-                onChange={onChange}
-                required
-                className="block w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 
-                    rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                    focus:ring-4 focus:ring-primary/20 focus:border-primary
-                    transition-all duration-200"
-                placeholder={placeholder}
-            />
-        </div>
-    </div>
-);
 
 export default Register; 
