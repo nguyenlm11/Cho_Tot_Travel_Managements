@@ -3,6 +3,7 @@ import CustomerManagement from '../pages/admin/CustomerManagement';
 import OwnerManagement from '../pages/admin/OwnerManagement';
 import PendingHomestay from '../pages/admin/PendingHomestay';
 import TransactionHistory from '../pages/admin/TransactionHistory';
+import AdminHomestay from '../pages/admin/AdminHomestay';
 // ... other admin page imports
 
 export const adminRoutes = [
@@ -20,7 +21,7 @@ export const adminRoutes = [
   },
   {
     path: "homestays/all",
-    element: null, // <AdminHomestays />
+    element: <AdminHomestay />, // <AdminHomestays />
   },
   {
     path: "homestays/pending",

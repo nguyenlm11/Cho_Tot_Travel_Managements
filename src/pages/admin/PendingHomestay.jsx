@@ -175,23 +175,23 @@ export default function PendingHomestay() {
                                 </button>
                             </div>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-white">Tên HomeStay</label>
+                                <label className="block text-sm font-medium ">Tên HomeStay</label>
                                 <input
                                     type="text"
                                     value={newHomeStay.name}
                                     onChange={(e) => setNewHomeStay({ ...newHomeStay, name: e.target.value })}
                                     className="mt-1 block w-full border border-gray-300 text-gray-800 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                    placeholder="Nhập tên HomeStay"
+                                    placeholder="Nhập tên HomeStay..."
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-white">Địa chỉ</label>
+                                <label className="block text-sm font-medium">Địa chỉ</label>
                                 <input
                                     type="text"
                                     value={newHomeStay.address}
                                     onChange={(e) => setNewHomeStay({ ...newHomeStay, address: e.target.value })}
                                     className="mt-1 block w-full border border-gray-300 text-gray-800 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                    placeholder="Nhập địa chỉ"
+                                    placeholder="Nhập địa chỉ..."
                                 />
                             </div>
                             <div className="flex justify-end">
@@ -246,7 +246,7 @@ export default function PendingHomestay() {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white  w-1/6">
                                     <button
                                         onClick={handleSort}
                                         className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none"
@@ -255,9 +255,9 @@ export default function PendingHomestay() {
                                         {getSortIcon()}
                                     </button>
                                 </th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Địa chỉ</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Trạng thái</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Thao tác</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">Địa chỉ</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white  w-1/6">Trạng thái</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white  w-1/6">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
