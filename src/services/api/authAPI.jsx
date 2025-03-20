@@ -52,7 +52,7 @@ const authService = {
 
     register: async (formData) => {
         try {
-            const response = await axiosInstance.post('/account/register', formData);
+            const response = await axiosInstance.post('/account/register-Owner', formData);
             return response.data;
         } catch (error) {
             throw error?.response?.data || error;
@@ -61,13 +61,10 @@ const authService = {
 
     verifyOTP: async (email, otp) => {
         try {
-            const response = await axiosInstance.post('/account/verify-otp', {
-                email,
-                otp
-            });
+            const response = await axiosInstance.post(`/account/confirmation/${email}/${otp}`);
             return response.data;
         } catch (error) {
-            throw error?.response?.data || error;
+            throw error?.response?.data || { message: 'Có lỗi xảy ra khi xác thực OTP' };
         }
     },
 

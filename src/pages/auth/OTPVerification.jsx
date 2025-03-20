@@ -69,6 +69,7 @@ const OTPVerification = () => {
         setLoading(true);
         try {
             await authService.verifyOTP(email, otpValue);
+            
             toast.success('Xác thực thành công!', {
                 duration: 3000,
                 position: 'top-right',
@@ -92,7 +93,6 @@ const OTPVerification = () => {
         if (timeLeft > 0) return;
 
         try {
-            // API call to resend OTP
             setTimeLeft(60);
             toast.success('Đã gửi lại mã OTP!');
         } catch (error) {
