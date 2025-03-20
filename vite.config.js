@@ -6,7 +6,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://hungnv.iselab.cloud:7221',
+        // target: 'http://hungnv.iselab.cloud:7221',
+        target: 'https://localhost:7221',
         changeOrigin: true,
         secure: false,
       }
