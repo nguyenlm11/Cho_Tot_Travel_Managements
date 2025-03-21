@@ -35,11 +35,12 @@ const Layout = ({ children }) => {
           transition-all duration-300 ease-in-out
           border border-gray-200 dark:border-gray-700
           hover:bg-gray-50 dark:hover:bg-gray-700
-          group`}
+          group
+          `}
       >
         <motion.div
-          animate={{ rotate: isCollapsed ? 0 : 180 }}
-          transition={{ duration: 0.3 }}
+          animate={{ rotate: isCollapsed ? 0 : 360 }}
+          transition={{ duration: 0.5 }}
           className="text-primary dark:text-white"
         >
           {isCollapsed ? (

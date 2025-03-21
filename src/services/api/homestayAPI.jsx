@@ -31,6 +31,33 @@ const homestayAPI = {
         } catch (error) {
             throw error;
         }
+    },
+
+    getHomestaysByOwner: async (accountId) => {
+        try {
+            const response = await axiosInstance.get(`/homestay/GetSimpleByAccount/${accountId}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    deleteHomestay: async (homestayId) => {
+        try {
+            const response = await axiosInstance.delete(`/homestay/DeleteHomeStay/${homestayId}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    updateHomestayStatus: async (homestayId, status) => {
+        try {
+            const response = await axiosInstance.put(`/homestay/UpdateHomeStayStatus/${homestayId}`, { status });
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
     }
 };
 

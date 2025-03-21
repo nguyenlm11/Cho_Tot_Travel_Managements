@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaMapMarkerAlt, FaStar, FaRegClock, FaEdit, FaTrash, FaSearch, FaFilter, FaChevronLeft, FaChevronRight, FaChartLine, FaHome, FaBed } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import CountUp from 'react-countup';
+import homestayAPI from '../../services/api/homestayAPI';
 
 // Animation variants
 const pageVariants = {
@@ -73,6 +74,7 @@ const statusConfig = {
   }
 };
 
+// FilterBar Component (Giữ nguyên)
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
   const searchInputRef = useRef(null);
 
@@ -102,7 +104,6 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
   return (
     <div className="mb-8 space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Search Input - Điều chỉnh lại vị trí các phần tử */}
         <div className="flex-1 relative group flex">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
@@ -120,7 +121,6 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
               focus:border-primary transition-all duration-200
               hover:border-primary/50 hover:shadow-md"
           />
-          {/* Điều chỉnh vị trí nút clear */}
           {searchTerm && (
             <button
               onClick={handleSearchClear}
@@ -143,8 +143,6 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
             Tìm kiếm
           </button>
         </div>
-
-        {/* Status Filter - Điều chỉnh lại style cho đồng bộ */}
         <div className="relative min-w-[220px]">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <FaFilter className="text-gray-400" />
@@ -171,8 +169,6 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
           </div>
         </div>
       </div>
-
-      {/* Active Filters - Điều chỉnh lại style cho chip */}
       {(actualSearchTerm || selectedStatus !== 'all') && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -215,6 +211,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
   );
 };
 
+// HomestayCard Component (Giữ nguyên)
 const HomestayCard = ({ homestay, index }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -244,7 +241,6 @@ const HomestayCard = ({ homestay, index }) => {
         transition-all duration-300 hover:shadow-xl hover:shadow-primary/10"
     >
       <div className="flex flex-col">
-        {/* Image Container */}
         <div className="relative h-48 overflow-hidden">
           <img
             src={homestay.image}
@@ -258,8 +254,6 @@ const HomestayCard = ({ homestay, index }) => {
               {statusConfig[homestay.status].text}
             </span>
           </div>
-
-          {/* Quick Actions Overlay */}
           <AnimatePresence>
             {isHovered && (
               <motion.div
@@ -296,18 +290,15 @@ const HomestayCard = ({ homestay, index }) => {
             )}
           </AnimatePresence>
         </div>
-
-        {/* Content */}
         <div className="p-6">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2
             group-hover:text-primary transition-colors duration-200">
             {homestay.name}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 text-sm">
-            <FaMapMarkerAlt className="text-primary" />
-            {homestay.address}
+            <FaMapMarkerAlt className="text-primary w-6 h-6" />
+            <span className="line-clamp-2">{homestay.address}</span>
           </p>
-
           <div className="flex items-center justify-between mt-4 mb-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
@@ -330,37 +321,70 @@ const HomestayCard = ({ homestay, index }) => {
   );
 };
 
+// HomestayList Component (Đã tích hợp API)
 const HomestayList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [actualSearchTerm, setActualSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [homestays, setHomestays] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const itemsPerPage = 6;
 
-  // Mock data - replace with API call later
-  const [homestays] = useState([
-    {
-      id: 1,
-      name: "Sunshine Villa",
-      address: "123 Đường ABC, Quận 1, TP.HCM",
-      status: "active",
-      rooms: 10,
-      rating: 4.5,
-      image: "https://www.homestayadvisor.in/uploads/2/1/7/1/21711386/glad-stone-sakleshpura-3_1.jpg",
-      lastUpdated: "2024-03-15T10:30:00"
-    },
-    {
-      id: 2,
-      name: "Ocean View Resort",
-      address: "456 Đường XYZ, Quận 2, TP.HCM",
-      status: "pending",
-      rooms: 15,
-      rating: 4.8,
-      image: "https://assets.cntraveller.in/photos/62a878354507a8eb3d09d137/master/w_1600%2Cc_limit/Photo%2520by%2520Joshua%2520D'silva%2520caption-%2520Cottage%2520at%2520dusk.jpg",
-      lastUpdated: "2024-03-14T15:45:00"
+  // Hàm lấy trạng thái
+  const getStatusText = (status) => {
+    switch (status) {
+      case 0:
+        return 'pending';
+      case 1:
+        return 'active';
+      case 2:
+        return 'inactive';
+      default:
+        return 'pending';
     }
-  ]);
+  };
 
+  // Hàm gọi API
+  const fetchHomestays = async () => {
+    try {
+      setLoading(true);
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      if (!userInfo?.AccountID) {
+        toast.error('Không tìm thấy thông tin tài khoản');
+        navigate('/login');
+        return;
+      }
+
+      const response = await homestayAPI.getHomestaysByOwner(userInfo.AccountID);
+
+      const formattedHomestays = response.data.map(homestay => ({
+        id: homestay.homeStayID,
+        name: homestay.name,
+        address: homestay.address,
+        status: getStatusText(homestay.status),
+        rooms: homestay.numberOfRoom || 0,
+        rating: 0,
+        image: homestay.imageHomeStays?.[0]?.image,
+        lastUpdated: homestay.createAt
+      }));
+
+      setHomestays(formattedHomestays);
+    } catch (error) {
+      console.error('Error fetching homestays:', error);
+      toast.error('Không thể tải danh sách homestay');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Gọi API khi component mount
+  useEffect(() => {
+    fetchHomestays();
+  }, []);
+
+  // Lọc và phân trang
   const filteredHomestays = useMemo(() => {
     return homestays.filter(homestay => {
       const matchesSearch = homestay.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
@@ -495,54 +519,63 @@ const HomestayList = () => {
           actualSearchTerm={actualSearchTerm}
         />
 
-        {/* Grid Layout */}
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {paginatedHomestays.map((homestay, index) => (
-            <HomestayCard key={homestay.id} homestay={homestay} index={index} />
-          ))}
-        </motion.div>
-
-        {/* Empty State */}
-        <AnimatePresence>
-          {filteredHomestays.length === 0 && (
+        {/* Grid Layout or Loading State */}
+        {loading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải dữ liệu...</p>
+          </div>
+        ) : (
+          <>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl
-              border border-gray-100 dark:border-gray-700 mt-6"
+              variants={itemVariants}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              <div className="text-gray-400 dark:text-gray-500 mb-4">
-                <FaSearch className="mx-auto w-16 h-16" />
-              </div>
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                {homestays.length === 0 ? "Chưa có nhà nghỉ nào" : "Không tìm thấy kết quả"}
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
-                {homestays.length === 0
-                  ? "Bắt đầu bằng cách thêm nhà nghỉ đầu tiên của bạn"
-                  : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
-              </p>
-              {homestays.length === 0 && (
-                <Link
-                  to="/owner/homestays/add"
-                  className="inline-flex items-center px-6 py-3 bg-primary text-white 
-                  font-semibold rounded-xl hover:bg-primary-dark transition-all 
-                  duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
-                >
-                  <FaPlus className="w-5 h-5 mr-2" />
-                  Thêm nhà nghỉ
-                </Link>
-              )}
+              {paginatedHomestays.map((homestay, index) => (
+                <HomestayCard key={homestay.id} homestay={homestay} index={index} />
+              ))}
             </motion.div>
-          )}
-        </AnimatePresence>
+
+            {/* Empty State */}
+            <AnimatePresence>
+              {filteredHomestays.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl
+                  border border-gray-100 dark:border-gray-700 mt-6"
+                >
+                  <div className="text-gray-400 dark:text-gray-500 mb-4">
+                    <FaSearch className="mx-auto w-16 h-16" />
+                  </div>
+                  <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                    {homestays.length === 0 ? "Chưa có nhà nghỉ nào" : "Không tìm thấy kết quả"}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    {homestays.length === 0
+                      ? "Bắt đầu bằng cách thêm nhà nghỉ đầu tiên của bạn"
+                      : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
+                  </p>
+                  {homestays.length === 0 && (
+                    <Link
+                      to="/owner/homestays/add"
+                      className="inline-flex items-center px-6 py-3 bg-primary text-white 
+                      font-semibold rounded-xl hover:bg-primary-dark transition-all 
+                      duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
+                    >
+                      <FaPlus className="w-5 h-5 mr-2" />
+                      Thêm nhà nghỉ
+                    </Link>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {!loading && totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mt-8">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -553,7 +586,6 @@ const HomestayList = () => {
             >
               <FaChevronLeft className="w-5 h-5" />
             </button>
-
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
               <button
                 key={number}
@@ -565,7 +597,6 @@ const HomestayList = () => {
                 {number}
               </button>
             ))}
-
             <button
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
