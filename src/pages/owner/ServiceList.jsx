@@ -4,6 +4,7 @@ import { FaSearch, FaFilter, FaDollarSign, FaClock, FaTag, FaPlus, FaEdit, FaTra
 import { IoClose } from 'react-icons/io5';
 import ServiceModal from '../../components/modals/ServiceModal';
 import CountUp from 'react-countup';
+import { useParams } from 'react-router-dom';
 
 // Animation variants
 const pageVariants = {
@@ -198,6 +199,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 };
 
 const ServiceList = () => {
+    const { id: homestayId } = useParams();
     // States for search, filter, and pagination
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
@@ -592,7 +594,6 @@ const ServiceList = () => {
 
     // Add these handler functions before the return statement
     const handleAddService = () => {
-        setSelectedService(null);
         setIsModalOpen(true);
     };
 
@@ -851,8 +852,7 @@ const ServiceList = () => {
             <ServiceModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
-                service={selectedService}
-                onSubmit={handleSubmitService}
+                selectedHomestay={homestayId}
             />
         </motion.div>
     );
