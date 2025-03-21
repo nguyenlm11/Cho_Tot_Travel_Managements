@@ -77,6 +77,15 @@ const serviceAPI = {
         } catch (error) {
             throw error;
         }
+    },
+
+    getAllServices: async (homestayId) => {
+        try {
+            const response = await axiosInstance.get(`/Service/GetAllServices/${homestayId}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
     }
 };
 

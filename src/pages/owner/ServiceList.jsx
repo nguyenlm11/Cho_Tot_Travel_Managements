@@ -5,6 +5,8 @@ import { IoClose } from 'react-icons/io5';
 import ServiceModal from '../../components/modals/ServiceModal';
 import CountUp from 'react-countup';
 import { useParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import serviceAPI from '../../services/api/serviceAPI';
 
 // Animation variants
 const pageVariants = {
@@ -30,27 +32,6 @@ const itemVariants = {
     }
 };
 
-const cardVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            type: "spring",
-            stiffness: 100,
-            damping: 15
-        }
-    },
-    hover: {
-        y: -5,
-        transition: {
-            type: "spring",
-            stiffness: 400,
-            damping: 10
-        }
-    }
-};
-
 const overlayVariants = {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
@@ -63,7 +44,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
     const statusOptions = [
         { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
-        { value: 'active', label: 'Đang hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: 'active', label: 'Hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
         { value: 'inactive', label: 'Tạm ngưng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
     ];
 
@@ -86,7 +67,6 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
     return (
         <div className="mb-8 space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
-                {/* Search Input */}
                 <div className="flex-1 relative group flex">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                         <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
@@ -127,7 +107,6 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
                     </button>
                 </div>
 
-                {/* Status Filter */}
                 <div className="relative min-w-[220px]">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                         <FaFilter className="text-gray-400" />
@@ -155,7 +134,6 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
                 </div>
             </div>
 
-            {/* Active Filters */}
             {(actualSearchTerm || selectedStatus !== 'all') && (
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -200,38 +178,55 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
 const ServiceList = () => {
     const { id: homestayId } = useParams();
-    // States for search, filter, and pagination
+
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState(null);
+    const [services, setServices] = useState([]);
     const itemsPerPage = 6;
 
-    // Mock data - replace with API call later
-    const [services] = useState([
-        {
-            id: 1,
-            name: "Dịch vụ giặt ủi",
-            description: "Dịch vụ giặt ủi với công nghệ hiện đại",
-            price: 50000,
-            status: "active",
-            duration: "2 giờ",
-            image: "https://maygiatcongnghiep1.com/wp-content/uploads/2021/09/giat-ui-la-gi.jpeg",
-            lastUpdated: "2024-03-15T10:30:00"
-        },
-        {
-            id: 2,
-            name: "Dịch vụ spa",
-            description: "Dịch vụ spa cao cấp với các liệu pháp thư giãn",
-            price: 500000,
-            status: "inactive",
-            duration: "1 giờ",
-            image: "https://img1.kienthucvui.vn/uploads/2021/01/13/anh-cham-soc-da-mat-tai-spa_022204667.jpg",
-            lastUpdated: "2024-03-14T15:45:00"
+    const getStatusText = (status) => {
+        switch (status) {
+            case true:
+                return 'active';
+            case false:
+                return 'inactive';
+            default:
+                return 'unknown';
         }
-    ]);
+    };
+
+    const fetchServices = async () => {
+        try {
+            const response = await serviceAPI.getAllServices(homestayId);
+            if (response.statusCode === 200) {
+                const formattedServices = response.data.map(service => ({
+                    id: service.servicesID,
+                    name: service.servicesName,
+                    description: service.description,
+                    price: service.servicesPrice,
+                    unitPrice: service.unitPrice,
+                    status: getStatusText(service.status),
+                    createdAt: service.createAt,
+                    updatedAt: service.updateAt,
+                    image: service.imageServices[0]?.image || '',
+                    images: service.imageServices.map(img => img.image),
+                }));
+                setServices(formattedServices);
+            }
+            setIsLoading(false);
+        } catch (error) {
+            toast.error('Có lỗi xảy ra khi tải danh sách dịch vụ');
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchServices();
+    }, [homestayId]);
 
     const statusConfig = {
         active: {
@@ -262,7 +257,6 @@ const ServiceList = () => {
         }).format(price);
     };
 
-    // Filter services based on search term and status
     const filteredServices = useMemo(() => {
         return services.filter(service => {
             const matchesSearch = service.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
@@ -272,19 +266,16 @@ const ServiceList = () => {
         });
     }, [services, actualSearchTerm, selectedStatus]);
 
-    // Calculate pagination
     const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
     const paginatedServices = filteredServices.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
-    // Reset to first page when filters change
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, selectedStatus]);
 
-    // ServiceCard component
     const ServiceCard = ({ service, onEdit, onDelete }) => {
         const [isHovered, setIsHovered] = useState(false);
 
@@ -305,7 +296,6 @@ const ServiceList = () => {
                     transition-all duration-300 hover:shadow-xl hover:shadow-primary/10"
             >
                 <div className="flex flex-col">
-                    {/* Image Container */}
                     <div className="relative h-48 overflow-hidden">
                         <img
                             src={service.image}
@@ -315,13 +305,11 @@ const ServiceList = () => {
                         />
                         <div className="absolute top-4 right-4">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium
-                                ${statusConfig[service.status]?.color || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'} 
-                                shadow-lg`}>
-                                {statusConfig[service.status]?.text || 'Không xác định'}
+              $                 ${statusConfig[service.status].color} shadow-lg`}>
+                                {statusConfig[service.status].text}
                             </span>
                         </div>
 
-                        {/* Quick Actions Overlay */}
                         <AnimatePresence>
                             {isHovered && (
                                 <motion.div
@@ -354,7 +342,6 @@ const ServiceList = () => {
                         </AnimatePresence>
                     </div>
 
-                    {/* Content */}
                     <div className="flex-1 p-6">
                         <div className="mb-4">
                             <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2
@@ -372,14 +359,10 @@ const ServiceList = () => {
                                     <FaDollarSign className="text-primary" />
                                     <span>{formatPrice(service.price)}</span>
                                 </div>
-                                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                                    <FaClock className="text-primary" />
-                                    <span>{service.duration}</span>
-                                </div>
                             </div>
                             <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
                                 <FaClock className="text-primary" />
-                                <span>{formatDate(service.lastUpdated)}</span>
+                                <span>{formatDate(service.createdAt)}</span>
                             </div>
                         </div>
                     </div>
@@ -388,7 +371,6 @@ const ServiceList = () => {
         );
     };
 
-    // Pagination component
     const Pagination = () => {
         if (totalPages <= 1) return null;
 
@@ -474,7 +456,6 @@ const ServiceList = () => {
         );
     };
 
-    // Add this new component for delete confirmation
     const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, serviceName }) => {
         return (
             <AnimatePresence>
@@ -522,15 +503,11 @@ const ServiceList = () => {
         );
     };
 
-    // Add these state variables to ServiceList component
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
-
-    // Add these new state variables
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedService, setSelectedService] = useState(null);
 
-    // Add these handler functions
     const handleDeleteClick = (service) => {
         setServiceToDelete(service);
         setIsDeleteModalOpen(true);
@@ -538,12 +515,14 @@ const ServiceList = () => {
 
     const handleDeleteConfirm = () => {
         if (serviceToDelete) {
-            // Handle delete service
             console.log('Delete service:', serviceToDelete);
-            // After successful deletion:
             setServices(prevServices =>
                 prevServices.filter(service => service.id !== serviceToDelete.id)
             );
+            setNotification({
+                message: 'Xóa dịch vụ thành công',
+                type: 'success'
+            });
         }
         setIsDeleteModalOpen(false);
         setServiceToDelete(null);
@@ -554,13 +533,11 @@ const ServiceList = () => {
         setServiceToDelete(null);
     };
 
-    // Add this notification component
     const Notification = ({ message, type, onClose }) => {
         useEffect(() => {
             const timer = setTimeout(() => {
                 onClose();
             }, 3000);
-
             return () => clearTimeout(timer);
         }, [onClose]);
 
@@ -592,7 +569,6 @@ const ServiceList = () => {
         );
     };
 
-    // Add these handler functions before the return statement
     const handleAddService = () => {
         setIsModalOpen(true);
     };
@@ -605,39 +581,9 @@ const ServiceList = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedService(null);
+        fetchServices();
     };
 
-    const handleSubmitService = async (formData) => {
-        setIsLoading(true);
-        try {
-            if (selectedService) {
-                // Handle edit service
-                console.log('Edit service:', { ...formData, id: selectedService.id });
-                setNotification({
-                    type: 'success',
-                    message: 'Cập nhật dịch vụ thành công!'
-                });
-            } else {
-                // Handle add new service
-                console.log('Add new service:', formData);
-                setNotification({
-                    type: 'success',
-                    message: 'Thêm dịch vụ mới thành công!'
-                });
-            }
-            handleCloseModal();
-        } catch (error) {
-            console.error('Error:', error);
-            setNotification({
-                type: 'error',
-                message: 'Có lỗi xảy ra. Vui lòng thử lại!'
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Thêm hàm handleSearch
     const handleSearch = () => {
         setActualSearchTerm(searchTerm);
         setCurrentPage(1);
@@ -651,7 +597,7 @@ const ServiceList = () => {
             icon: <FaTag className="w-6 h-6" />
         },
         {
-            label: 'Đang hoạt động',
+            label: 'Hoạt động',
             value: services.filter(s => s.status === 'active').length,
             color: 'from-green-500 to-green-600',
             icon: <FaCheck className="w-6 h-6" />
@@ -673,7 +619,16 @@ const ServiceList = () => {
             exit="exit"
             className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
-            {/* Header Section with improved styling */}
+            {isLoading && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"
+                    />
+                </div>
+            )}
+
             <motion.div
                 variants={itemVariants}
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
@@ -700,7 +655,6 @@ const ServiceList = () => {
                     </motion.button>
                 </div>
 
-                {/* Stats Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                     {statsData.map((stat, index) => (
                         <motion.div
@@ -722,11 +676,7 @@ const ServiceList = () => {
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.5 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        transition={{
-                                            type: "spring",
-                                            stiffness: 100,
-                                            delay: index * 0.2
-                                        }}
+                                        transition={{ type: "spring", stiffness: 100, delay: index * 0.2 }}
                                         className="text-2xl font-bold text-white flex items-center gap-1"
                                     >
                                         {stat.isCurrency && <span>₫</span>}
@@ -755,7 +705,6 @@ const ServiceList = () => {
                 </div>
             </motion.div>
 
-            {/* Enhanced FilterBar */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -772,21 +721,24 @@ const ServiceList = () => {
                 />
             </motion.div>
 
-            {/* Service Grid with improved layout */}
             <motion.div
                 variants={itemVariants}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
                 <AnimatePresence>
                     {paginatedServices.map((service) => (
-                        <ServiceCard key={service.id} service={service} onEdit={handleEditService} onDelete={handleDeleteClick} />
+                        <ServiceCard
+                            key={service.id}
+                            service={service}
+                            onEdit={handleEditService}
+                            onDelete={handleDeleteClick}
+                        />
                     ))}
                 </AnimatePresence>
             </motion.div>
 
-            {/* Enhanced Empty State */}
             <AnimatePresence>
-                {filteredServices.length === 0 && (
+                {filteredServices.length === 0 && !isLoading && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -820,7 +772,6 @@ const ServiceList = () => {
                 )}
             </AnimatePresence>
 
-            {/* Enhanced Pagination */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -829,7 +780,6 @@ const ServiceList = () => {
                 <Pagination />
             </motion.div>
 
-            {/* Add the DeleteConfirmationModal */}
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onClose={handleDeleteCancel}
@@ -837,7 +787,6 @@ const ServiceList = () => {
                 serviceName={serviceToDelete?.name}
             />
 
-            {/* Add the Notification component */}
             <AnimatePresence>
                 {notification && (
                     <Notification
@@ -848,14 +797,14 @@ const ServiceList = () => {
                 )}
             </AnimatePresence>
 
-            {/* ServiceModal */}
             <ServiceModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 selectedHomestay={homestayId}
+                service={selectedService}
             />
         </motion.div>
     );
 };
 
-export default ServiceList; 
+export default ServiceList;
