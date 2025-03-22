@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom'; // Thêm useLocation
 import Sidebar from './sidebar/Sidebar';
 import Header from './Header';
 import Footer from './Footer';
@@ -9,15 +10,21 @@ import { FaChevronRight } from 'react-icons/fa';
 const Layout = ({ children }) => {
   const { isDarkMode } = useTheme();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const location = useLocation(); 
+
+  // Cuộn về đầu trang khi route thay đổi
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
-    <div className={`min-h-screen flex relative overflow-hidden
-      ${isDarkMode ? 'dark' : ''}
-      dark:bg-dark-background bg-light-background`}
+    <div
+      className={`min-h-screen flex relative overflow-hidden
+      ${isDarkMode ? 'dark' : ''} dark:bg-dark-background bg-light-background`}
     >
       {/* Sidebar Container */}
-      <div className={`fixed left-0 top-0 h-screen z-30
-        transition-all duration-300 ease-in-out
+      <div
+        className={`fixed left-0 top-0 h-screen z-30 transition-all duration-300 ease-in-out
         ${isCollapsed ? 'w-20' : 'w-72'}`}
       >
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -28,15 +35,9 @@ const Layout = ({ children }) => {
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={`fixed z-40 top-[4.5rem] 
           ${isCollapsed ? 'left-16' : 'left-[17rem]'}
-          w-8 h-8 rounded-full
-          bg-white dark:bg-gray-800
-          shadow-lg hover:shadow-xl
-          flex items-center justify-center
-          transition-all duration-300 ease-in-out
-          border border-gray-200 dark:border-gray-700
-          hover:bg-gray-50 dark:hover:bg-gray-700
-          group
-          `}
+          w-8 h-8 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl
+          flex items-center justify-center transition-all duration-300 ease-in-out
+          border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 group`}
       >
         <motion.div
           animate={{ rotate: isCollapsed ? 0 : 180 }}
@@ -50,29 +51,28 @@ const Layout = ({ children }) => {
       {/* Main Content */}
       <motion.div
         layout
-        className={`flex-1 min-h-screen overflow-hidden
-          transition-all duration-300 ease-in-out`}
+        className="flex-1 min-h-screen overflow-hidden transition-all duration-300 ease-in-out"
         style={{
           marginLeft: isCollapsed ? '5rem' : '18rem',
-          width: `calc(100% - ${isCollapsed ? '5rem' : '18rem'})`
+          width: `calc(100% - ${isCollapsed ? '5rem' : '18rem'})`,
         }}
       >
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 
-          shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <Header />
         </div>
 
         {/* Main Content */}
-        <main className="relative z-10 p-6 overflow-x-hidden
+        <main
+          className="relative z-10 p-6 overflow-x-hidden
           min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))]
-          dark:text-dark-text-primary text-light-text-primary">
+          dark:text-dark-text-primary text-light-text-primary"
+        >
           {children}
         </main>
 
         {/* Footer */}
-        <div className="relative z-20 bg-white dark:bg-gray-800 
-          border-t border-gray-200 dark:border-gray-700">
+        <div className="relative z-20 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <Footer />
         </div>
       </motion.div>
@@ -80,4 +80,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout; 
+export default Layout;
