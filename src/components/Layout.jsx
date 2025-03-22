@@ -4,7 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'framer-motion';
-import { FaChevronRight, FaChevronLeft } from 'react-icons/fa';
+import { FaChevronRight } from 'react-icons/fa';
 
 const Layout = ({ children }) => {
   const { isDarkMode } = useTheme();
@@ -39,15 +39,11 @@ const Layout = ({ children }) => {
           `}
       >
         <motion.div
-          animate={{ rotate: isCollapsed ? 0 : 360 }}
+          animate={{ rotate: isCollapsed ? 0 : 180 }}
           transition={{ duration: 0.5 }}
           className="text-primary dark:text-white"
         >
-          {isCollapsed ? (
-            <FaChevronRight className="w-4 h-4 group-hover:scale-110 transition-transform" />
-          ) : (
-            <FaChevronLeft className="w-4 h-4 group-hover:scale-110 transition-transform" />
-          )}
+          <FaChevronRight className="w-4 h-4 group-hover:scale-110 transition-transform" />
         </motion.div>
       </button>
 

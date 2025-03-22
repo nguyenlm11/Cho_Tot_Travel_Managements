@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft, FaTag, FaStar, FaChevronDown, FaChevronRight, FaBars } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-hot-toast';
+import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft, FaTag, FaStar, FaChevronDown } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 import homestayAPI from '../../services/api/homestayAPI';
 
-const Sidebar = ({ selectedHomestay, isCollapsed }) => {
+const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [expandedMenus, setExpandedMenus] = useState({});
+  const [expandedMenu, setExpandedMenu] = useState(null); // Chỉ lưu index của menu đang mở
   const [userHomestays, setUserHomestays] = useState([]);
 
   // Kiểm tra quyền truy cập
@@ -21,7 +20,6 @@ const Sidebar = ({ selectedHomestay, isCollapsed }) => {
           return;
         }
 
-        // Lấy danh sách homestay của owner
         const response = await homestayAPI.getHomestaysByOwner(userInfo.AccountID);
         if (response.statusCode === 200) {
           const ownerHomestays = response.data.map(h => h.homeStayID.toString());
@@ -43,19 +41,11 @@ const Sidebar = ({ selectedHomestay, isCollapsed }) => {
 
   // Menu mặc định cho Owner
   const defaultMenuItems = [
-    {
-      title: 'Quản lý nhà nghỉ',
-      icon: <FaHome />,
-      path: '/owner/homestays',
-    },
-    {
-      title: 'Thêm nhà nghỉ',
-      icon: <FaPlus />,
-      path: '/owner/homestays/add',
-    },
+    { title: 'Quản lý nhà nghỉ', icon: <FaHome />, path: '/owner/homestays' },
+    { title: 'Thêm nhà nghỉ', icon: <FaPlus />, path: '/owner/homestays/add' },
   ];
 
-  // Menu khi quản lý nhà nghỉ cho Owner
+  // Menu khi quản lý nhà nghỉ
   const homestayMenuItems = [
     { title: 'Dashboard', path: `/owner/homestays/${selectedHomestay}/dashboard`, icon: <FaChartLine /> },
     { title: 'Thông tin nhà nghỉ', path: `/owner/homestays/${selectedHomestay}/info`, icon: <FaInfoCircle /> },
@@ -87,49 +77,32 @@ const Sidebar = ({ selectedHomestay, isCollapsed }) => {
     return false;
   };
 
-  const isSubmenuActive = (path) => {
-    return location.pathname === path;
-  };
+  const isSubmenuActive = (path) => location.pathname === path;
 
   const toggleSubmenu = (index) => {
-    setExpandedMenus((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
+    // Nếu menu đã mở thì đóng lại, ngược lại mở menu này và đóng các menu khác
+    setExpandedMenu(expandedMenu === index ? null : index);
   };
 
   return (
     <motion.div
-      className={`${isCollapsed ? 'w-20' : 'w-72'} h-screen bg-primary dark:bg-gray-900 
-        text-white fixed left-0 top-0 overflow-y-auto transition-all duration-300`}
+      animate={{ width: isCollapsed ? 80 : 288 }} // w-20 = 80px, w-72 = 288px
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      className="h-screen bg-primary dark:bg-gray-900 text-white fixed left-0 top-0 overflow-y-auto"
     >
-      <div className={`${isCollapsed ? 'p-4' : 'p-6'}`}>
+      <div className="p-4">
         {/* Header */}
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-8`}>
-          <AnimatePresence mode="wait">
-            {!isCollapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center gap-3"
-              >
-                <FaHome className="text-3xl text-white dark:text-primary" />
-                <h2 className="font-bold text-xl text-white dark:text-primary">
-                  {!isManagingHomestay ? 'Owner Panel' : 'Quản lý nhà nghỉ'}
-                </h2>
-              </motion.div>
-            )}
-            {isCollapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <FaHome className="text-3xl text-white dark:text-primary" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <div className="flex items-center justify-center mb-8">
+          {isCollapsed ? (
+            <FaHome className="text-3xl text-white dark:text-primary" />
+          ) : (
+            <div className="flex items-center gap-3 w-full">
+              <FaHome className="text-3xl text-white dark:text-primary" />
+              <h2 className="font-bold text-xl text-white dark:text-primary truncate">
+                {!isManagingHomestay ? 'Owner Panel' : 'Quản lý nhà nghỉ'}
+              </h2>
+            </div>
+          )}
         </div>
 
         {/* Menu Items */}
@@ -138,46 +111,34 @@ const Sidebar = ({ selectedHomestay, isCollapsed }) => {
             <div key={item.path}>
               <Link
                 to={item.path}
-                className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} 
-                  px-4 py-3 rounded-xl transition-all duration-200
-                  ${isActive(item.path)
-                    ? 'bg-primary text-white font-medium'
-                    : 'hover:bg-white/10 text-white/80 hover:text-white'}
+                className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-4 py-3 rounded-xl transition-colors duration-200
+                  ${isActive(item.path) ? 'bg-primary-dark text-white font-medium' : 'hover:bg-white/10 text-white/80 hover:text-white'}
                   ${item.className || ''}`}
+                onClick={(e) => {
+                  if (item.submenu) {
+                    e.preventDefault();
+                    toggleSubmenu(index);
+                  }
+                }}
               >
                 <div className="flex items-center gap-3">
-                  <div className={'w-5 h-5 content-center'}>
-                    {item.icon}
-                  </div>
-                  <AnimatePresence mode="wait">
-                    {!isCollapsed && (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        {item.title}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                  <div className="w-5 h-5 flex items-center justify-center">{item.icon}</div>
+                  {!isCollapsed && <span className="truncate">{item.title}</span>}
                 </div>
                 {!isCollapsed && item.submenu && (
                   <FaChevronDown
-                    className={`w-4 h-4 transition-transform duration-200
-                      ${expandedMenus[index] ? 'rotate-180' : ''}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toggleSubmenu(index);
-                    }}
+                    className={`w-4 h-4 transition-transform duration-200 ${expandedMenu === index ? 'rotate-180' : ''}`}
                   />
                 )}
               </Link>
 
               {/* Submenu */}
-              {!isCollapsed && item.submenu && expandedMenus[index] && (
+              {!isCollapsed && item.submenu && expandedMenu === index && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
                   className="ml-12 mt-2 space-y-2"
                 >
                   {item.submenu.map((subItem) => (
@@ -185,9 +146,7 @@ const Sidebar = ({ selectedHomestay, isCollapsed }) => {
                       key={subItem.path}
                       to={subItem.path}
                       className={`block py-2 px-4 rounded-lg transition-colors
-                        ${isSubmenuActive(subItem.path)
-                          ? 'bg-primary text-white font-medium'
-                          : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+                        ${isSubmenuActive(subItem.path) ? 'bg-primary-dark text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
                     >
                       {subItem.title}
                     </Link>
@@ -202,4 +161,4 @@ const Sidebar = ({ selectedHomestay, isCollapsed }) => {
   );
 };
 
-export default Sidebar;
+export default OwnerSidebar;
