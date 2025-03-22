@@ -349,32 +349,35 @@ const HomestayList = () => {
 
   // Hàm gọi API
   const fetchHomestays = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
       if (!userInfo?.AccountID) {
-        toast.error('Không tìm thấy thông tin tài khoản');
         navigate('/login');
         return;
       }
 
       const response = await homestayAPI.getHomestaysByOwner(userInfo.AccountID);
+      if (response.statusCode === 200) {
+        const formattedHomestays = response.data.map(homestay => ({
+          id: homestay.homeStayID,
+          name: homestay.name,
+          address: homestay.address,
+          status: getStatusText(homestay.status),
+          rooms: homestay.numberOfRoom || 0,
+          rating: 0,
+          image: homestay.imageHomeStays?.[0]?.image,
+          lastUpdated: homestay.createAt
+        }));
 
-      const formattedHomestays = response.data.map(homestay => ({
-        id: homestay.homeStayID,
-        name: homestay.name,
-        address: homestay.address,
-        status: getStatusText(homestay.status),
-        rooms: homestay.numberOfRoom || 0,
-        rating: 0,
-        image: homestay.imageHomeStays?.[0]?.image,
-        lastUpdated: homestay.createAt
-      }));
-
-      setHomestays(formattedHomestays);
+        setHomestays(formattedHomestays);
+        
+        const homestayIds = response.data.map(h => h.homeStayID.toString());
+        localStorage.setItem('userHomestays', JSON.stringify(homestayIds));
+      }
     } catch (error) {
       console.error('Error fetching homestays:', error);
-      // toast.error('Không thể tải danh sách homestay');
+      toast.error('Không thể tải danh sách homestay');
     } finally {
       setLoading(false);
     }
