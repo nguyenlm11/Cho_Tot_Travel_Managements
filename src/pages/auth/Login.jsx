@@ -16,7 +16,6 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-    // Animation variants
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -38,7 +37,6 @@ const Login = () => {
         }
     };
 
-    // Kiểm tra nếu đã đăng nhập thì redirect
     useEffect(() => {
         const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
         if (isAuthenticated) {
@@ -73,7 +71,6 @@ const Login = () => {
         try {
             const { user } = await authService.login(formData.username, formData.password);
             toast.dismiss(loadingToast);
-            toast.success('Đăng nhập thành công!', API_CONFIG.TOAST_CONFIG.SUCCESS);
 
             // Animation before navigation
             await new Promise(resolve => setTimeout(resolve, 500));

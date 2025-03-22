@@ -2,8 +2,6 @@ export const API_CONFIG = {
     BASE_URL: 'https://localhost:7221/api',
     TOAST_CONFIG: {
         SUCCESS: {
-            duration: 3000,
-            position: 'top-right',
             style: {
                 background: '#ECFDF5',
                 color: '#065F46',
@@ -11,8 +9,6 @@ export const API_CONFIG = {
             }
         },
         ERROR: {
-            duration: 3000,
-            position: 'top-right',
             style: {
                 background: '#FEE2E2',
                 color: '#991B1B',

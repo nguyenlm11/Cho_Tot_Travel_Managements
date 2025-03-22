@@ -25,19 +25,24 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
           const ownerHomestays = response.data.map(h => h.homeStayID.toString());
           setUserHomestays(ownerHomestays);
 
-          if (selectedHomestay && !ownerHomestays.includes(selectedHomestay)) {
+          if (selectedHomestay &&
+            !ownerHomestays.includes(selectedHomestay) &&
+            !location.pathname.endsWith('/add')) {
             navigate('/owner/homestays');
           }
         }
       } catch (error) {
-        navigate('/owner/homestays');
+        if (!location.pathname.endsWith('/add')) {
+          navigate('/owner/homestays');
+        }
       }
     };
 
-    if (selectedHomestay) {
+    const isManagingHomestay = location.pathname.match(/^\/owner\/homestays\/[^/]+(?!\/add)/);
+    if (selectedHomestay && isManagingHomestay) {
       checkHomestayAccess();
     }
-  }, [selectedHomestay, navigate]);
+  }, [selectedHomestay, navigate, location.pathname]);
 
   // Menu mặc định cho Owner
   const defaultMenuItems = [
@@ -80,7 +85,6 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
   const isSubmenuActive = (path) => location.pathname === path;
 
   const toggleSubmenu = (index) => {
-    // Nếu menu đã mở thì đóng lại, ngược lại mở menu này và đóng các menu khác
     setExpandedMenu(expandedMenu === index ? null : index);
   };
 
