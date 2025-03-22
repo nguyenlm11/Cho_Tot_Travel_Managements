@@ -8,11 +8,7 @@ const pageVariants = {
     initial: { opacity: 0 },
     animate: {
         opacity: 1,
-        transition: {
-            duration: 0.3,
-            when: "beforeChildren",
-            staggerChildren: 0.1
-        }
+        transition: { duration: 0.3, when: "beforeChildren", staggerChildren: 0.1 }
     },
     exit: { opacity: 0 }
 };
@@ -21,24 +17,35 @@ const itemVariants = {
     initial: { opacity: 0 },
     animate: {
         opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+};
+
+const cardVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: {
+        opacity: 1,
+        y: 0,
+        transition: { type: "spring", stiffness: 100, damping: 15 }
+    },
+    hover: {
+        y: -5,
         transition: {
-            staggerChildren: 0.1
+            type: "spring", stiffness: 400, damping: 10
         }
     }
 };
 
-// Move FilterBar outside to prevent re-renders
-const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
+// FilterBar Component
+const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
     const searchInputRef = useRef(null);
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
 
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') { handleSearch(); }
     };
 
     const handleSearchClear = () => {
@@ -48,46 +55,69 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
     };
 
     return (
-        <div className="mb-8">
-            <div className="relative group flex">
-                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                    <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
-                </div>
-                <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1 pl-10 pr-[140px] py-3 rounded-l-xl border border-gray-200 
-                        dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-                        dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-                        focus:border-primary transition-all duration-200
-                        hover:border-primary/50 hover:shadow-md"
-                />
-                {searchTerm && (
+        <div className="mb-8 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative group flex">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
+                    </div>
+                    <input
+                        ref={searchInputRef}
+                        type="text"
+                        placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        onKeyDown={handleKeyPress}
+                        className="flex-1 pl-10 pr-[140px] py-3 rounded-l-xl border border-gray-200 
+              dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
+              dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
+              focus:border-primary transition-all duration-200
+              hover:border-primary/50 hover:shadow-md"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={handleSearchClear}
+                            className="absolute right-[140px] top-1/2 -translate-y-1/2 p-1.5
+                text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
+                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
+                transition-all duration-200"
+                        >
+                            <IoClose className="w-5 h-5" />
+                        </button>
+                    )}
                     <button
-                        onClick={handleSearchClear}
-                        className="absolute right-[140px] top-1/2 -translate-y-1/2 p-1.5
-                            text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
-                            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
-                            transition-all duration-200"
+                        onClick={handleSearch}
+                        className="px-6 bg-primary hover:bg-primary-dark text-white font-medium 
+              rounded-r-xl flex items-center gap-2 transition-all duration-200
+              hover:shadow-lg hover:shadow-primary/20 min-w-[120px] justify-center
+              border-l-0"
                     >
-                        <IoClose className="w-5 h-5" />
+                        <FaSearch className="w-4 h-4" />
+                        Tìm kiếm
                     </button>
-                )}
-                <button
-                    onClick={handleSearch}
-                    className="px-6 bg-primary hover:bg-primary-dark text-white font-medium 
-                        rounded-r-xl flex items-center gap-2 transition-all duration-200
-                        hover:shadow-lg hover:shadow-primary/20 min-w-[120px] justify-center
-                        border-l-0"
-                >
-                    <FaSearch className="w-4 h-4" />
-                    Tìm kiếm
-                </button>
+                </div>
             </div>
+            {actualSearchTerm && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-wrap gap-2"
+                >
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+            bg-primary/10 text-primary text-sm font-medium"
+                    >
+                        <FaSearch className="w-3 h-3" />
+                        {actualSearchTerm}
+                        <button
+                            onClick={handleSearchClear}
+                            className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
+                transition-colors duration-200"
+                        >
+                            <IoClose className="w-3.5 h-3.5" />
+                        </button>
+                    </span>
+                </motion.div>
+            )}
         </div>
     );
 };
@@ -97,9 +127,9 @@ const CustomerList = () => {
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
-    const itemsPerPage = 10;
+    const itemsPerPage = 6; // Match HomestayList pagination
 
-    // Mock data
+    // Mock data (replace with your API call if needed)
     const [customers] = useState([
         {
             id: 1,
@@ -157,7 +187,7 @@ const CustomerList = () => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm]);
+    }, [actualSearchTerm]);
 
     const handleSort = (key) => {
         setSortConfig(current => ({
@@ -166,20 +196,34 @@ const CustomerList = () => {
         }));
     };
 
+    const statsData = [
+        {
+            label: 'Tổng số khách hàng',
+            value: customers.length,
+            color: 'bg-blue-500',
+            icon: <FaUsers className="w-6 h-6" />
+        },
+        {
+            label: 'Tổng lượt đặt phòng',
+            value: customers.reduce((acc, curr) => acc + curr.totalBookings, 0),
+            color: 'bg-green-500',
+            icon: <FaCalendarAlt className="w-6 h-6" />
+        }
+    ];
+
     const TableHeader = ({ label, sortKey }) => {
         const isSorted = sortConfig.key === sortKey;
         return (
             <th
                 onClick={() => handleSort(sortKey)}
                 className="px-6 py-3 text-left cursor-pointer group hover:bg-gray-100 
-                    dark:hover:bg-gray-800/50 transition-colors"
+          dark:hover:bg-gray-800/50 transition-colors"
             >
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-700 dark:text-gray-300">
                         {label}
                     </span>
-                    <div className={`transition-colors ${isSorted ? 'text-primary' : 'text-gray-400 dark:text-gray-600'
-                        }`}>
+                    <div className={`transition-colors ${isSorted ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
                         {isSorted && (
                             sortConfig.direction === 'asc'
                                 ? <FaSortAmountUp className="w-4 h-4" />
@@ -191,21 +235,6 @@ const CustomerList = () => {
         );
     };
 
-    const statsData = [
-        {
-            label: 'Tổng số khách hàng',
-            value: customers.length,
-            icon: <FaUsers className="w-6 h-6 text-white" />,
-            gradient: 'from-blue-500 to-blue-600'
-        },
-        {
-            label: 'Tổng lượt đặt phòng',
-            value: customers.reduce((acc, curr) => acc + curr.totalBookings, 0),
-            icon: <FaCalendarAlt className="w-6 h-6 text-white" />,
-            gradient: 'from-green-500 to-green-600'
-        }
-    ];
-
     return (
         <motion.div
             variants={pageVariants}
@@ -214,79 +243,71 @@ const CustomerList = () => {
             exit="exit"
             className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
-            {/* Header */}
+            {/* Header Section */}
             <motion.div
                 variants={itemVariants}
-                className="mb-8"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8"
             >
-                <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                    Quản lý khách hàng
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                    Xem thông tin chi tiết của tất cả khách hàng
-                </p>
-            </motion.div>
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+                    <div>
+                        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                            Danh sách khách hàng
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Quản lý tất cả các khách hàng của bạn tại đây
+                        </p>
+                    </div>
+                </div>
 
-            {/* Stats Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {statsData.map((stat, index) => (
-                    <motion.div
-                        key={stat.label}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            delay: index * 0.1,
-                            type: "spring",
-                            stiffness: 100
-                        }}
-                        className={`bg-gradient-to-r ${stat.gradient} 
-                            dark:from-${stat.gradient.split('-')[1]}-600 
-                            dark:to-${stat.gradient.split('-')[1]}-700 
-                            rounded-xl p-6 transform transition-all duration-300
-                            hover:scale-105 hover:shadow-xl group`}
-                    >
-                        <div className="flex items-center gap-4">
+                {/* Stats Summary */}
+                <motion.section
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: { opacity: 0, scale: 0.8 },
+                        visible: { opacity: 1, scale: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } }
+                    }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        {statsData.map((stat, index) => (
                             <motion.div
-                                className="p-3 bg-white/10 rounded-lg transition-all duration-300
-                                    group-hover:bg-white/20"
-                                initial={{ rotate: 0 }}
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 0.6, delay: index * 0.1 }}
+                                key={stat.label}
+                                variants={{
+                                    hidden: { opacity: 0, y: 50, scale: 0.8, rotate: -5 },
+                                    visible: { opacity: 1, y: 0, scale: 1, rotate: 0, transition: { type: "spring", stiffness: 150, damping: 10 } }
+                                }}
+                                className={`${stat.color} rounded-xl p-6 text-white shadow-lg`}
+                                whileHover={{ scale: 1.05 }}
                             >
-                                {stat.icon}
-                            </motion.div>
-                            <div>
-                                <p className="text-white/80 text-sm font-medium">
-                                    {stat.label}
-                                </p>
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.5 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{
-                                        type: "spring",
-                                        stiffness: 100,
-                                        delay: index * 0.2
-                                    }}
-                                    className="text-2xl font-bold text-white"
-                                >
-                                    <CountUp
-                                        end={stat.value}
-                                        duration={2}
-                                        separator=","
-                                        delay={0.5}
-                                        enableScrollSpy
-                                        scrollSpyOnce
+                                <div className="flex items-center gap-4">
+                                    <motion.div
+                                        className="p-3 bg-white/10 rounded-lg"
+                                        initial={{ rotate: -15, scale: 0 }}
+                                        animate={{ rotate: 0, scale: 1 }}
+                                        transition={{ type: "spring", stiffness: 200, delay: index * 0.1 }}
                                     >
-                                        {({ countUpRef }) => (
-                                            <span ref={countUpRef} />
-                                        )}
-                                    </CountUp>
-                                </motion.div>
-                            </div>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
+                                        {stat.icon}
+                                    </motion.div>
+                                    <div>
+                                        <p className="text-white/80 text-sm">{stat.label}</p>
+                                        <h3 className="text-2xl font-bold">
+                                            <CountUp end={stat.value} duration={2.5} separator="," delay={0.1} enableScrollSpy scrollSpyOnce>
+                                                {({ countUpRef }) => (
+                                                    <motion.span
+                                                        ref={countUpRef}
+                                                        initial={{ scale: 0.5, opacity: 0 }}
+                                                        animate={{ scale: 1, opacity: 1 }}
+                                                        transition={{ type: "spring", stiffness: 150, damping: 8, delay: index * 0.2 }}
+                                                    />
+                                                )}
+                                            </CountUp>
+                                        </h3>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.section>
+            </motion.div>
 
             {/* Filter Bar */}
             <FilterBar
@@ -294,11 +315,14 @@ const CustomerList = () => {
                 setSearchTerm={setSearchTerm}
                 handleSearch={handleSearch}
                 setActualSearchTerm={setActualSearchTerm}
+                actualSearchTerm={actualSearchTerm}
             />
 
-            {/* Table */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden 
-                border border-gray-200 dark:border-gray-700">
+            {/* Table Layout */}
+            <motion.div
+                variants={itemVariants}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700"
+            >
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-900/50">
@@ -315,20 +339,18 @@ const CustomerList = () => {
                                 {paginatedCustomers.map((customer, index) => (
                                     <motion.tr
                                         key={customer.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
+                                        variants={cardVariants}
+                                        initial="initial"
+                                        animate="animate"
                                         exit={{ opacity: 0, y: -20 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 
-                                            transition-colors"
+                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
                                                 <img
                                                     src={customer.avatar}
                                                     alt={customer.name}
-                                                    className="w-10 h-10 rounded-full object-cover 
-                                                        ring-2 ring-gray-200 dark:ring-gray-700"
+                                                    className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
                                                 />
                                                 <div className="font-medium text-gray-900 dark:text-white">
                                                     {customer.name}
@@ -337,33 +359,21 @@ const CustomerList = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
-                                                <FaEnvelope className="text-primary w-4 h-4" />
-                                                <span className="text-gray-600 dark:text-gray-400">
-                                                    {customer.email}
-                                                </span>
+                                                <span className="text-gray-600 dark:text-gray-400">{customer.email}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
-                                                <FaPhone className="text-primary w-4 h-4" />
-                                                <span className="text-gray-600 dark:text-gray-400">
-                                                    {customer.phone}
-                                                </span>
+                                                <span className="text-gray-600 dark:text-gray-400">{customer.phone}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <FaMapMarkerAlt className="text-primary w-4 h-4 flex-shrink-0" />
-                                                <span className="text-gray-600 dark:text-gray-400 
-                                                    truncate max-w-xs">
-                                                    {customer.address}
-                                                </span>
+                                                <span className="text-gray-600 dark:text-gray-400 truncate max-w-xs">{customer.address}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                                            <span className="text-gray-600 dark:text-gray-400">
-                                                {customer.totalBookings}
-                                            </span>
+                                            <span className="text-gray-600 dark:text-gray-400">{customer.totalBookings}</span>
                                         </td>
                                     </motion.tr>
                                 ))}
@@ -371,25 +381,29 @@ const CustomerList = () => {
                         </tbody>
                     </table>
 
-                    {filteredCustomers.length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center py-12"
-                        >
-                            <FaUser className="mx-auto w-12 h-12 text-gray-400 
-                                dark:text-gray-600 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 
-                                dark:text-white mb-2">
-                                Không tìm thấy khách hàng
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-400">
-                                Thử tìm kiếm với từ khóa khác
-                            </p>
-                        </motion.div>
-                    )}
+                    {/* Empty State */}
+                    <AnimatePresence>
+                        {filteredCustomers.length === 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 mt-6"
+                            >
+                                <div className="text-gray-400 dark:text-gray-500 mb-4">
+                                    <FaSearch className="mx-auto w-16 h-16" />
+                                </div>
+                                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                                    Không tìm thấy khách hàng
+                                </h3>
+                                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                                    Thử tìm kiếm với từ khóa khác
+                                </p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Pagination */}
             {totalPages > 1 && (
@@ -398,40 +412,33 @@ const CustomerList = () => {
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                         disabled={currentPage === 1}
                         className={`p-2 rounded-lg ${currentPage === 1
-                            ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                            }`}
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                d="M15 19l-7-7 7-7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
                         <button
                             key={number}
                             onClick={() => setCurrentPage(number)}
                             className={`w-10 h-10 rounded-lg ${number === currentPage
                                 ? 'bg-primary text-white'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                }`}
+                                : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                         >
                             {number}
                         </button>
                     ))}
-
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                         disabled={currentPage === totalPages}
                         className={`p-2 rounded-lg ${currentPage === totalPages
-                            ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                            }`}
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                d="M9 5l7 7-7 7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
                 </div>
@@ -440,4 +447,4 @@ const CustomerList = () => {
     );
 };
 
-export default CustomerList; 
+export default CustomerList;

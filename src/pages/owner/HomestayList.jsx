@@ -7,16 +7,11 @@ import { Toaster, toast } from 'react-hot-toast';
 import CountUp from 'react-countup';
 import homestayAPI from '../../services/api/homestayAPI';
 
-// Animation variants
 const pageVariants = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    transition: {
-      duration: 0.3,
-      when: "beforeChildren",
-      staggerChildren: 0.1
-    }
+    transition: { duration: 0.3, when: "beforeChildren", staggerChildren: 0.1 }
   },
   exit: { opacity: 0 }
 };
@@ -25,9 +20,7 @@ const itemVariants = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
+    transition: { staggerChildren: 0.1 }
   }
 };
 
@@ -36,18 +29,12 @@ const cardVariants = {
   animate: {
     opacity: 1,
     y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
-    }
+    transition: { type: "spring", stiffness: 100, damping: 15 }
   },
   hover: {
     y: -5,
     transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 10
+      type: "spring", stiffness: 400, damping: 10
     }
   }
 };
@@ -71,6 +58,10 @@ const statusConfig = {
   inactive: {
     color: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100',
     text: 'Không hoạt động'
+  },
+  cancel: {
+    color: 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100',
+    text: 'Đã hủy'
   }
 };
 
@@ -80,9 +71,10 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
   const statusOptions = [
     { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
-    { value: 'active', label: 'Đang hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+    { value: 'active', label: 'Hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
     { value: 'pending', label: 'Chờ duyệt', icon: <div className="w-2 h-2 rounded-full bg-yellow-500" /> },
-    { value: 'inactive', label: 'Không hoạt động', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
+    { value: 'inactive', label: 'Tạm ngưng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> },
+    { value: 'cancel', label: 'Đã hủy', icon: <div className="w-2 h-2 rounded-full bg-gray-500" /> }
   ];
 
   const handleSearchChange = (e) => {
@@ -96,9 +88,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+    if (e.key === 'Enter') { handleSearch() }
   };
 
   return (
@@ -198,9 +188,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
               {statusOptions.find(opt => opt.value === selectedStatus)?.label}
               <button
                 onClick={() => setSelectedStatus('all')}
-                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
-                  transition-colors duration-200"
-              >
+                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full transition-colors duration-200">
                 <IoClose className="w-3.5 h-3.5" />
               </button>
             </span>
@@ -211,7 +199,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
   );
 };
 
-// HomestayCard Component (Giữ nguyên)
+// HomestayCard Component
 const HomestayCard = ({ homestay, index }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -230,10 +218,7 @@ const HomestayCard = ({ homestay, index }) => {
       variants={cardVariants}
       initial="initial"
       animate="animate"
-      whileHover={{
-        y: -20,
-        transition: { type: "spring", stiffness: 800, damping: 50 }
-      }}
+      whileHover={{ y: -20, transition: { type: "spring", stiffness: 800, damping: 50 } }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
@@ -245,8 +230,8 @@ const HomestayCard = ({ homestay, index }) => {
           <img
             src={homestay.image}
             alt={homestay.name}
-            className="w-full h-full object-cover transform group-hover:scale-110 
-              transition-transform duration-500"
+            className="w-full h-full object-cover transform 
+            group-hover:scale-110 transition-transform duration-500"
           />
           <div className="absolute top-4 right-4">
             <span className={`px-3 py-1 rounded-full text-sm font-medium
@@ -369,9 +354,7 @@ const HomestayList = () => {
           image: homestay.imageHomeStays?.[0]?.image,
           lastUpdated: homestay.createAt
         }));
-
         setHomestays(formattedHomestays);
-        
         const homestayIds = response.data.map(h => h.homeStayID.toString());
         localStorage.setItem('userHomestays', JSON.stringify(homestayIds));
       }
@@ -379,11 +362,10 @@ const HomestayList = () => {
       console.error('Error fetching homestays:', error);
       toast.error('Không thể tải danh sách homestay');
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 1500);
     }
   };
 
-  // Gọi API khi component mount
   useEffect(() => {
     fetchHomestays();
   }, []);
@@ -427,6 +409,12 @@ const HomestayList = () => {
       value: homestays.filter(h => h.status === 'inactive').length,
       color: 'bg-red-500',
       icon: <FaHome className="w-6 h-6" />
+    },
+    {
+      label: 'Đã hủy',
+      value: homestays.filter(h => h.status === 'cancel').length,
+      color: 'bg-gray-500',
+      icon: <FaHome className="w-6 h-6" />
     }
   ];
 
@@ -466,50 +454,53 @@ const HomestayList = () => {
           </div>
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {statsData.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                variants={itemVariants}
-                className={`${stat.color} rounded-xl p-6 text-white`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/10 rounded-lg">
-                    {stat.icon}
+          <motion.section
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0, scale: 0.8 },
+              visible: { opacity: 1, scale: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } }
+            }}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              {statsData.map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  variants={{
+                    hidden: { opacity: 0, y: 50, scale: 0.8, rotate: -5 },
+                    visible: { opacity: 1, y: 0, scale: 1, rotate: 0, transition: { type: "spring", stiffness: 150, damping: 10 } }
+                  }}
+                  className={`${stat.color} rounded-xl p-6 text-white shadow-lg`}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <div className="flex items-center gap-4">
+                    <motion.div
+                      className="p-3 bg-white/10 rounded-lg"
+                      initial={{ rotate: -15, scale: 0 }}
+                      animate={{ rotate: 0, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, delay: index * 0.1 }}
+                    >
+                      {stat.icon}
+                    </motion.div>
+                    <div>
+                      <p className="text-white/80 text-sm">{stat.label}</p>
+                      <h3 className="text-2xl font-bold">
+                        <CountUp end={stat.value} duration={4} separator="," >
+                          {({ countUpRef }) => (
+                            <motion.span
+                              ref={countUpRef}
+                              initial={{ scale: 0.5, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ type: "spring", stiffness: 150, damping: 8, delay: index * 0.2 }}
+                            />
+                          )}
+                        </CountUp>
+                      </h3>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white/80 text-sm">{stat.label}</p>
-                    <h3 className="text-2xl font-bold">
-                      <CountUp
-                        end={stat.value}
-                        duration={2}
-                        separator=","
-                        delay={0.5}
-                        enableScrollSpy
-                        scrollSpyOnce
-                      >
-                        {({ countUpRef }) => (
-                          <motion.span
-                            ref={countUpRef}
-                            initial={{ scale: 0.5, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 100,
-                              delay: index * 0.2
-                            }}
-                          />
-                        )}
-                      </CountUp>
-                    </h3>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
         </motion.div>
 
         {/* Filter Bar */}
