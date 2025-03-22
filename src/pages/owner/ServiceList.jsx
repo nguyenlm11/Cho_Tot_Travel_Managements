@@ -285,10 +285,7 @@ const ServiceList = () => {
                 initial="initial"
                 animate="animate"
                 exit={{ opacity: 0 }}
-                whileHover={{
-                    y: -20,
-                    transition: { type: "spring", stiffness: 800, damping: 50 }
-                }}
+                whileHover={{ y: -20, ransition: { type: "spring", stiffness: 800, damping: 50 } }}
                 onHoverStart={() => setIsHovered(true)}
                 onHoverEnd={() => setIsHovered(false)}
                 className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
@@ -305,7 +302,7 @@ const ServiceList = () => {
                         />
                         <div className="absolute top-4 right-4">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium
-              $                 ${statusConfig[service.status].color} shadow-lg`}>
+                                ${statusConfig[service.status].color} shadow-lg`}>
                                 {statusConfig[service.status].text}
                             </span>
                         </div>

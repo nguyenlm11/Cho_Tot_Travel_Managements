@@ -321,7 +321,6 @@ const HomestayCard = ({ homestay, index }) => {
   );
 };
 
-// HomestayList Component (Đã tích hợp API)
 const HomestayList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [actualSearchTerm, setActualSearchTerm] = useState('');
@@ -341,6 +340,8 @@ const HomestayList = () => {
         return 'active';
       case 2:
         return 'inactive';
+      case 3:
+        return 'cancel';
       default:
         return 'pending';
     }
@@ -373,7 +374,7 @@ const HomestayList = () => {
       setHomestays(formattedHomestays);
     } catch (error) {
       console.error('Error fetching homestays:', error);
-      toast.error('Không thể tải danh sách homestay');
+      // toast.error('Không thể tải danh sách homestay');
     } finally {
       setLoading(false);
     }
