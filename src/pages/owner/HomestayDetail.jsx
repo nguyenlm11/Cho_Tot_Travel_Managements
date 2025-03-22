@@ -274,12 +274,12 @@ const HomestayDetail = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+                        className="absolute inset-0 z-50 bg-black/90 flex items-center justify-center"
                     >
                         <button
                             onClick={() => setShowGallery(false)}
-                            className="absolute top-4 right-4 text-white text-xl bg-black/50 
-                                p-2 rounded-full hover:bg-black/70 transition-colors"
+                            className="absolute top-80 right-7 text-white text-xl bg-black/50 
+                                p-1 rounded-full hover:bg-black/70 transition-colors"
                         >
                             ✕
                         </button>

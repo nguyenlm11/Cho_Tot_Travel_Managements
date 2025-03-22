@@ -1,11 +1,45 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft, FaTag, FaStar, FaChevronDown, FaChevronRight, FaBars } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
+import homestayAPI from '../../services/api/homestayAPI';
 
 const Sidebar = ({ selectedHomestay, isCollapsed }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [expandedMenus, setExpandedMenus] = useState({});
+  const [userHomestays, setUserHomestays] = useState([]);
+
+  // Kiểm tra quyền truy cập
+  useEffect(() => {
+    const checkHomestayAccess = async () => {
+      try {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        if (!userInfo?.AccountID) {
+          navigate('/login');
+          return;
+        }
+
+        // Lấy danh sách homestay của owner
+        const response = await homestayAPI.getHomestaysByOwner(userInfo.AccountID);
+        if (response.statusCode === 200) {
+          const ownerHomestays = response.data.map(h => h.homeStayID.toString());
+          setUserHomestays(ownerHomestays);
+
+          if (selectedHomestay && !ownerHomestays.includes(selectedHomestay)) {
+            navigate('/owner/homestays');
+          }
+        }
+      } catch (error) {
+        navigate('/owner/homestays');
+      }
+    };
+
+    if (selectedHomestay) {
+      checkHomestayAccess();
+    }
+  }, [selectedHomestay, navigate]);
 
   // Menu mặc định cho Owner
   const defaultMenuItems = [

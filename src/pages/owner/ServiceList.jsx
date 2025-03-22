@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaFilter, FaDollarSign, FaClock, FaTag, FaPlus, FaEdit, FaTrash, FaCheckCircle, FaExclamationCircle, FaTimes, FaChevronLeft, FaChevronRight, FaCheck, FaChartLine } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaDollarSign, FaClock, FaTag, FaPlus, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaCheck, FaChartLine } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import ServiceModal from '../../components/modals/ServiceModal';
 import CountUp from 'react-countup';
@@ -178,13 +178,11 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
 const ServiceList = () => {
     const { id: homestayId } = useParams();
-
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [notification, setNotification] = useState(null);
     const [services, setServices] = useState([]);
     const itemsPerPage = 6;
 
@@ -200,6 +198,7 @@ const ServiceList = () => {
     };
 
     const fetchServices = async () => {
+        setIsLoading(true);
         try {
             const response = await serviceAPI.getAllServices(homestayId);
             if (response.statusCode === 200) {
@@ -276,7 +275,7 @@ const ServiceList = () => {
         setCurrentPage(1);
     }, [searchTerm, selectedStatus]);
 
-    const ServiceCard = ({ service, onEdit, onDelete }) => {
+    const ServiceCard = ({ service }) => {
         const [isHovered, setIsHovered] = useState(false);
 
         return (
@@ -285,10 +284,7 @@ const ServiceList = () => {
                 initial="initial"
                 animate="animate"
                 exit={{ opacity: 0 }}
-                whileHover={{
-                    y: -20,
-                    transition: { type: "spring", stiffness: 800, damping: 50 }
-                }}
+                whileHover={{ y: -20, ransition: { type: "spring", stiffness: 800, damping: 50 } }}
                 onHoverStart={() => setIsHovered(true)}
                 onHoverEnd={() => setIsHovered(false)}
                 className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
@@ -305,7 +301,7 @@ const ServiceList = () => {
                         />
                         <div className="absolute top-4 right-4">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium
-              $                 ${statusConfig[service.status].color} shadow-lg`}>
+                                ${statusConfig[service.status].color} shadow-lg`}>
                                 {statusConfig[service.status].text}
                             </span>
                         </div>
@@ -322,7 +318,7 @@ const ServiceList = () => {
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
-                                        onClick={() => onEdit(service)}
+                                        // onClick={}
                                         className="p-2 bg-white/90 rounded-full hover:bg-white
                                             transform hover:scale-110 transition-all duration-200"
                                     >
@@ -331,7 +327,7 @@ const ServiceList = () => {
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
-                                        onClick={() => onDelete(service)}
+                                        // onClick={}
                                         className="p-2 bg-white/90 rounded-full hover:bg-white
                                             transform hover:scale-110 transition-all duration-200"
                                     >
@@ -348,8 +344,8 @@ const ServiceList = () => {
                                 group-hover:text-primary transition-colors duration-200">
                                 {service.name}
                             </h2>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                {service.description}
+                            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 text-sm">
+                                <span className="line-clamp-2">{service.description}</span>
                             </p>
                         </div>
 
@@ -456,125 +452,10 @@ const ServiceList = () => {
         );
     };
 
-    const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, serviceName }) => {
-        return (
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6"
-                        >
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                                Xác nhận xóa dịch vụ
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400 mb-6">
-                                Bạn có chắc chắn muốn xóa dịch vụ "{serviceName}" không?
-                                Hành động này không thể hoàn tác.
-                            </p>
-                            <div className="flex justify-end gap-4">
-                                <button
-                                    onClick={onClose}
-                                    className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600
-                                        text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700
-                                        transition-colors"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={onConfirm}
-                                    className="px-4 py-2 rounded-lg bg-red-500 text-white
-                                        hover:bg-red-600 transition-colors"
-                                >
-                                    Xóa
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        );
-    };
-
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [serviceToDelete, setServiceToDelete] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedService, setSelectedService] = useState(null);
 
-    const handleDeleteClick = (service) => {
-        setServiceToDelete(service);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleDeleteConfirm = () => {
-        if (serviceToDelete) {
-            console.log('Delete service:', serviceToDelete);
-            setServices(prevServices =>
-                prevServices.filter(service => service.id !== serviceToDelete.id)
-            );
-            setNotification({
-                message: 'Xóa dịch vụ thành công',
-                type: 'success'
-            });
-        }
-        setIsDeleteModalOpen(false);
-        setServiceToDelete(null);
-    };
-
-    const handleDeleteCancel = () => {
-        setIsDeleteModalOpen(false);
-        setServiceToDelete(null);
-    };
-
-    const Notification = ({ message, type, onClose }) => {
-        useEffect(() => {
-            const timer = setTimeout(() => {
-                onClose();
-            }, 3000);
-            return () => clearTimeout(timer);
-        }, [onClose]);
-
-        return (
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${type === 'success'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-red-500 text-white'
-                    }`}
-            >
-                <div className="flex items-center gap-2">
-                    {type === 'success' ? (
-                        <FaCheckCircle className="w-5 h-5" />
-                    ) : (
-                        <FaExclamationCircle className="w-5 h-5" />
-                    )}
-                    <p>{message}</p>
-                    <button
-                        onClick={onClose}
-                        className="ml-4 hover:text-white/80 transition-colors"
-                    >
-                        <FaTimes className="w-4 h-4" />
-                    </button>
-                </div>
-            </motion.div>
-        );
-    };
-
     const handleAddService = () => {
-        setIsModalOpen(true);
-    };
-
-    const handleEditService = (service) => {
-        setSelectedService(service);
         setIsModalOpen(true);
     };
 
@@ -619,16 +500,6 @@ const ServiceList = () => {
             exit="exit"
             className="min-h-screen bg-gray-50 dark:bg-gray-900"
         >
-            {isLoading && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"
-                    />
-                </div>
-            )}
-
             <motion.div
                 variants={itemVariants}
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
@@ -721,56 +592,60 @@ const ServiceList = () => {
                 />
             </motion.div>
 
-            <motion.div
-                variants={itemVariants}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-                <AnimatePresence>
-                    {paginatedServices.map((service) => (
-                        <ServiceCard
-                            key={service.id}
-                            service={service}
-                            onEdit={handleEditService}
-                            onDelete={handleDeleteClick}
-                        />
-                    ))}
-                </AnimatePresence>
-            </motion.div>
-
-            <AnimatePresence>
-                {filteredServices.length === 0 && !isLoading && (
+            {/* Grid Layout or Loading State */}
+            {isLoading ? (
+                <div className="text-center py-16">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải dữ liệu...</p>
+                </div>
+            ) : (
+                <>
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
-                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
+                        variants={itemVariants}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                     >
-                        <div className="text-gray-400 dark:text-gray-500 mb-4">
-                            <FaTag className="mx-auto w-16 h-16" />
-                        </div>
-                        <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                            {services.length === 0 ? "Chưa có dịch vụ nào" : "Không tìm thấy kết quả"}
-                        </h3>
-                        <p className="text-gray-500 dark:text-gray-400 mb-6">
-                            {services.length === 0
-                                ? "Bắt đầu bằng cách thêm dịch vụ đầu tiên"
-                                : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
-                        </p>
-                        {services.length === 0 && (
-                            <button
-                                onClick={handleAddService}
-                                className="inline-flex items-center px-6 py-3 bg-primary text-white 
-                                        font-semibold rounded-xl hover:bg-primary-dark transition-all 
-                                        duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
-                            >
-                                <FaPlus className="w-5 h-5 mr-2" />
-                                Thêm dịch vụ
-                            </button>
-                        )}
+                        {paginatedServices.map((service, index) => (
+                            <ServiceCard key={service.id} service={service} index={index} />
+                        ))}
                     </motion.div>
-                )}
-            </AnimatePresence>
+
+                    {/* Empty State */}
+                    <AnimatePresence>
+                        {filteredServices.length === 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl
+                                    border border-gray-100 dark:border-gray-700 mt-6"
+                            >
+                                <div className="text-gray-400 dark:text-gray-500 mb-4">
+                                    <FaTag className="mx-auto w-16 h-16" />
+                                </div>
+                                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                                    {services.length === 0 ? "Chưa có dịch vụ nào" : "Không tìm thấy kết quả"}
+                                </h3>
+                                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                                    {services.length === 0
+                                        ? "Bắt đầu bằng cách thêm dịch vụ đầu tiên"
+                                        : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
+                                </p>
+                                {services.length === 0 && (
+                                    <button
+                                        onClick={handleAddService}
+                                        className="inline-flex items-center px-6 py-3 bg-primary text-white 
+                                            font-semibold rounded-xl hover:bg-primary-dark transition-all 
+                                            duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
+                                    >
+                                        <FaPlus className="w-5 h-5 mr-2" />
+                                        Thêm dịch vụ
+                                    </button>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </>
+            )}
 
             <motion.div
                 initial={{ opacity: 0 }}
@@ -779,23 +654,6 @@ const ServiceList = () => {
             >
                 <Pagination />
             </motion.div>
-
-            <DeleteConfirmationModal
-                isOpen={isDeleteModalOpen}
-                onClose={handleDeleteCancel}
-                onConfirm={handleDeleteConfirm}
-                serviceName={serviceToDelete?.name}
-            />
-
-            <AnimatePresence>
-                {notification && (
-                    <Notification
-                        message={notification.message}
-                        type={notification.type}
-                        onClose={() => setNotification(null)}
-                    />
-                )}
-            </AnimatePresence>
 
             <ServiceModal
                 isOpen={isModalOpen}
