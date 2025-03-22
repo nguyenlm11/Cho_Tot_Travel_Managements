@@ -33,7 +33,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
         }
       } catch (error) {
         if (!location.pathname.endsWith('/add')) {
-          navigate('/owner/homestays');
+          // navigate('/owner/homestays');
         }
       }
     };
