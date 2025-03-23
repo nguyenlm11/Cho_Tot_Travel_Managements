@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp } from 'react-icons/fa';
 import { TbHomePlus } from "react-icons/tb";
 import { IoClose } from 'react-icons/io5';
+import axios from 'axios';
+import axiosInstance, { API_CONFIG } from '../../services/config';
+import { toast, Toaster } from 'react-hot-toast';
 
 const mockData = Array.from({ length: 20 }, (_, index) => ({
     id: index + 1,
@@ -12,7 +15,9 @@ const mockData = Array.from({ length: 20 }, (_, index) => ({
 }));
 
 export default function PendingHomestay() {
-    const [homeStays, setHomeStays] = useState(mockData);
+    const [homeStays, setHomeStays] = useState([]);
+    const [originalData, setOriginalData] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchText, setSearchText] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newHomeStay, setNewHomeStay] = useState({ name: '', address: '', status: 'pending' });
@@ -20,23 +25,37 @@ export default function PendingHomestay() {
     const [sortDirection, setSortDirection] = useState(null);
     const itemsPerPage = 10;
 
+    useEffect(() => {
+        fetchHomeStays();
+    }, []);
+
+    const fetchHomeStays = async () => {
+        try {
+            const response = await axios.get(`${API_CONFIG.BASE_URL}/homestay/GetAllRegisterHomeStay`);
+            setHomeStays(response?.data?.data);
+            setOriginalData(response?.data?.data);
+            setLoading(false);
+            console.log(response?.data?.data);
+        } catch (error) {
+            toast.error('Không thể tải danh sách homestay');
+            setLoading(false);
+        }
+    };
+
     const handleSort = () => {
         const newDirection = sortDirection === null ? 'asc' : sortDirection === 'asc' ? 'desc' : null;
         setSortDirection(newDirection);
 
         if (newDirection === null) {
-            setHomeStays(mockData);
+            setHomeStays([...originalData]);
             return;
         }
 
         const sortedHomeStays = [...homeStays].sort((a, b) => {
-            const numA = parseInt(a.name.match(/\d+/)[0]);
-            const numB = parseInt(b.name.match(/\d+/)[0]);
-
             if (newDirection === 'asc') {
-                return numA - numB;
+                return a.name.localeCompare(b.name);
             } else {
-                return numB - numA;
+                return b.name.localeCompare(a.name);
             }
         });
 
@@ -95,8 +114,17 @@ export default function PendingHomestay() {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+            <Toaster />
             <div className="mb-8 flex justify-between items-center">
                 <div>
                     <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">Quản lý phê duyệt HomeStay</h1>
@@ -271,8 +299,21 @@ export default function PendingHomestay() {
                                         transition={{ delay: index * 0.05 }}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap">{homeStay.name}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{homeStay.address}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>{homeStay?.name}
+                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                    {homeStay?.name}
+                                                </span>
+                                            </p>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>
+                                                {homeStay?.address}
+                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                    {homeStay?.address}
+                                                </span>
+                                            </p>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                                 {homeStay.status === 'approved' ? 'Đã phê duyệt' : 'Chờ phê duyệt'}
