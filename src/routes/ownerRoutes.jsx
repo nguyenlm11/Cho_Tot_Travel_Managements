@@ -7,6 +7,7 @@ import CustomerList from '../pages/owner/CustomerList';
 import RatingList from '../pages/owner/RatingList';
 import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
 import Dashboard from '../pages/owner/Dashboard';
+import CreateHomeStayForm from '../pages/owner/AddHomestayRental';
 
 export const ownerRoutes = [
   {
@@ -28,6 +29,10 @@ export const ownerRoutes = [
   {
     path: 'homestays/:id/services',
     element: <ServiceList />
+  },
+  {
+    path: 'homestays/:id/add-homestay-rental',
+    element: <CreateHomeStayForm />
   },
   {
     path: 'homestays/:id/room-types',
