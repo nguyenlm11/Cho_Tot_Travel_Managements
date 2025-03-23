@@ -14,7 +14,6 @@ const homestayAPI = {
             formData.append('area', homestayData.area);
             formData.append('accountId', homestayData.accountId);
 
-            // Thêm các files hình ảnh
             if (homestayData.images && homestayData.images.length > 0) {
                 homestayData.images.forEach(image => {
                     formData.append('images', image);
@@ -58,7 +57,48 @@ const homestayAPI = {
         } catch (error) {
             throw error;
         }
-    }
+    },
+
+    createHomestayRental: async (rentalData) => {
+        try {
+            const formData = new FormData();
+
+            // Thêm thông tin cơ bản vào FormData
+            formData.append('Name', rentalData.Name);
+            formData.append('Description', rentalData.Description);
+            formData.append('HomeStayID', rentalData.HomeStayID);
+            formData.append('numberBedRoom', rentalData.numberBedRoom);
+            formData.append('numberBathRoom', rentalData.numberBathRoom);
+            formData.append('numberKitchen', rentalData.numberKitchen);
+            formData.append('numberWifi', rentalData.numberWifi);
+            formData.append('Status', rentalData.Status);
+            formData.append('RentWhole', rentalData.RentWhole);
+            formData.append('MaxAdults', rentalData.MaxAdults);
+            formData.append('MaxChildren', rentalData.MaxChildren);
+            formData.append('MaxPeople', rentalData.MaxPeople);
+
+            // Sử dụng trực tiếp PricingJson từ rentalData
+            formData.append('PricingJson', rentalData.PricingJson || "");
+
+            // Thêm hình ảnh vào FormData
+            if (rentalData.Images && rentalData.Images.length > 0) {
+                rentalData.Images.forEach(image => {
+                    formData.append('Images', image);
+                });
+            }
+
+            // Gửi yêu cầu API
+            const response = await axiosInstance.post('/homestayrental/CreateHomeStayRental', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };
 
-export default homestayAPI; 
+export default homestayAPI;
