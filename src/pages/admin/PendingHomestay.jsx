@@ -6,13 +6,7 @@ import { IoClose } from 'react-icons/io5';
 import axios from 'axios';
 import axiosInstance, { API_CONFIG } from '../../services/config';
 import { toast, Toaster } from 'react-hot-toast';
-
-const mockData = Array.from({ length: 20 }, (_, index) => ({
-    id: index + 1,
-    name: `HomeStay ${index + 1}`,
-    address: `Địa chỉ ${index + 1}`,
-    status: index % 2 === 0 ? 'pending' : 'approved'
-}));
+import adminAPI from '../../services/api/adminAPI';
 
 export default function PendingHomestay() {
     const [homeStays, setHomeStays] = useState([]);
@@ -31,11 +25,10 @@ export default function PendingHomestay() {
 
     const fetchHomeStays = async () => {
         try {
-            const response = await axios.get(`${API_CONFIG.BASE_URL}/homestay/GetAllRegisterHomeStay`);
-            setHomeStays(response?.data?.data);
-            setOriginalData(response?.data?.data);
+            const response = await adminAPI.getAllRegisterHomestay();
+            setHomeStays(response?.data);
+            setOriginalData(response?.data);
             setLoading(false);
-            console.log(response?.data?.data);
         } catch (error) {
             toast.error('Không thể tải danh sách homestay');
             setLoading(false);
@@ -91,26 +84,25 @@ export default function PendingHomestay() {
     const approvedHomeStays = homeStays.filter(homeStay => homeStay.status === 'approved').length;
     const pendingHomeStays = homeStays.filter(homeStay => homeStay.status === 'pending').length;
 
-    const handleApprove = (id) => {
-        setHomeStays(prev => prev.map(homeStay =>
-            homeStay.id === id ? { ...homeStay, status: 'approved' } : homeStay
-        ));
+    const handleApprove = async (id) => {
+        try {
+            await adminAPI.approveHomestay(id);
+            toast.success('Phê duyệt homestay thành công');
+            // Cập nhật lại danh sách sau khi phê duyệt
+            fetchHomeStays();
+        } catch (error) {
+            toast.error('Không thể phê duyệt homestay');
+        }
     };
 
-    const handleReject = (id) => {
-        setHomeStays(prev => prev.filter(homeStay => homeStay.id !== id));
-    };
-
-    const handleAddHomeStay = () => {
-        if (newHomeStay.name && newHomeStay.address) {
-            setHomeStays(prev => [
-                ...prev,
-                { id: homeStays.length + 1, ...newHomeStay }
-            ]);
-            setNewHomeStay({ name: '', address: '', status: 'pending' });
-            setIsModalOpen(false);
-        } else {
-            alert("Vui lòng điền đầy đủ thông tin!");
+    const handleReject = async (id) => {
+        try {
+            await adminAPI.rejectHomestay(id);
+            toast.success('Từ chối homestay thành công');
+            // Cập nhật lại danh sách sau khi từ chối
+            fetchHomeStays();
+        } catch (error) {
+            toast.error('Không thể từ chối homestay');
         }
     };
 
@@ -258,15 +250,6 @@ export default function PendingHomestay() {
                         </div>
                     )}
                 </div>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
-                >
-                    <div className="flex items-center space-x-2">
-                        <TbHomePlus className="w-5 h-5" />
-                        <span>Thêm HomeStay</span>
-                    </div>
-                </button>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -321,10 +304,18 @@ export default function PendingHomestay() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
-                                                <button onClick={() => handleApprove(homeStay.id)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                                <button
+                                                    onClick={() => handleApprove(homeStay.id)}
+                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                                                    title="Phê duyệt"
+                                                >
                                                     <FaCheck className="w-4 h-4 text-green-500 hover:text-green-600" />
                                                 </button>
-                                                <button onClick={() => handleReject(homeStay.id)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                                <button
+                                                    onClick={() => handleReject(homeStay.id)}
+                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                                                    title="Từ chối"
+                                                >
                                                     <FaTimes className="w-4 h-4 text-red-500 hover:text-red-600" />
                                                 </button>
                                             </div>
