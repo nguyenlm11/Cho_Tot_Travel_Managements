@@ -39,7 +39,6 @@ const AddHomestayRental = () => {
     const navigate = useNavigate();
     const { id: homestayId } = useParams();
     const [loading, setLoading] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [step, setStep] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({
@@ -55,6 +54,7 @@ const AddHomestayRental = () => {
         MaxChildren: 0,
         MaxPeople: 0,
         Images: [],
+        Pricing: [],
         pricingEntries: [{
             unitPrice: 0,
             rentPrice: 0,
@@ -255,7 +255,7 @@ const AddHomestayRental = () => {
             if (response.statusCode === 201) {
                 toast.dismiss(loadingToast);
                 toast.success('Thêm phòng thuê thành công!');
-                navigate(`/owner/homestays/${homestayId}/dashboard`);
+                navigate(`/owner/homestays/${homestayId}/room-types`);
             } else {
                 throw new Error(response.message || "Thêm phòng thuê thất bại");
             }

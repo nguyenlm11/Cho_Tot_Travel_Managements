@@ -31,7 +31,7 @@ export const ownerRoutes = [
     element: <ServiceList />
   },
   {
-    path: 'homestays/:id/add-homestay-rental',
+    path: 'homestays/:id/create-homestay-rental',
     element: <CreateHomeStayForm />
   },
   {

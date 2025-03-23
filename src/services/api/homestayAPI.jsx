@@ -76,8 +76,7 @@ const homestayAPI = {
             formData.append('MaxAdults', rentalData.MaxAdults);
             formData.append('MaxChildren', rentalData.MaxChildren);
             formData.append('MaxPeople', rentalData.MaxPeople);
-
-            // Sử dụng trực tiếp PricingJson từ rentalData
+            formData.append('Pricing', JSON.stringify(rentalData.Pricing));
             formData.append('PricingJson', rentalData.PricingJson || "");
 
             // Thêm hình ảnh vào FormData
