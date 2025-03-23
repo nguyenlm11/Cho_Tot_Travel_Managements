@@ -1,16 +1,47 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { FaBed, FaBath, FaWifi, FaUtensils, FaUsers, FaUpload, FaTimes, FaPlus, FaTrash } from 'react-icons/fa';
+import { motion, AnimatePresence } from "framer-motion";
+import { FaBed, FaBath, FaWifi, FaUtensils, FaUsers, FaHome, FaTimes, FaPlus, FaTrash } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import homestayAPI from "../../services/api/homestayAPI";
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.1 }
+    }
+};
+
+const formVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
+
+const inputGroupVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5 } }
+};
+
+const stepVariants = {
+    hidden: { opacity: 0, x: 50 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } },
+    exit: { opacity: 0, x: -50, transition: { duration: 0.5, ease: "easeIn" } }
+};
+
+const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3, ease: "easeIn" } }
+};
 
 const AddHomestayRental = () => {
     const navigate = useNavigate();
     const { id: homestayId } = useParams();
     const [loading, setLoading] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false); // Thêm trạng thái để ngăn gửi trùng lặp
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [step, setStep] = useState(1);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({
         Name: "",
         Description: "",
@@ -19,7 +50,6 @@ const AddHomestayRental = () => {
         numberBathRoom: 0,
         numberKitchen: 0,
         numberWifi: 0,
-        Status: true,
         RentWhole: true,
         MaxAdults: 0,
         MaxChildren: 0,
@@ -45,8 +75,11 @@ const AddHomestayRental = () => {
         if (!formData.Description.trim()) newErrors.Description = 'Vui lòng nhập mô tả chi tiết';
         if (formData.numberBedRoom <= 0) newErrors.numberBedRoom = 'Số phòng ngủ phải lớn hơn 0';
         if (formData.numberBathRoom <= 0) newErrors.numberBathRoom = 'Số phòng tắm phải lớn hơn 0';
+        if (formData.numberKitchen < 0) newErrors.numberKitchen = 'Số nhà bếp không được âm';
+        if (formData.numberWifi < 0) newErrors.numberWifi = 'Số wifi không được âm';
         if (formData.MaxAdults <= 0) newErrors.MaxAdults = 'Số người lớn tối đa phải lớn hơn 0';
         if (formData.MaxChildren < 0) newErrors.MaxChildren = 'Số trẻ em không được âm';
+        if (formData.MaxPeople <= 0) newErrors.MaxPeople = 'Tổng số người tối đa phải lớn hơn 0';
         if (formData.MaxPeople < (formData.MaxAdults + formData.MaxChildren)) {
             newErrors.MaxPeople = 'Tổng số người tối đa phải lớn hơn hoặc bằng số người lớn và trẻ em';
         }
@@ -60,11 +93,13 @@ const AddHomestayRental = () => {
         const newErrors = {};
         if (formData.RentWhole) {
             formData.pricingEntries.forEach((entry, index) => {
-                if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá của giá ${index + 1} phải lớn hơn 0 VNĐ`;
-                if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê của giá ${index + 1} phải lớn hơn 0 VNĐ`;
+                if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá phải lớn hơn 0 VNĐ`;
+                if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê phải lớn hơn 0 VNĐ`;
                 if (entry.unitPrice > entry.rentPrice) {
-                    newErrors[`unitPrice_${index}`] = `Đơn giá của giá ${index + 1} không được lớn hơn giá thuê`;
+                    newErrors[`unitPrice_${index}`] = `Đơn giá không được lớn hơn giá thuê`;
                 }
+                if (entry.dayType < 0) newErrors[`dayType_${index}`] = `Loại ngày không được âm`;
+                if (!entry.description.trim()) newErrors[`description_${index}`] = `Vui lòng nhập mô tả giá`;
             });
         }
 
@@ -73,10 +108,10 @@ const AddHomestayRental = () => {
     };
 
     const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const { name, value, type } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: type === "checkbox" ? checked : type === "number" ? Number(value) : value
+            [name]: type === "number" ? Number(value) : value === "true" || value === "false" ? value === "true" : value
         }));
     };
 
@@ -87,10 +122,7 @@ const AddHomestayRental = () => {
                 ...updatedPricingEntries[index],
                 [field]: field === "unitPrice" || field === "rentPrice" || field === "dayType" ? Number(value) : value
             };
-            return {
-                ...prev,
-                pricingEntries: updatedPricingEntries
-            };
+            return { ...prev, pricingEntries: updatedPricingEntries };
         });
     };
 
@@ -99,16 +131,7 @@ const AddHomestayRental = () => {
             ...prev,
             pricingEntries: [
                 ...prev.pricingEntries,
-                {
-                    unitPrice: 0,
-                    rentPrice: 0,
-                    startDate: "",
-                    endDate: "",
-                    isDefault: true,
-                    isActive: true,
-                    dayType: 0,
-                    description: "",
-                }
+                { unitPrice: 0, rentPrice: 0, startDate: "", endDate: "", isDefault: true, isActive: true, dayType: 0, description: "" }
             ]
         }));
     };
@@ -169,36 +192,32 @@ const AddHomestayRental = () => {
 
     const handleNextStep = () => {
         if (validateStep1()) {
-            if (formData.RentWhole) {
+            if (formData.RentWhole === true) {
                 setStep(2);
             } else {
-                handleSubmit();
+                setIsModalOpen(true);
             }
         } else {
-            toast.error('Vui lòng kiểm tra và sửa các lỗi trong biểu mẫu trước khi tiếp tục.');
+            return;
         }
     };
 
     const handleSubmit = async (e) => {
         if (e) e.preventDefault();
-
-        if (isSubmitting) return; // Ngăn chặn gửi trùng lặp
-
         if (!validateStep1()) {
-            toast.error('Vui lòng kiểm tra và sửa các lỗi trong thông tin cơ bản.');
             setStep(1);
             return;
         }
 
-        if (formData.RentWhole && !validateStep2()) {
-            toast.error('Vui lòng kiểm tra và sửa các lỗi trong thông tin giá.');
+        if (formData.RentWhole === true && !validateStep2()) {
             return;
         }
 
-        const confirmSubmit = window.confirm('Bạn có chắc chắn muốn thêm phòng thuê này?');
-        if (!confirmSubmit) return;
+        setIsModalOpen(true);
+    };
 
-        setIsSubmitting(true);
+    const confirmSubmit = async () => {
+        setIsModalOpen(false);
         setLoading(true);
         const loadingToast = toast.loading('Đang xử lý yêu cầu của bạn...');
 
@@ -211,7 +230,7 @@ const AddHomestayRental = () => {
                 numberBathRoom: formData.numberBathRoom,
                 numberKitchen: formData.numberKitchen,
                 numberWifi: formData.numberWifi,
-                Status: formData.Status,
+                Status: true, // Mặc định luôn là true
                 RentWhole: formData.RentWhole,
                 MaxAdults: formData.MaxAdults,
                 MaxChildren: formData.MaxChildren,
@@ -231,9 +250,6 @@ const AddHomestayRental = () => {
                 ) : ""
             };
 
-            console.log("formData.pricingEntries:", formData.pricingEntries);
-            console.log("rentalData.PricingJson:", rentalData.PricingJson);
-
             const response = await homestayAPI.createHomestayRental(rentalData);
 
             if (response.statusCode === 201) {
@@ -248,397 +264,500 @@ const AddHomestayRental = () => {
             toast.error(error.message || 'Có lỗi xảy ra khi thêm phòng thuê');
         } finally {
             setLoading(false);
-            setIsSubmitting(false);
         }
     };
 
-    const resetForm = () => {
-        setFormData({
-            Name: "",
-            Description: "",
-            HomeStayID: homestayId,
-            numberBedRoom: 0,
-            numberBathRoom: 0,
-            numberKitchen: 0,
-            numberWifi: 0,
-            Status: true,
-            RentWhole: true,
-            MaxAdults: 0,
-            MaxChildren: 0,
-            MaxPeople: 0,
-            Images: [],
-            pricingEntries: [{
-                unitPrice: 0,
-                rentPrice: 0,
-                startDate: "",
-                endDate: "",
-                isDefault: true,
-                isActive: true,
-                dayType: 0,
-                description: "",
-            }],
-        });
-        setPreviewImages([]);
-        setErrors({});
-        setStep(1);
+    const cancelSubmit = () => {
+        setIsModalOpen(false);
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6"
         >
             <div className="max-w-4xl mx-auto">
-                <motion.form
-                    onSubmit={handleSubmit}
-                    className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8"
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="text-center mb-10"
                 >
-                    <div className="mb-8">
-                        <div className="flex items-center justify-center mb-4">
-                            <div className={`flex items-center ${step === 1 ? 'text-indigo-600' : 'text-gray-400'}`}>
-                                <span className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-current">1</span>
-                                <span className="ml-2">Thông tin cơ bản</span>
-                            </div>
-                            <div className="flex-1 h-1 bg-gray-300 mx-4"></div>
-                            <div className={`flex items-center ${step === 2 ? 'text-indigo-600' : 'text-gray-400'}`}>
-                                <span className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-current">2</span>
-                                <span className="ml-2">Thiết lập giá</span>
-                            </div>
-                        </div>
+                    <div className="inline-block p-2 bg-primary/10 dark:bg-primary/20 rounded-2xl mb-4 backdrop-blur-sm">
+                        <FaHome className="w-10 h-10 text-primary" />
+                    </div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-primary-dark to-primary bg-clip-text text-transparent mb-4">
+                        Thêm phòng thuê mới
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
+                        Tạo không gian nghỉ dưỡng tuyệt vời cho khách hàng của bạn
+                    </p>
+                </motion.div>
 
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                            {step === 1 ? 'Thêm Phòng Thuê Mới - Thông Tin Cơ Bản' : 'Thêm Phòng Thuê Mới - Thiết Lập Giá'}
-                        </h1>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            {step === 1
-                                ? 'Điền đầy đủ thông tin để tạo phòng thuê mới'
-                                : 'Thiết lập giá cho phòng thuê nguyên căn'
-                            }
-                        </p>
+                <motion.form
+                    variants={formVariants}
+                    onSubmit={handleSubmit}
+                    className="bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden backdrop-blur-sm"
+                >
+                    <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/20 dark:to-primary/10 px-8 py-6 border-b border-gray-100 dark:border-gray-700">
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-3">
+                            <FaHome className="text-primary" />
+                            <span className="bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+                                {step === 1 ? 'Thông tin cơ bản' : 'Thiết lập giá'}
+                            </span>
+                        </h2>
                     </div>
 
-                    {step === 1 ? (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Tên phòng *</label>
-                                    <input
-                                        type="text"
-                                        name="Name"
-                                        value={formData.Name}
-                                        onChange={handleInputChange}
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                        placeholder="Nhập tên phòng"
-                                    />
-                                    {errors.Name && <p className="text-red-500 text-sm mt-1">{errors.Name}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">HomeStay ID</label>
-                                    <input
-                                        type="number"
-                                        name="HomeStayID"
-                                        value={formData.HomeStayID}
-                                        disabled
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Mô tả *</label>
-                                <textarea
-                                    name="Description"
-                                    value={formData.Description}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                    rows="4"
-                                    placeholder="Mô tả chi tiết về phòng thuê"
-                                />
-                                {errors.Description && <p className="text-red-500 text-sm mt-1">{errors.Description}</p>}
-                            </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Phòng ngủ *</label>
-                                    <input
-                                        type="number"
-                                        name="numberBedRoom"
-                                        value={formData.numberBedRoom}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        max="50"
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                    />
-                                    {errors.numberBedRoom && <p className="text-red-500 text-sm mt-1">{errors.numberBedRoom}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Phòng tắm *</label>
-                                    <input
-                                        type="number"
-                                        name="numberBathRoom"
-                                        value={formData.numberBathRoom}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        max="50"
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                    />
-                                    {errors.numberBathRoom && <p className="text-red-500 text-sm mt-1">{errors.numberBathRoom}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Nhà bếp</label>
-                                    <input
-                                        type="number"
-                                        name="numberKitchen"
-                                        value={formData.numberKitchen}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        max="10"
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Wifi</label>
-                                    <input
-                                        type="number"
-                                        name="numberWifi"
-                                        value={formData.numberWifi}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        max="10"
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Người lớn tối đa *</label>
-                                    <input
-                                        type="number"
-                                        name="MaxAdults"
-                                        value={formData.MaxAdults}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        max="100"
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                    />
-                                    {errors.MaxAdults && <p className="text-red-500 text-sm mt-1">{errors.MaxAdults}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Trẻ em tối đa</label>
-                                    <input
-                                        type="number"
-                                        name="MaxChildren"
-                                        value={formData.MaxChildren}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        max="100"
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                    />
-                                    {errors.MaxChildren && <p className="text-red-500 text-sm mt-1">{errors.MaxChildren}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Tổng số người tối đa</label>
-                                    <input
-                                        type="number"
-                                        name="MaxPeople"
-                                        value={formData.MaxPeople}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        max="200"
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                    />
-                                    {errors.MaxPeople && <p className="text-red-500 text-sm mt-1">{errors.MaxPeople}</p>}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        name="Status"
-                                        checked={formData.Status}
-                                        onChange={handleInputChange}
-                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                    />
-                                    <label className="ml-2 text-sm font-medium text-gray-700">Hoạt động</label>
-                                </div>
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        name="RentWhole"
-                                        checked={formData.RentWhole}
-                                        onChange={handleInputChange}
-                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                    />
-                                    <label className="ml-2 text-sm font-medium text-gray-700">Thuê nguyên căn</label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Hình ảnh *</label>
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept="image/jpeg,image/png,image/gif"
-                                    onChange={handleImageChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                />
-                                {errors.Images && <p className="text-red-500 text-sm mt-1">{errors.Images}</p>}
-                                {previewImages.length > 0 && (
-                                    <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-4">
-                                        {previewImages.map((img, index) => (
-                                            <div key={index} className="relative">
-                                                <img src={img} alt={`Preview ${index}`} className="w-full h-24 object-cover rounded-md" />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeImage(index)}
-                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                                                >
-                                                    <FaTimes size={12} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {formData.pricingEntries.map((entry, index) => (
-                                <div key={index} className="border p-4 rounded-md relative">
-                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                                        Giá {index + 1}
-                                    </h3>
-                                    <button
-                                        type="button"
-                                        onClick={() => removePricingEntry(index)}
-                                        className="absolute top-4 right-4 text-red-500 hover:text-red-700"
-                                    >
-                                        <FaTrash size={16} />
-                                    </button>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Đơn giá *</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="number"
-                                                    value={entry.unitPrice}
-                                                    onChange={(e) => handlePricingChange(index, "unitPrice", e.target.value)}
-                                                    min="0"
-                                                    className="mt-1 block w-full pl-12 pr-4 py-2 border border-gray-300 rounded-md"
-                                                    placeholder="0"
-                                                />
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">VNĐ</span>
-                                            </div>
-                                            {errors[`unitPrice_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`unitPrice_${index}`]}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Giá thuê *</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="number"
-                                                    value={entry.rentPrice}
-                                                    onChange={(e) => handlePricingChange(index, "rentPrice", e.target.value)}
-                                                    min="0"
-                                                    className="mt-1 block w-full pl-12 pr-4 py-2 border border-gray-300 rounded-md"
-                                                    placeholder="0"
-                                                />
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">VNĐ</span>
-                                            </div>
-                                            {errors[`rentPrice_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`rentPrice_${index}`]}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Ngày bắt đầu</label>
+                    <div className="p-8 space-y-6">
+                        <AnimatePresence mode="wait">
+                            {step === 1 ? (
+                                <motion.div
+                                    key="step1"
+                                    variants={stepVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="space-y-6"
+                                >
+                                    <motion.div variants={inputGroupVariants} className="group">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                            <span>Tên phòng</span>
+                                            <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative group">
                                             <input
-                                                type="datetime-local"
-                                                value={entry.startDate}
-                                                onChange={(e) => handlePricingChange(index, "startDate", e.target.value)}
-                                                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
+                                                type="text"
+                                                name="Name"
+                                                placeholder="Nhập tên phòng"
+                                                value={formData.Name}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-3 pl-11 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                                required
                                             />
+                                            <FaHome className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors duration-300" />
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Ngày kết thúc</label>
-                                            <input
-                                                type="datetime-local"
-                                                value={entry.endDate}
-                                                onChange={(e) => handlePricingChange(index, "endDate", e.target.value)}
-                                                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Loại ngày</label>
+                                        {errors.Name && <p className="text-red-500 text-sm mt-1">{errors.Name}</p>}
+                                    </motion.div>
+
+                                    <motion.div variants={inputGroupVariants} className="group">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                            <span>Mô tả</span>
+                                            <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            name="Description"
+                                            placeholder="Mô tả chi tiết về phòng thuê"
+                                            value={formData.Description}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300 min-h-[120px] resize-y"
+                                            required
+                                        />
+                                        {errors.Description && <p className="text-red-500 text-sm mt-1">{errors.Description}</p>}
+                                    </motion.div>
+
+                                    <motion.div variants={inputGroupVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="group">
+                                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                Phòng ngủ <span className="text-red-500">*</span>
+                                            </label>
                                             <input
                                                 type="number"
-                                                value={entry.dayType}
-                                                onChange={(e) => handlePricingChange(index, "dayType", e.target.value)}
+                                                name="numberBedRoom"
+                                                value={formData.numberBedRoom}
+                                                onChange={handleInputChange}
                                                 min="0"
-                                                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
+                                                max="50"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
                                             />
+                                            {errors.numberBedRoom && <p className="text-red-500 text-sm mt-1">{errors.numberBedRoom}</p>}
                                         </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700">Mô tả giá</label>
-                                            <textarea
-                                                value={entry.description}
-                                                onChange={(e) => handlePricingChange(index, "description", e.target.value)}
-                                                rows="3"
-                                                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                                                placeholder="Mô tả thêm về giá thuê..."
+                                        <div className="group">
+                                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                Phòng tắm <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="numberBathRoom"
+                                                value={formData.numberBathRoom}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                max="50"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
                                             />
+                                            {errors.numberBathRoom && <p className="text-red-500 text-sm mt-1">{errors.numberBathRoom}</p>}
                                         </div>
-                                    </div>
-                                </div>
-                            ))}
-                            <div className="flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={addPricingEntry}
-                                    className="flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-                                >
-                                    <FaPlus className="mr-2" /> Thêm giá mới
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                                        <div className="group">
+                                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                Nhà bếp
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="numberKitchen"
+                                                value={formData.numberKitchen}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                max="10"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                            />
+                                            {errors.numberKitchen && <p className="text-red-500 text-sm mt-1">{errors.numberKitchen}</p>}
+                                        </div>
+                                        <div className="group">
+                                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                Wifi
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="numberWifi"
+                                                value={formData.numberWifi}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                max="10"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                            />
+                                            {errors.numberWifi && <p className="text-red-500 text-sm mt-1">{errors.numberWifi}</p>}
+                                        </div>
+                                    </motion.div>
 
-                    <div className="mt-8 flex justify-end gap-4">
+                                    <motion.div variants={inputGroupVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="group">
+                                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                Người lớn tối đa <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="MaxAdults"
+                                                value={formData.MaxAdults}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                max="100"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                            />
+                                            {errors.MaxAdults && <p className="text-red-500 text-sm mt-1">{errors.MaxAdults}</p>}
+                                        </div>
+                                        <div className="group">
+                                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                Trẻ em tối đa
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="MaxChildren"
+                                                value={formData.MaxChildren}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                max="100"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                            />
+                                            {errors.MaxChildren && <p className="text-red-500 text-sm mt-1">{errors.MaxChildren}</p>}
+                                        </div>
+                                        <div className="group">
+                                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                Tổng số người tối đa <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="MaxPeople"
+                                                value={formData.MaxPeople}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                max="200"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                            />
+                                            {errors.MaxPeople && <p className="text-red-500 text-sm mt-1">{errors.MaxPeople}</p>}
+                                        </div>
+                                    </motion.div>
+
+                                    <motion.div variants={inputGroupVariants} className="group">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                            Loại hình thuê <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            name="RentWhole"
+                                            value={formData.RentWhole}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                        >
+                                            <option value={true}>Thuê nguyên căn</option>
+                                            <option value={false}>Thuê từng phòng</option>
+                                        </select>
+                                    </motion.div>
+
+                                    <motion.div variants={inputGroupVariants} className="space-y-4">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 block">
+                                            Hình ảnh <span className="text-red-500">*</span>
+                                        </label>
+                                        <motion.div
+                                            whileHover={{ scale: 1.01 }}
+                                            className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-primary dark:hover:border-primary transition-all duration-300 cursor-pointer relative bg-gray-50/50 dark:bg-gray-700/50 group"
+                                        >
+                                            <input
+                                                type="file"
+                                                multiple
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                            <motion.div
+                                                whileHover={{ scale: 1.05 }}
+                                                className="flex flex-col items-center"
+                                            >
+                                                <FaHome className="w-12 h-12 text-gray-400 group-hover:text-primary transition-colors duration-300" />
+                                                <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                                                    Kéo thả hoặc click để tải ảnh lên
+                                                </p>
+                                                <p className="mt-2 text-xs text-gray-500">
+                                                    Hỗ trợ: JPG, PNG (Tối đa 5MB)
+                                                </p>
+                                            </motion.div>
+                                        </motion.div>
+                                        {errors.Images && <p className="text-red-500 text-sm mt-1">{errors.Images}</p>}
+
+                                        {previewImages.length > 0 && (
+                                            <motion.div
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6"
+                                            >
+                                                {previewImages.map((preview, index) => (
+                                                    <motion.div
+                                                        key={index}
+                                                        initial={{ opacity: 0, scale: 0.8 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="relative group rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300"
+                                                    >
+                                                        <img
+                                                            src={preview}
+                                                            alt={`Preview ${index + 1}`}
+                                                            className="w-full h-32 object-cover transform group-hover:scale-110 transition-transform duration-500"
+                                                        />
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.1 }}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            onClick={() => removeImage(index)}
+                                                            className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600"
+                                                        >
+                                                            <FaTimes className="w-4 h-4" />
+                                                        </motion.button>
+                                                    </motion.div>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </motion.div>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="step2"
+                                    variants={stepVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="space-y-6"
+                                >
+                                    {formData.pricingEntries.map((entry, index) => (
+                                        <motion.div
+                                            key={index}
+                                            variants={inputGroupVariants}
+                                            className="border-2 border-gray-200 dark:border-gray-600 p-6 rounded-xl relative bg-white/50 dark:bg-gray-700/50"
+                                        >
+                                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                                Giá {index + 1}
+                                            </h3>
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() => removePricingEntry(index)}
+                                                className="absolute top-4 right-4 p-1.5 bg-red-500/90 text-white rounded-full transition-all duration-300 hover:bg-red-600"
+                                            >
+                                                <FaTrash className="w-4 h-4" />
+                                            </motion.button>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="group">
+                                                    <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                        Đơn giá <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="number"
+                                                            value={entry.unitPrice}
+                                                            onChange={(e) => handlePricingChange(index, "unitPrice", e.target.value)}
+                                                            min="0"
+                                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                    {errors[`unitPrice_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`unitPrice_${index}`]}</p>}
+                                                </div>
+                                                <div className="group">
+                                                    <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                        Giá thuê <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="number"
+                                                            value={entry.rentPrice}
+                                                            onChange={(e) => handlePricingChange(index, "rentPrice", e.target.value)}
+                                                            min="0"
+                                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                    {errors[`rentPrice_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`rentPrice_${index}`]}</p>}
+                                                </div>
+                                                <div className="group">
+                                                    <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                        Ngày bắt đầu
+                                                    </label>
+                                                    <input
+                                                        type="datetime-local"
+                                                        value={entry.startDate}
+                                                        onChange={(e) => handlePricingChange(index, "startDate", e.target.value)}
+                                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                                    />
+                                                </div>
+                                                <div className="group">
+                                                    <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                        Ngày kết thúc
+                                                    </label>
+                                                    <input
+                                                        type="datetime-local"
+                                                        value={entry.endDate}
+                                                        onChange={(e) => handlePricingChange(index, "endDate", e.target.value)}
+                                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                                    />
+                                                </div>
+                                                <div className="group">
+                                                    <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                        Loại ngày
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={entry.dayType}
+                                                        onChange={(e) => handlePricingChange(index, "dayType", e.target.value)}
+                                                        min="0"
+                                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                                    />
+                                                    {errors[`dayType_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`dayType_${index}`]}</p>}
+                                                </div>
+                                                <div className="md:col-span-2 group">
+                                                    <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                                        Mô tả <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <textarea
+                                                        value={entry.description}
+                                                        onChange={(e) => handlePricingChange(index, "description", e.target.value)}
+                                                        rows="3"
+                                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                                        placeholder="Mô tả thêm về giá thuê..."
+                                                    />
+                                                    {errors[`description_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`description_${index}`]}</p>}
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                    <motion.div variants={inputGroupVariants} className="flex justify-end">
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            type="button"
+                                            onClick={addPricingEntry}
+                                            className="flex items-center px-6 py-3 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all duration-300"
+                                        >
+                                            <FaPlus className="mr-2" /> Thêm giá mới
+                                        </motion.button>
+                                    </motion.div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    <div className="px-8 py-6 bg-gray-50/80 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
                         {step === 2 && (
                             <motion.button
-                                whileHover={{ scale: 1.02 }}
+                                whileHover={{ scale: 1.02, x: -4 }}
                                 whileTap={{ scale: 0.98 }}
                                 type="button"
                                 onClick={() => setStep(1)}
-                                className="px-6 py-2 rounded-md border hover:bg-gray-100"
+                                className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 flex items-center gap-2"
                             >
-                                Quay lại
+                                <span>Quay lại</span>
                             </motion.button>
                         )}
                         <motion.button
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.02, x: 4 }}
                             whileTap={{ scale: 0.98 }}
                             type={step === 1 ? "button" : "submit"}
                             onClick={step === 1 ? handleNextStep : undefined}
-                            disabled={loading || isSubmitting}
-                            className="px-6 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                            disabled={loading}
+                            className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             {loading ? (
-                                <span className="flex items-center gap-2">
-                                    <motion.span
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                                    />
-                                    Đang xử lý...
-                                </span>
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                                />
                             ) : (
-                                step === 1 ? 'Tiếp tục' : 'Thêm phòng thuê'
+                                <>
+                                    <FaHome className="w-5 h-5" />
+                                    <span>{step === 1 ? 'Tiếp tục' : 'Thêm phòng thuê'}</span>
+                                </>
                             )}
                         </motion.button>
                     </div>
                 </motion.form>
             </div>
-            <Toaster position="top-center" />
+
+            <AnimatePresence>
+                {isModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <motion.div
+                            variants={modalVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 w-full max-w-md mx-4"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+                                    Xác nhận thêm phòng thuê
+                                </h3>
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={cancelSubmit}
+                                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                >
+                                    <FaTimes className="w-5 h-5" />
+                                </motion.button>
+                            </div>
+                            <p className="text-gray-600 dark:text-gray-300 mb-6">
+                                Bạn có chắc chắn muốn thêm phòng thuê này không?
+                            </p>
+                            <div className="flex justify-end gap-4">
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={cancelSubmit}
+                                    className="px-6 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
+                                >
+                                    Hủy
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={confirmSubmit}
+                                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white transition-all duration-300 hover:shadow-lg hover:shadow-primary/25"
+                                >
+                                    Xác nhận
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <Toaster />
         </motion.div>
     );
 };
