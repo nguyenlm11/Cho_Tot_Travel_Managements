@@ -7,10 +7,9 @@ import homestayAPI from '../../services/api/homestayAPI';
 const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [expandedMenu, setExpandedMenu] = useState(null); // Chỉ lưu index của menu đang mở
+  const [expandedMenu, setExpandedMenu] = useState(null);
   const [userHomestays, setUserHomestays] = useState([]);
 
-  // Kiểm tra quyền truy cập
   useEffect(() => {
     const checkHomestayAccess = async () => {
       try {
@@ -44,18 +43,23 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
     }
   }, [selectedHomestay, navigate, location.pathname]);
 
-  // Menu mặc định cho Owner
   const defaultMenuItems = [
     { title: 'Quản lý nhà nghỉ', icon: <FaHome />, path: '/owner/homestays' },
     { title: 'Thêm nhà nghỉ', icon: <FaPlus />, path: '/owner/homestays/add' },
   ];
 
-  // Menu khi quản lý nhà nghỉ
   const homestayMenuItems = [
     { title: 'Dashboard', path: `/owner/homestays/${selectedHomestay}/dashboard`, icon: <FaChartLine /> },
     { title: 'Thông tin nhà nghỉ', path: `/owner/homestays/${selectedHomestay}/info`, icon: <FaInfoCircle /> },
-    { title: 'Loại phòng', path: `/owner/homestays/${selectedHomestay}/room-types`, icon: <FaBed /> },
-    { title: 'Thêm căn', path: `/owner/homestays/${selectedHomestay}/add-homestay-rental`, icon: <FaBed /> },
+    {
+      title: 'Quản lý căn',
+      path: `/owner/homestays/${selectedHomestay}/room-types`,
+      icon: <FaBed />,
+      submenu: [
+        { title: 'Tất cả căn', path: `/owner/homestays/${selectedHomestay}/room-types` },
+        { title: 'Thêm căn', path: `/owner/homestays/${selectedHomestay}/create-homestay-rental` },
+      ],
+    },
     { title: 'Dịch vụ', path: `/owner/homestays/${selectedHomestay}/services`, icon: <FaTag /> },
     {
       title: 'Đặt phòng',
@@ -80,6 +84,8 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
     if (!path) return false;
     if (path === location.pathname) return true;
     if (path.includes('/bookings') && location.pathname.includes('/bookings')) return true;
+    if (path.includes('/room-types') && location.pathname.includes('/room-types')) return true;
+    if (path.includes('/create-homestay-rental') && location.pathname.includes('/create-homestay-rental')) return true;
     return false;
   };
 
@@ -91,12 +97,11 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
 
   return (
     <motion.div
-      animate={{ width: isCollapsed ? 80 : 288 }} // w-20 = 80px, w-72 = 288px
+      animate={{ width: isCollapsed ? 80 : 288 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="h-screen bg-primary dark:bg-gray-900 text-white fixed left-0 top-0 overflow-y-auto"
+      className="h-screen bg-primary dark:bg-gray-900 text-white fixed left-0 top-0" // Đã xóa overflow-y-auto
     >
       <div className="p-4">
-        {/* Header */}
         <div className="flex items-center justify-center mb-8">
           {isCollapsed ? (
             <FaHome className="text-3xl text-white dark:text-primary" />
@@ -110,7 +115,6 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
           )}
         </div>
 
-        {/* Menu Items */}
         <div className="space-y-2">
           {menuItems.map((item, index) => (
             <div key={item.path}>
@@ -137,7 +141,6 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
                 )}
               </Link>
 
-              {/* Submenu */}
               {!isCollapsed && item.submenu && expandedMenu === index && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
