@@ -70,7 +70,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
                     <input
                         ref={searchInputRef}
                         type="text"
-                        placeholder="Tìm kiếm theo tên phòng..."
+                        placeholder="Tìm kiếm theo tên căn..."
                         value={searchTerm}
                         onChange={handleSearchChange}
                         onKeyDown={handleKeyPress}
@@ -377,11 +377,11 @@ const HomestayRentalList = () => {
             if (response && response.statusCode === 200) {
                 setRentals(response.data || []);
             } else {
-                toast.error("Không thể tải danh sách phòng thuê");
+                toast.error("Không thể tải danh sách căn thuê");
             }
         } catch (error) {
             console.error('Error fetching rentals:', error);
-            toast.error('Không thể tải danh sách phòng thuê');
+            toast.error('Không thể tải danh sách căn thuê');
         } finally {
             setTimeout(() => setLoading(false), 1000);
         }
@@ -428,42 +428,42 @@ const HomestayRentalList = () => {
     // Sửa hàm confirmDelete để sử dụng homestayRentalAPI
     const confirmDelete = async () => {
         if (!rentalToDelete) return;
-        
+
         setShowDeleteModal(false);
-        const loadingToast = toast.loading('Đang xóa phòng thuê...');
-        
+        const loadingToast = toast.loading('Đang xóa căn thuê...');
+
         try {
             const response = await homestayRentalAPI.deleteHomeStayRental(rentalToDelete.homeStayRentalID);
             if (response && response.statusCode === 200) {
                 toast.dismiss(loadingToast);
-                toast.success('Xóa phòng thuê thành công');
+                toast.success('Xóa căn thuê thành công');
                 setRentals(rentals.filter(r => r.homeStayRentalID !== rentalToDelete.homeStayRentalID));
             } else {
                 toast.dismiss(loadingToast);
-                toast.error('Không thể xóa phòng thuê');
+                toast.error('Không thể xóa căn thuê');
             }
         } catch (error) {
             console.error('Error deleting rental:', error);
             toast.dismiss(loadingToast);
-            toast.error('Không thể xóa phòng thuê');
+            toast.error('Không thể xóa căn thuê');
         }
     };
 
     const statsData = [
         {
-            label: 'Tổng số phòng',
+            label: 'Tổng số căn',
             value: rentals.length,
             color: 'bg-blue-500',
             icon: <FaBed className="w-6 h-6" />
         },
         {
-            label: 'Đang hoạt động',
+            label: 'Hoạt động',
             value: rentals.filter(r => r.status === true).length,
             color: 'bg-green-500',
             icon: <FaBed className="w-6 h-6" />
         },
         {
-            label: 'Không hoạt động',
+            label: 'Tạm ngưng',
             value: rentals.filter(r => r.status === false).length,
             color: 'bg-red-500',
             icon: <FaBed className="w-6 h-6" />
@@ -497,7 +497,7 @@ const HomestayRentalList = () => {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/create`)}
+                            onClick={() => navigate(`/owner/homestays/${homestayId}/create-homestay-rental`)}
                             className="bg-primary hover:bg-primary-dark text-white font-semibold 
               px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 
               transform hover:scale-105 shadow-lg hover:shadow-primary/20"
@@ -604,11 +604,11 @@ const HomestayRentalList = () => {
                                         <FaBed className="mx-auto w-16 h-16" />
                                     </div>
                                     <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                                        {rentals.length === 0 ? "Chưa có phòng thuê nào" : "Không tìm thấy kết quả"}
+                                        {rentals.length === 0 ? "Chưa có căn thuê nào" : "Không tìm thấy kết quả"}
                                     </h3>
                                     <p className="text-gray-500 dark:text-gray-400 mb-6">
                                         {rentals.length === 0
-                                            ? "Bắt đầu bằng cách thêm phòng thuê đầu tiên của bạn"
+                                            ? "Bắt đầu bằng cách thêm căn thuê đầu tiên của bạn"
                                             : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
                                     </p>
                                     {rentals.length === 0 && (
@@ -621,7 +621,7 @@ const HomestayRentalList = () => {
                       duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
                                         >
                                             <FaPlus className="w-5 h-5 mr-2" />
-                                            Thêm phòng thuê
+                                            Thêm căn thuê
                                         </motion.button>
                                     )}
                                 </motion.div>
@@ -684,7 +684,7 @@ const HomestayRentalList = () => {
                                 Xác nhận xóa
                             </h3>
                             <p className="text-gray-600 dark:text-gray-400 mb-6">
-                                Bạn có chắc chắn muốn xóa phòng thuê "{rentalToDelete?.name}"? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa căn "{rentalToDelete?.name}"? Hành động này không thể hoàn tác.
                             </p>
                             <div className="flex justify-end gap-3">
                                 <button

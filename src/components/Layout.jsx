@@ -10,7 +10,7 @@ import { FaChevronRight } from 'react-icons/fa';
 const Layout = ({ children }) => {
   const { isDarkMode } = useTheme();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
-  const location = useLocation(); 
+  const location = useLocation();
 
   // Cuộn về đầu trang khi route thay đổi
   useEffect(() => {
@@ -58,7 +58,7 @@ const Layout = ({ children }) => {
         }}
       >
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <Header />
         </div>
 
@@ -72,7 +72,7 @@ const Layout = ({ children }) => {
         </main>
 
         {/* Footer */}
-        <div className="relative z-20 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <Footer />
         </div>
       </motion.div>
