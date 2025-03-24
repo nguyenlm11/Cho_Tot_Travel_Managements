@@ -162,6 +162,13 @@ export default function AdminHomestay() {
     const [sortDirection, setSortDirection] = useState(null);
     const [originalData, setOriginalData] = useState([]);
     const itemsPerPage = 10;
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        type: '', // 'activate' hoặc 'deactivate'
+        homestayId: null,
+        currentStatus: null
+    });
+    const [sortColumn, setSortColumn] = useState('name'); // 'name' hoặc 'ownerName'
 
     useEffect(() => {
         fetchHomeStays();
@@ -185,9 +192,11 @@ export default function AdminHomestay() {
     const inactiveHomeStays = homeStays.filter(homeStay => homeStay.status === 2).length;
 
     // Xử lý sắp xếp
-    const handleSort = () => {
-        const newDirection = sortDirection === null ? 'asc' : sortDirection === 'asc' ? 'desc' : null;
+    const handleSort = (column) => {
+        const newDirection = sortDirection === null ? 'asc' :
+            sortDirection === 'asc' ? 'desc' : null;
         setSortDirection(newDirection);
+        setSortColumn(column);
 
         if (newDirection === null) {
             setHomeStays([...originalData]);
@@ -195,31 +204,46 @@ export default function AdminHomestay() {
         }
 
         const sortedHomeStays = [...homeStays].sort((a, b) => {
+            const valueA = column === 'name' ? a.name : a.ownerName;
+            const valueB = column === 'name' ? b.name : b.ownerName;
+
             if (newDirection === 'asc') {
-                return a.name.localeCompare(b.name);
+                return valueA.localeCompare(valueB);
             } else {
-                return b.name.localeCompare(a.name);
+                return valueB.localeCompare(valueA);
             }
         });
 
         setHomeStays(sortedHomeStays);
     };
 
-    const getSortIcon = () => {
+    const getSortIcon = (column) => {
+        if (sortColumn !== column) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
         if (sortDirection === null) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
         if (sortDirection === 'asc') return <FaArrowDown className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
         return <FaArrowUp className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
     };
 
     // Xử lý toggle trạng thái hoạt động
-    const handleToggleStatus = async (id, currentStatus) => {
+    const handleToggleClick = (id, currentStatus) => {
+        setConfirmModal({
+            isOpen: true,
+            type: currentStatus === 1 ? 'deactivate' : 'activate',
+            homestayId: id,
+            currentStatus: currentStatus
+        });
+    };
+
+    const handleConfirm = async () => {
         try {
-            const newStatus = currentStatus === 1 ? 2 : 1;
-            await adminAPI.changeHomeStayStatus(id, newStatus);
+            const newStatus = confirmModal.currentStatus === 1 ? 2 : 1;
+            await adminAPI.changeHomeStayStatus(confirmModal.homestayId, newStatus);
             toast.success(`${newStatus === 1 ? 'Kích hoạt' : 'Dừng hoạt động'} homestay thành công`);
             await fetchHomeStays();
         } catch (error) {
             toast.error('Không thể cập nhật trạng thái homestay');
+        } finally {
+            setConfirmModal({ isOpen: false, type: '', homestayId: null, currentStatus: null });
         }
     };
 
@@ -336,11 +360,20 @@ export default function AdminHomestay() {
                             <tr>
                                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
                                     <button
-                                        onClick={handleSort}
+                                        onClick={() => handleSort('name')}
                                         className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                     >
                                         Tên Homestay
-                                        {getSortIcon()}
+                                        {getSortIcon('name')}
+                                    </button>
+                                </th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
+                                    <button
+                                        onClick={() => handleSort('ownerName')}
+                                        className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                    >
+                                        Chủ sở hữu
+                                        {getSortIcon('ownerName')}
                                     </button>
                                 </th>
                                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">
@@ -371,6 +404,13 @@ export default function AdminHomestay() {
                                         </p>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap relative group">
+                                        <p className='overflow-hidden truncate max-w-md'>{homeStay?.ownerName}
+                                            <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                {homeStay?.ownerName}
+                                            </span>
+                                        </p>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap relative group">
                                         <p className='overflow-hidden truncate max-w-md'>
                                             {homeStay?.address}
                                             <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
@@ -387,7 +427,7 @@ export default function AdminHomestay() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <button
-                                            onClick={() => handleToggleStatus(homeStay.homeStayID, homeStay.status)}
+                                            onClick={() => handleToggleClick(homeStay.homeStayID, homeStay.status)}
                                             className={`px-3 py-1.5 rounded-lg text-white text-sm 
                                                 ${homeStay.status === 1
                                                     ? 'bg-red-500 hover:bg-red-600'
@@ -463,6 +503,45 @@ export default function AdminHomestay() {
                     </button>
                 </div>
             )}
+
+            <AnimatePresence>
+                {confirmModal.isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                    >
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-96 shadow-xl">
+                            <h3 className="text-xl font-semibold mb-4">
+                                {confirmModal.type === 'activate' ? 'Xác nhận kích hoạt' : 'Xác nhận dừng hoạt động'}
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                {confirmModal.type === 'activate'
+                                    ? 'Bạn có chắc chắn muốn kích hoạt homestay này?'
+                                    : 'Bạn có chắc chắn muốn dừng hoạt động homestay này?'}
+                            </p>
+                            <div className="flex justify-end gap-4">
+                                <button
+                                    onClick={() => setConfirmModal({ isOpen: false, type: '', homestayId: null, currentStatus: null })}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    onClick={handleConfirm}
+                                    className={`px-4 py-2 text-white rounded-lg transition-colors ${confirmModal.type === 'activate'
+                                        ? 'bg-green-500 hover:bg-green-600'
+                                        : 'bg-red-500 hover:bg-red-600'
+                                        }`}
+                                >
+                                    {confirmModal.type === 'activate' ? 'Kích hoạt' : 'Dừng hoạt động'}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 } 
