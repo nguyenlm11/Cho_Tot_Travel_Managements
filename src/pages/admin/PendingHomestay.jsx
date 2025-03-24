@@ -84,8 +84,14 @@ export default function PendingHomestay() {
     const [newHomeStay, setNewHomeStay] = useState({ name: '', address: '', status: 'pending' });
     const [currentPage, setCurrentPage] = useState(1);
     const [sortDirection, setSortDirection] = useState(null);
+    const [sortColumn, setSortColumn] = useState('name');
     const itemsPerPage = 10;
     const [actualSearchTerm, setActualSearchTerm] = useState('');
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        type: '', // 'approve' hoặc 'reject'
+        homestayId: null
+    });
 
     useEffect(() => {
         fetchHomeStays();
@@ -108,9 +114,10 @@ export default function PendingHomestay() {
         }
     };
 
-    const handleSort = () => {
+    const handleSort = (column) => {
         const newDirection = sortDirection === null ? 'asc' : sortDirection === 'asc' ? 'desc' : null;
         setSortDirection(newDirection);
+        setSortColumn(column);
 
         if (newDirection === null) {
             setHomeStays([...originalData]);
@@ -128,16 +135,20 @@ export default function PendingHomestay() {
         setHomeStays(sortedHomeStays);
     };
 
-    const getSortIcon = () => {
+    const getSortIcon = (column) => {
+        if (sortColumn !== column) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
         if (sortDirection === null) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
         if (sortDirection === 'asc') return <FaArrowDown className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
         return <FaArrowUp className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
     };
 
-    const filteredHomeStays = homeStays.filter(homeStay =>
-        homeStay.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        homeStay.address.toLowerCase().includes(searchText.toLowerCase())
-    );
+    const filteredHomeStays = homeStays.filter(homeStay => {
+        // Chỉ lấy homestay đang chờ phê duyệt
+        if (homeStay.status !== 0) return false;
+
+        return homeStay.name.toLowerCase().includes(searchText.toLowerCase()) ||
+            homeStay.address.toLowerCase().includes(searchText.toLowerCase());
+    });
 
     // Tính toán số trang
     const totalPages = Math.ceil(filteredHomeStays.length / itemsPerPage);
@@ -157,23 +168,46 @@ export default function PendingHomestay() {
     const approvedHomeStays = homeStays.filter(homeStay => homeStay.status === 1).length;
     const pendingHomeStays = homeStays.filter(homeStay => homeStay.status === 0).length;
 
-    const handleApprove = async (id) => {
-        try {
-            await adminAPI.changeHomeStayStatus(id, 1);
-            toast.success('Phê duyệt homestay thành công');
-            await fetchHomeStays();
-        } catch (error) {
-            toast.error('Không thể phê duyệt homestay: ' + (error.response?.data?.message || error.message));
-        }
+    const handleApproveClick = (id) => {
+        setConfirmModal({
+            isOpen: true,
+            type: 'approve',
+            homestayId: id
+        });
     };
 
-    const handleReject = async (id) => {
+    const handleRejectClick = (id) => {
+        setConfirmModal({
+            isOpen: true,
+            type: 'reject',
+            homestayId: id
+        });
+    };
+
+    const handleConfirm = async () => {
         try {
-            await adminAPI.changeHomeStayStatus(id, 2);
-            toast.success('Từ chối homestay thành công');
-            await fetchHomeStays();
+            if (confirmModal.type === 'approve') {
+                const response = await adminAPI.changeHomeStayStatus(confirmModal.homestayId, 1);
+                if (response?.status === 200 || response?.data) {
+                    toast.success('Phê duyệt homestay thành công');
+                    await fetchHomeStays(); // Cập nhật lại danh sách
+                } else {
+                    toast.error('Phê duyệt homestay thất bại');
+                }
+            } else {
+                const response = await adminAPI.changeHomeStayStatus(confirmModal.homestayId, 2);
+                if (response?.status === 200 || response?.data) {
+                    toast.success('Từ chối homestay thành công');
+                    await fetchHomeStays(); // Cập nhật lại danh sách
+                } else {
+                    toast.error('Từ chối homestay thất bại');
+                }
+            }
         } catch (error) {
-            toast.error('Không thể từ chối homestay: ' + (error.response?.data?.message || error.message));
+            console.error("Error in handleConfirm:", error); // Thêm log để debug
+            toast.error(`Không thể ${confirmModal.type === 'approve' ? 'phê duyệt' : 'từ chối'} homestay: ${error.message}`);
+        } finally {
+            setConfirmModal({ isOpen: false, type: '', homestayId: null });
         }
     };
 
@@ -309,18 +343,18 @@ export default function PendingHomestay() {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white  w-1/6">
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
                                     <button
-                                        onClick={handleSort}
-                                        className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none"
+                                        onClick={() => handleSort('name')}
+                                        className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                     >
                                         Tên Homestay
-                                        {getSortIcon()}
+                                        {getSortIcon('name')}
                                     </button>
                                 </th>
                                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">Địa chỉ</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white  w-1/6">Trạng thái</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white  w-1/6">Thao tác</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">Trạng thái</th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -362,14 +396,14 @@ export default function PendingHomestay() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
                                                 <button
-                                                    onClick={() => handleApprove(homeStay?.homeStayID)}
+                                                    onClick={() => handleApproveClick(homeStay?.homeStayID)}
                                                     className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                                                     title="Phê duyệt"
                                                 >
                                                     <FaCheck className="w-4 h-4 text-green-500 hover:text-green-600" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleReject(homeStay?.homeStayID)}
+                                                    onClick={() => handleRejectClick(homeStay?.homeStayID)}
                                                     className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                                                     title="Từ chối"
                                                 >
@@ -443,6 +477,45 @@ export default function PendingHomestay() {
                     </button>
                 </div>
             )}
+
+            <AnimatePresence>
+                {confirmModal.isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                    >
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-96 shadow-xl">
+                            <h3 className="text-xl font-semibold mb-4">
+                                {confirmModal.type === 'approve' ? 'Xác nhận phê duyệt' : 'Xác nhận từ chối'}
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                {confirmModal.type === 'approve'
+                                    ? 'Bạn có chắc chắn muốn phê duyệt homestay này?'
+                                    : 'Bạn có chắc chắn muốn từ chối homestay này?'}
+                            </p>
+                            <div className="flex justify-end gap-4">
+                                <button
+                                    onClick={() => setConfirmModal({ isOpen: false, type: '', homestayId: null })}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    onClick={handleConfirm}
+                                    className={`px-4 py-2 text-white rounded-lg transition-colors ${confirmModal.type === 'approve'
+                                        ? 'bg-green-500 hover:bg-green-600'
+                                        : 'bg-red-500 hover:bg-red-600'
+                                        }`}
+                                >
+                                    {confirmModal.type === 'approve' ? 'Phê duyệt' : 'Từ chối'}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
