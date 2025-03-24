@@ -9,6 +9,7 @@ import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
 import Dashboard from '../pages/owner/Dashboard';
 import CreateHomeStayForm from '../pages/owner/AddHomestayRental';
 import HomestayRentalList from '../pages/owner/HomestayRentalList';
+import HomestayRentalDetail from '../pages/owner/HomestayRentalDetail';
 
 export const ownerRoutes = [
   {
@@ -38,6 +39,10 @@ export const ownerRoutes = [
   {
     path: 'homestays/:id/homestay-rental',
     element: <HomestayRentalList />
+  },
+  {
+    path: 'homestays/:id/rentals/:rentalId',
+    element: <HomestayRentalDetail />
   },
   {
     path: 'homestays/:id/room-types',

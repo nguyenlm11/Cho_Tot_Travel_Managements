@@ -10,6 +10,15 @@ const homestayRentalAPI = {
         }
     },
 
+    getHomeStayRentalDetail: async (rentalId) => {
+        try {
+            const response = await axiosInstance.get(`/homestayrental/GetHomeStayRentalDetail/${rentalId}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     createHomestayRental: async (rentalData) => {
         try {
             const formData = new FormData();
