@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaSearch, FaMoneyBillWave, FaFileInvoiceDollar, FaSort, FaArrowDown, FaArrowUp, FaEye } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
@@ -13,12 +13,80 @@ const mockData = Array.from({ length: 20 }, (_, index) => ({
     date: new Date(2024, 0, index + 1).toISOString()
 }));
 
+const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
+    const searchInputRef = useRef(null);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setActualSearchTerm('');
+        searchInputRef.current?.focus();
+    };
+
+    return (
+        <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+                <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Tìm kiếm theo mã giao dịch, tên chủ nhà..."
+                    className="w-full px-4 py-2.5 pl-12 pr-12 text-gray-700 bg-white 
+                    border border-gray-300 rounded-xl 
+                    focus:outline-none focus:ring-2 focus:ring-primary/20 
+                    focus:border-primary transition-colors duration-200
+                    dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+                />
+                <FaSearch
+                    className="absolute left-4 top-1/2 -translate-y-1/2 
+                    text-gray-400 w-4 h-4 pointer-events-none"
+                />
+                {searchTerm && (
+                    <button
+                        onClick={handleSearchClear}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1
+                        text-gray-400 hover:text-gray-600 
+                        dark:hover:text-gray-300 hover:bg-gray-100 
+                        dark:hover:bg-gray-700 rounded-full
+                        transition-all duration-200"
+                    >
+                        <IoClose className="w-5 h-5" />
+                    </button>
+                )}
+            </div>
+            <button
+                onClick={handleSearch}
+                className="px-6 py-2.5 bg-primary hover:bg-primary-dark 
+                text-white font-medium rounded-xl 
+                flex items-center gap-2
+                transition-all duration-200
+                hover:shadow-lg hover:shadow-primary/20"
+            >
+                <FaSearch className="w-4 h-4" />
+                Tìm kiếm
+            </button>
+        </div>
+    );
+};
+
 export default function TransactionHistory() {
     const [transactions, setTransactions] = useState(mockData);
     const [searchText, setSearchText] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortDirection, setSortDirection] = useState(null);
     const itemsPerPage = 10;
+    const [actualSearchTerm, setActualSearchTerm] = useState('');
 
     // Tính toán thống kê giao dịch
     const totalTransactions = transactions.length;
@@ -107,6 +175,11 @@ export default function TransactionHistory() {
         return type === 'deposit' ? 'Nạp tiền' : 'Rút tiền';
     };
 
+    const handleSearch = () => {
+        setActualSearchTerm(searchText);
+        setCurrentPage(1);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
             <div className="mb-8">
@@ -187,25 +260,13 @@ export default function TransactionHistory() {
             </div>
 
             {/* Thanh tìm kiếm */}
-            <div className="mb-4">
-                <div className="relative w-2/6">
-                    <input
-                        type="text"
-                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-800"
-                        placeholder="Tìm kiếm theo mã giao dịch, tên chủ nhà..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                    />
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    {searchText && (
-                        <button
-                            onClick={() => setSearchText('')}
-                            className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
-                        >
-                            <IoClose className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
+            <div className="mb-6">
+                <SearchBar
+                    searchTerm={searchText}
+                    setSearchTerm={setSearchText}
+                    handleSearch={handleSearch}
+                    setActualSearchTerm={setActualSearchTerm}
+                />
             </div>
 
             {/* Bảng giao dịch */}

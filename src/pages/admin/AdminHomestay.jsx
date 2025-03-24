@@ -1,7 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaSearch, FaSort, FaArrowDown, FaArrowUp, FaUser, FaFilter } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import adminAPI from '../../services/api/adminAPI';
+import { toast, Toaster } from 'react-hot-toast';
 
 // Mock data với trạng thái active/inactive
 const mockData = Array.from({ length: 20 }, (_, index) => ({
@@ -19,7 +21,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
     const statusOptions = [
         { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
         { value: 'active', label: 'Đang hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
-        { value: 'inactive', label: 'Ngừng hoạt động', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
+        { value: 'inactive', label: 'Đã dừng', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> }
     ];
 
     const handleSearchChange = (e) => {
@@ -151,18 +153,36 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 };
 
 export default function AdminHomestay() {
-    const [homeStays, setHomeStays] = useState(mockData);
+    const [homeStays, setHomeStays] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortDirection, setSortDirection] = useState(null);
+    const [originalData, setOriginalData] = useState([]);
     const itemsPerPage = 10;
 
+    useEffect(() => {
+        fetchHomeStays();
+    }, []);
+
+    const fetchHomeStays = async () => {
+        try {
+            const response = await adminAPI.getAllHomeStayWithOwnerName();
+            setHomeStays(response?.data);
+            setOriginalData(response?.data);
+            setLoading(false);
+        } catch (error) {
+            toast.error('Không thể tải danh sách homestay');
+            setLoading(false);
+        }
+    };
+
     // Thống kê
-    const totalHomeStays = homeStays.length;
-    const activeHomeStays = homeStays.filter(homeStay => homeStay.isActive).length;
-    const inactiveHomeStays = homeStays.filter(homeStay => !homeStay.isActive).length;
+    const totalHomeStays = homeStays.filter(homeStay => homeStay.status === 1 || homeStay.status === 2).length;
+    const activeHomeStays = homeStays.filter(homeStay => homeStay.status === 1).length;
+    const inactiveHomeStays = homeStays.filter(homeStay => homeStay.status === 2).length;
 
     // Xử lý sắp xếp
     const handleSort = () => {
@@ -170,14 +190,16 @@ export default function AdminHomestay() {
         setSortDirection(newDirection);
 
         if (newDirection === null) {
-            setHomeStays(mockData);
+            setHomeStays([...originalData]);
             return;
         }
 
         const sortedHomeStays = [...homeStays].sort((a, b) => {
-            const numA = parseInt(a.name.match(/\d+/)[0]);
-            const numB = parseInt(b.name.match(/\d+/)[0]);
-            return newDirection === 'asc' ? numA - numB : numB - numA;
+            if (newDirection === 'asc') {
+                return a.name.localeCompare(b.name);
+            } else {
+                return b.name.localeCompare(a.name);
+            }
         });
 
         setHomeStays(sortedHomeStays);
@@ -190,19 +212,27 @@ export default function AdminHomestay() {
     };
 
     // Xử lý toggle trạng thái hoạt động
-    const handleToggleStatus = (id) => {
-        setHomeStays(prev => prev.map(homeStay =>
-            homeStay.id === id ? { ...homeStay, isActive: !homeStay.isActive } : homeStay
-        ));
+    const handleToggleStatus = async (id, currentStatus) => {
+        try {
+            const newStatus = currentStatus === 1 ? 2 : 1;
+            await adminAPI.changeHomeStayStatus(id, newStatus);
+            toast.success(`${newStatus === 1 ? 'Kích hoạt' : 'Dừng hoạt động'} homestay thành công`);
+            await fetchHomeStays();
+        } catch (error) {
+            toast.error('Không thể cập nhật trạng thái homestay');
+        }
     };
 
     // Cập nhật hàm lọc
     const filteredHomeStays = homeStays.filter(homeStay => {
+        // Chỉ lấy những homestay đã được phê duyệt (status 1 hoặc 2)
+        if (homeStay.status === 0) return false;
+
         const matchesSearch = homeStay.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
             homeStay.address.toLowerCase().includes(actualSearchTerm.toLowerCase());
         const matchesStatus = selectedStatus === 'all' ||
-            (selectedStatus === 'active' && homeStay.isActive) ||
-            (selectedStatus === 'inactive' && !homeStay.isActive);
+            (selectedStatus === 'active' && homeStay.status === 1) ||
+            (selectedStatus === 'inactive' && homeStay.status === 2);
         return matchesSearch && matchesStatus;
     });
 
@@ -218,10 +248,21 @@ export default function AdminHomestay() {
         setCurrentPage(1);
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+            <Toaster />
             <div className="mb-8">
-                <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">Quản lý tất cả HomeStay</h1>
+                <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                    Quản lý tất cả HomeStay
+                </h1>
                 <p className="text-gray-600 dark:text-gray-400">
                     Xem và quản lý trạng thái hoạt động của các HomeStay
                 </p>
@@ -239,7 +280,7 @@ export default function AdminHomestay() {
                             <FaUser className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-white/80 text-sm">Tổng số HomeStay</p>
+                            <p className="text-white/80 text-sm">Tổng số HomeStay đã duyệt</p>
                             <p className="text-white text-2xl font-bold">{totalHomeStays}</p>
                         </div>
                     </div>
@@ -269,7 +310,7 @@ export default function AdminHomestay() {
                             <FaUser className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-white/80 text-sm">Ngừng hoạt động</p>
+                            <p className="text-white/80 text-sm">Đã dừng hoạt động</p>
                             <p className="text-white text-2xl font-bold">{inactiveHomeStays}</p>
                         </div>
                     </div>
@@ -322,25 +363,38 @@ export default function AdminHomestay() {
                                     transition={{ delay: index * 0.05 }}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
                                 >
-                                    <td className="px-6 py-4 whitespace-nowrap">{homeStay.name}</td>
-                                    <td className="px-6 py-4 break-words">{homeStay.address}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap relative group">
+                                        <p className='overflow-hidden truncate max-w-md'>{homeStay?.name}
+                                            <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                {homeStay?.name}
+                                            </span>
+                                        </p>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap relative group">
+                                        <p className='overflow-hidden truncate max-w-md'>
+                                            {homeStay?.address}
+                                            <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                {homeStay?.address}
+                                            </span>
+                                        </p>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.isActive
-                                            ? 'bg-green-100 text-green-600'
-                                            : 'bg-red-100 text-red-800'
-                                            }`}>
-                                            {homeStay.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            ${homeStay.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                                        >
+                                            {homeStay.status === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <button
-                                            onClick={() => handleToggleStatus(homeStay.id)}
-                                            className={`px-3 py-1.5 rounded-lg text-white text-sm ${homeStay.isActive
-                                                ? 'bg-red-500 hover:bg-red-600'
-                                                : 'bg-green-500 hover:bg-green-600'
+                                            onClick={() => handleToggleStatus(homeStay.homeStayID, homeStay.status)}
+                                            className={`px-3 py-1.5 rounded-lg text-white text-sm 
+                                                ${homeStay.status === 1
+                                                    ? 'bg-red-500 hover:bg-red-600'
+                                                    : 'bg-green-500 hover:bg-green-600'
                                                 } transition-colors`}
                                         >
-                                            {homeStay.isActive ? 'Dừng hoạt động' : 'Kích hoạt'}
+                                            {homeStay.status === 1 ? 'Dừng hoạt động' : 'Kích hoạt'}
                                         </button>
                                     </td>
                                 </motion.tr>
