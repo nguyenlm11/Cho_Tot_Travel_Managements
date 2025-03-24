@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaBed, FaBath, FaWifi, FaUtensils, FaUsers, FaHome, FaTimes, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaHome, FaTimes, FaPlus, FaTrash } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import homestayAPI from "../../services/api/homestayAPI";
+import homestayRentalAPI from "../../services/api/homestayrentalAPI";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -250,12 +250,12 @@ const AddHomestayRental = () => {
                 ) : ""
             };
 
-            const response = await homestayAPI.createHomestayRental(rentalData);
+            const response = await homestayRentalAPI.createHomestayRental(rentalData);
 
             if (response.statusCode === 201) {
                 toast.dismiss(loadingToast);
                 toast.success('Thêm phòng thuê thành công!');
-                navigate(`/owner/homestays/${homestayId}/room-types`);
+                navigate(`/owner/homestays/${homestayId}/homestay-rental`);
             } else {
                 throw new Error(response.message || "Thêm phòng thuê thất bại");
             }

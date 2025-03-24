@@ -56,7 +56,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
       path: `/owner/homestays/${selectedHomestay}/room-types`,
       icon: <FaBed />,
       submenu: [
-        { title: 'Tất cả căn', path: `/owner/homestays/${selectedHomestay}/room-types` },
+        { title: 'Tất cả căn', path: `/owner/homestays/${selectedHomestay}/homestay-rental` },
         { title: 'Thêm căn', path: `/owner/homestays/${selectedHomestay}/create-homestay-rental` },
       ],
     },
