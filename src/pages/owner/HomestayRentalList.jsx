@@ -170,7 +170,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
 const HomestayRentalCard = ({ rental, onEdit, onDelete }) => {
     const navigate = useNavigate();
-    const { homestayId } = useParams();
+    const { id: homestayId } = useParams();
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('vi-VN', {

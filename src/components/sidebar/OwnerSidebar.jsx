@@ -24,14 +24,17 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
           const ownerHomestays = response.data.map(h => h.homeStayID.toString());
           setUserHomestays(ownerHomestays);
 
-          if (selectedHomestay &&
+          if (
+            selectedHomestay &&
             !ownerHomestays.includes(selectedHomestay) &&
-            !location.pathname.endsWith('/add')) {
+            !location.pathname.endsWith('/add') &&
+            !location.pathname.includes('/rentals/') // Loại trừ các đường dẫn chứa /rentals/
+          ) {
             navigate('/owner/homestays');
           }
         }
       } catch (error) {
-        if (!location.pathname.endsWith('/add')) {
+        if (!location.pathname.endsWith('/add') && !location.pathname.includes('/rentals/')) {
           // navigate('/owner/homestays');
         }
       }
@@ -99,7 +102,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
     <motion.div
       animate={{ width: isCollapsed ? 80 : 288 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="h-screen bg-primary dark:bg-gray-900 text-white fixed left-0 top-0" // Đã xóa overflow-y-auto
+      className="h-screen bg-primary dark:bg-gray-900 text-white fixed left-0 top-0"
     >
       <div className="p-4">
         <div className="flex items-center justify-center mb-8">
