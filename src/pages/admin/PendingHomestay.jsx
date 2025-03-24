@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp } from 'react-icons/fa';
 import { TbHomePlus } from "react-icons/tb";
@@ -7,6 +7,73 @@ import axios from 'axios';
 import axiosInstance, { API_CONFIG } from '../../services/config';
 import { toast, Toaster } from 'react-hot-toast';
 import adminAPI from '../../services/api/adminAPI';
+
+const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
+    const searchInputRef = useRef(null);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    const handleSearchClear = () => {
+        setSearchTerm('');
+        setActualSearchTerm('');
+        searchInputRef.current?.focus();
+    };
+
+    return (
+        <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+                <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Tìm kiếm homestay..."
+                    className="w-full px-4 py-2.5 pl-12 pr-12 text-gray-700 bg-white 
+                    border border-gray-300 rounded-xl 
+                    focus:outline-none focus:ring-2 focus:ring-primary/20 
+                    focus:border-primary transition-colors duration-200
+                    dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+                />
+                <FaSearch
+                    className="absolute left-4 top-1/2 -translate-y-1/2 
+                    text-gray-400 w-4 h-4 pointer-events-none"
+                />
+                {searchTerm && (
+                    <button
+                        onClick={handleSearchClear}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1
+                        text-gray-400 hover:text-gray-600 
+                        dark:hover:text-gray-300 hover:bg-gray-100 
+                        dark:hover:bg-gray-700 rounded-full
+                        transition-all duration-200"
+                    >
+                        <IoClose className="w-5 h-5" />
+                    </button>
+                )}
+            </div>
+            <button
+                onClick={handleSearch}
+                className="px-6 py-2.5 bg-primary hover:bg-primary-dark 
+                text-white font-medium rounded-xl 
+                flex items-center gap-2
+                transition-all duration-200
+                hover:shadow-lg hover:shadow-primary/20"
+            >
+                <FaSearch className="w-4 h-4" />
+                Tìm kiếm
+            </button>
+        </div>
+    );
+};
 
 export default function PendingHomestay() {
     const [homeStays, setHomeStays] = useState([]);
@@ -18,6 +85,7 @@ export default function PendingHomestay() {
     const [currentPage, setCurrentPage] = useState(1);
     const [sortDirection, setSortDirection] = useState(null);
     const itemsPerPage = 10;
+    const [actualSearchTerm, setActualSearchTerm] = useState('');
 
     useEffect(() => {
         fetchHomeStays();
@@ -26,11 +94,16 @@ export default function PendingHomestay() {
     const fetchHomeStays = async () => {
         try {
             const response = await adminAPI.getAllRegisterHomestay();
-            setHomeStays(response?.data);
-            setOriginalData(response?.data);
+            if (response?.data) {
+                setHomeStays(response.data);
+                setOriginalData(response.data);
+            } else {
+                toast.error('Không có dữ liệu homestay');
+            }
             setLoading(false);
         } catch (error) {
-            toast.error('Không thể tải danh sách homestay');
+            console.error("Error fetching homestays:", error);
+            toast.error('Không thể tải danh sách homestay: ' + (error.response?.data?.message || error.message));
             setLoading(false);
         }
     };
@@ -81,29 +154,32 @@ export default function PendingHomestay() {
     };
 
     const totalHomeStays = homeStays.length;
-    const approvedHomeStays = homeStays.filter(homeStay => homeStay.status === 'approved').length;
-    const pendingHomeStays = homeStays.filter(homeStay => homeStay.status === 'pending').length;
+    const approvedHomeStays = homeStays.filter(homeStay => homeStay.status === 1).length;
+    const pendingHomeStays = homeStays.filter(homeStay => homeStay.status === 0).length;
 
     const handleApprove = async (id) => {
         try {
-            await adminAPI.approveHomestay(id);
+            await adminAPI.changeHomeStayStatus(id, 1);
             toast.success('Phê duyệt homestay thành công');
-            // Cập nhật lại danh sách sau khi phê duyệt
-            fetchHomeStays();
+            await fetchHomeStays();
         } catch (error) {
-            toast.error('Không thể phê duyệt homestay');
+            toast.error('Không thể phê duyệt homestay: ' + (error.response?.data?.message || error.message));
         }
     };
 
     const handleReject = async (id) => {
         try {
-            await adminAPI.rejectHomestay(id);
+            await adminAPI.changeHomeStayStatus(id, 2);
             toast.success('Từ chối homestay thành công');
-            // Cập nhật lại danh sách sau khi từ chối
-            fetchHomeStays();
+            await fetchHomeStays();
         } catch (error) {
-            toast.error('Không thể từ chối homestay');
+            toast.error('Không thể từ chối homestay: ' + (error.response?.data?.message || error.message));
         }
+    };
+
+    const handleSearch = () => {
+        setActualSearchTerm(searchText);
+        setCurrentPage(1);
     };
 
     if (loading) {
@@ -214,42 +290,18 @@ export default function PendingHomestay() {
                                     placeholder="Nhập địa chỉ..."
                                 />
                             </div>
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={handleAddHomeStay}
-                                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
-                                >
-                                    Thêm
-                                </button>
-                            </div>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            <div className="mb-4 flex justify-between items-center">
-                <div className="relative w-2/6">
-                    <input
-                        type="text"
-                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-800"
-                        placeholder="Tìm kiếm theo tên, địa chỉ..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                    />
-                    <div className="absolute inset-y-0 left-3 flex items-center">
-                        <FaSearch className="text-gray-400" />
-                    </div>
-                    {searchText && (
-                        <div className="absolute inset-y-0 right-3 flex items-center">
-                            <button
-                                onClick={() => setSearchText('')}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                <IoClose className="w-5 h-5" />
-                            </button>
-                        </div>
-                    )}
-                </div>
+            <div className="mb-6">
+                <SearchBar
+                    searchTerm={searchText}
+                    setSearchTerm={setSearchText}
+                    handleSearch={handleSearch}
+                    setActualSearchTerm={setActualSearchTerm}
+                />
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -298,21 +350,26 @@ export default function PendingHomestay() {
                                             </p>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                {homeStay.status === 'approved' ? 'Đã phê duyệt' : 'Chờ phê duyệt'}
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.status === 1 ? 'bg-green-100 text-green-800' :
+                                                homeStay.status === 2 ? 'bg-red-100 text-red-800' :
+                                                    'bg-yellow-100 text-yellow-800'
+                                                }`}>
+                                                {homeStay.status === 1 ? 'Đã phê duyệt' :
+                                                    homeStay.status === 2 ? 'Đã từ chối' :
+                                                        'Chờ phê duyệt'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
                                                 <button
-                                                    onClick={() => handleApprove(homeStay.id)}
+                                                    onClick={() => handleApprove(homeStay?.homeStayID)}
                                                     className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                                                     title="Phê duyệt"
                                                 >
                                                     <FaCheck className="w-4 h-4 text-green-500 hover:text-green-600" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleReject(homeStay.id)}
+                                                    onClick={() => handleReject(homeStay?.homeStayID)}
                                                     className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                                                     title="Từ chối"
                                                 >

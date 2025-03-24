@@ -19,12 +19,15 @@ const adminAPI = {
             throw error;
         }
     },
-
-    updateUserStatus: async (userId, status) => {
+    // Thay đổi trạng thái của homestay
+    changeHomeStayStatus: async (homestayId, status) => {
         try {
-            const response = await axiosInstance.put(`/admin/users/${userId}/status`, { status });
+            console.log("Calling API with:", { homestayId, status });
+            const response = await axiosInstance.put(`/homestay/ChangeHomeStayStatus?homestayId=${homestayId}&status=${status}`);
+            console.log("API Response:", response.data);
             return response.data;
         } catch (error) {
+            console.error("API Error:", error);
             throw error;
         }
     },
