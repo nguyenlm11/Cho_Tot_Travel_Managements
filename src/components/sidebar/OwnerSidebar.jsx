@@ -24,28 +24,33 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
           const ownerHomestays = response.data.map(h => h.homeStayID.toString());
           setUserHomestays(ownerHomestays);
 
-          if (
-            selectedHomestay &&
-            !ownerHomestays.includes(selectedHomestay) &&
-            !location.pathname.endsWith('/add') &&
-            !location.pathname.includes('/rentals/') &&
-            !location.pathname.includes('/room-types/')
-          ) {
-            navigate('/owner/homestays');
+          const isManagingHomestay = location.pathname.match(/^\/owner\/homestays\/[^/]+(?!\/add)/);
+          const isManagingRental = location.pathname.includes('/rentals/');
+          const isManagingRoomType = location.pathname.includes('/room-types/');
+          const isAddingHomestay = location.pathname.endsWith('/add');
+
+          if (selectedHomestay && !ownerHomestays.includes(selectedHomestay)) {
+            if (!isAddingHomestay) {
+              navigate('/owner/homestays');
+            }
+          } else if (isManagingHomestay || isManagingRental || isManagingRoomType) {
+            if (!selectedHomestay || !ownerHomestays.includes(selectedHomestay)) {
+              navigate('/owner/homestays');
+            }
           }
+        } else {
+          navigate('/owner/homestays');
         }
       } catch (error) {
-        if (!location.pathname.endsWith('/add') && !location.pathname.includes('/rentals/')) {
-          // navigate('/owner/homestays');
+        console.error('Error checking homestay access:', error);
+        if (!location.pathname.endsWith('/add')) {
+          navigate('/owner/homestays');
         }
       }
     };
 
-    const isManagingHomestay = location.pathname.match(/^\/owner\/homestays\/[^/]+(?!\/add)/);
-    if (selectedHomestay && isManagingHomestay) {
-      checkHomestayAccess();
-    }
-  }, [selectedHomestay, navigate, location.pathname]);
+    checkHomestayAccess();
+  }, [selectedHomestay, location.pathname, navigate]);
 
   const defaultMenuItems = [
     { title: 'Quản lý nhà nghỉ', icon: <FaHome />, path: '/owner/homestays' },
@@ -81,7 +86,10 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
   ];
 
   const isManagingHomestay =
-    location.pathname.match(/^\/(owner)\/homestays\/[^/]+(?!\/add)/) && !location.pathname.includes('/add');
+    location.pathname.match(/^\/(owner)\/homestays\/[^/]+(?!\/add)/) &&
+    !location.pathname.includes('/add') &&
+    userHomestays.includes(selectedHomestay);
+
   const menuItems = isManagingHomestay ? homestayMenuItems : defaultMenuItems;
 
   const isActive = (path) => {

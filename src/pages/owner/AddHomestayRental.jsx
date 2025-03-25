@@ -7,10 +7,7 @@ import homestayRentalAPI from "../../services/api/homestayrentalAPI";
 
 const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.1 }
-    }
+    visible: { opacity: 1, transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.1 } }
 };
 
 const formVariants = {
@@ -230,7 +227,7 @@ const AddHomestayRental = () => {
                 numberBathRoom: formData.numberBathRoom,
                 numberKitchen: formData.numberKitchen,
                 numberWifi: formData.numberWifi,
-                Status: true, // Mặc định luôn là true
+                Status: true,
                 RentWhole: formData.RentWhole,
                 MaxAdults: formData.MaxAdults,
                 MaxChildren: formData.MaxChildren,
