@@ -129,7 +129,6 @@ const HomestayRentalDetail = () => {
         }).format(price || 0);
     };
 
-    // Fetch rental details
     const fetchRentalDetails = async () => {
         setLoading(true);
         try {
@@ -587,7 +586,7 @@ const HomestayRentalDetail = () => {
                                                         variants={buttonVariants}
                                                         whileHover="hover"
                                                         whileTap="tap"
-                                                        onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomtypes/create`)}
+                                                        onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/room-types/create`)}
                                                         className="px-4 py-2 bg-primary text-white rounded-lg flex items-center"
                                                     >
                                                         <FaPlus className="mr-2" /> Thêm loại phòng
@@ -768,7 +767,7 @@ const HomestayRentalDetail = () => {
                                                             variants={buttonVariants}
                                                             whileHover="hover"
                                                             whileTap="tap"
-                                                            onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomtypes/create`)}
+                                                            onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/room-types/create`)}
                                                             className="px-5 py-2.5 bg-primary text-white rounded-lg inline-flex items-center"
                                                         >
                                                             <FaPlus className="mr-2" /> Thêm loại phòng
@@ -854,7 +853,7 @@ const HomestayRentalDetail = () => {
                                                 variants={buttonVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
-                                                onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomtypes/create`)}
+                                                onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/room-types/create`)}
                                                 className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center"
                                             >
                                                 <FaPlus className="mr-2" /> Thêm loại phòng
