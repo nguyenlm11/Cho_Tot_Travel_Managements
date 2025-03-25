@@ -81,7 +81,7 @@ const roomTypeVariants = {
 };
 
 const HomestayRentalDetail = () => {
-    const { homestayId, rentalId } = useParams();
+    const { id: homestayId, rentalId } = useParams();
     const navigate = useNavigate();
     const [rental, setRental] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -689,7 +689,7 @@ const HomestayRentalDetail = () => {
 
                                                                             <div className="mt-4 flex justify-end">
                                                                                 <Link
-                                                                                    to={`/owner/homestays/${homestayId}/rentals/${rentalId}/roomtypes/${roomType.roomTypesID}/edit`}
+                                                                                    to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/rooms`}
                                                                                     className="text-blue-500 hover:text-blue-700 transition-colors"
                                                                                 >
                                                                                     <FaEdit className="inline mr-1" /> Quản lý
