@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import roomAPI from '../../services/api/roomAPI';
+import RoomAddModal from '../../components/modals/RoomAddModal';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -253,28 +254,30 @@ const RoomList = () => {
     const [roomToDelete, setRoomToDelete] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 9;
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const response = await roomAPI.getAllRoomsByRoomType(roomTypeId);
-                if (response && response.statusCode === 200) {
-                    setRooms(response.data || []);
-                } else {
-                    toast.error('Không thể tải danh sách phòng');
-                    setRooms([]);
-                }
-            } catch (error) {
-                console.error('Error fetching rooms:', error);
-                toast.error('Đã xảy ra lỗi khi tải danh sách phòng');
-                setRooms([]);
-            } finally {
-                setTimeout(() => setLoading(false), 1500);
-            }
-        };
-        fetchData();
+        fetchRooms();
     }, [roomTypeId, rentalId]);
+
+    const fetchRooms = async () => {
+        setLoading(true);
+        try {
+            const response = await roomAPI.getAllRoomsByRoomType(roomTypeId);
+            if (response && response.statusCode === 200) {
+                setRooms(response.data || []);
+            } else {
+                toast.error('Không thể tải danh sách phòng');
+                setRooms([]);
+            }
+        } catch (error) {
+            console.error('Error fetching rooms:', error);
+            toast.error('Đã xảy ra lỗi khi tải danh sách phòng');
+            setRooms([]);
+        } finally {
+            setTimeout(() => setLoading(false), 1500);
+        }
+    };
 
     const handleSearch = () => {
         setActualSearchTerm(searchTerm);
@@ -378,9 +381,9 @@ const RoomList = () => {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            onClick={() => setIsAddModalOpen(true)}
                             className="bg-primary hover:bg-primary-dark text-white font-semibold 
-                                px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 
-                                transform hover:scale-105 shadow-lg hover:shadow-primary/20"
+                                px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300"
                         >
                             <FaPlus className="w-5 h-5" />
                             Thêm phòng mới
@@ -462,7 +465,7 @@ const RoomList = () => {
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rentalId}/roomtypes/${roomTypeId}/rooms/create`)}
+                                        onClick={() => setIsAddModalOpen(true)}
                                         className="px-6 py-2.5 bg-primary hover:bg-primary-dark dark:hover:bg-primary-light text-white 
                                     rounded-lg shadow-md inline-flex items-center font-medium"
                                     >
@@ -562,6 +565,13 @@ const RoomList = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <RoomAddModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                roomTypeId={roomTypeId}
+                onSuccess={fetchRooms}
+            />
         </>
     );
 };
