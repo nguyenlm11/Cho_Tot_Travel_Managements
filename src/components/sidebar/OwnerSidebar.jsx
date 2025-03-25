@@ -28,7 +28,8 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
             selectedHomestay &&
             !ownerHomestays.includes(selectedHomestay) &&
             !location.pathname.endsWith('/add') &&
-            !location.pathname.includes('/rentals/') // Loại trừ các đường dẫn chứa /rentals/
+            !location.pathname.includes('/rentals/') &&
+            !location.pathname.includes('/room-types/')
           ) {
             navigate('/owner/homestays');
           }

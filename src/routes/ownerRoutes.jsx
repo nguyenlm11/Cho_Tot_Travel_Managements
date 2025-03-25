@@ -2,7 +2,6 @@ import HomestayList from '../pages/owner/HomestayList';
 import AddHomestay from '../pages/owner/AddHomestay';
 import HomestayDetail from '../pages/owner/HomestayDetail';
 import ServiceList from '../pages/owner/ServiceList';
-import RoomTypeList from '../pages/owner/RoomTypeList';
 import CustomerList from '../pages/owner/CustomerList';
 import RatingList from '../pages/owner/RatingList';
 import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
@@ -10,6 +9,7 @@ import Dashboard from '../pages/owner/Dashboard';
 import CreateHomeStayForm from '../pages/owner/AddHomestayRental';
 import HomestayRentalList from '../pages/owner/HomestayRentalList';
 import HomestayRentalDetail from '../pages/owner/HomestayRentalDetail';
+import RoomList from '../pages/owner/RoomList';
 
 export const ownerRoutes = [
   {
@@ -45,12 +45,12 @@ export const ownerRoutes = [
     element: <HomestayRentalDetail />
   },
   {
-    path: 'homestays/:id/room-types',
-    element: <RoomTypeList />
-  },
-  {
     path: 'homestays/:id/room-types/:roomTypeId',
     element: <RoomTypeDetail />
+  },
+  {
+    path: 'homestays/:id/rentals/:rentalId/room-types/:roomTypeId/rooms',
+    element: <RoomList />
   },
   {
     path: 'homestays/:id/customers',
