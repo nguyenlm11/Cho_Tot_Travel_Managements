@@ -92,39 +92,30 @@ const AddRoomType = () => {
         if (!formData.Name.trim()) {
             newErrors.Name = 'Tên loại phòng là bắt buộc';
         }
-
         if (!formData.Description.trim()) {
             newErrors.Description = 'Mô tả là bắt buộc';
         }
-
         if (formData.numberBedRoom < 0) {
             newErrors.numberBedRoom = 'Số giường không thể là số âm';
         }
-
         if (formData.numberBathRoom < 0) {
             newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
         }
-
         if (formData.numberWifi < 0) {
             newErrors.numberWifi = 'Số Wifi không thể là số âm';
         }
-
         if (formData.MaxAdults < 1) {
             newErrors.MaxAdults = 'Số người lớn tối thiểu là 1';
         }
-
         if (formData.MaxChildren < 0) {
             newErrors.MaxChildren = 'Số trẻ em không thể là số âm';
         }
-
         if (formData.MaxPeople < 1) {
             newErrors.MaxPeople = 'Số người tối đa phải lớn hơn 0';
         }
-
         if (formData.Images.length === 0) {
             newErrors.Images = 'Vui lòng tải lên ít nhất một hình ảnh';
         }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -134,11 +125,9 @@ const AddRoomType = () => {
 
         if (type === 'number') {
             const numValue = parseInt(value) || 0;
-
             if (name === 'MaxAdults' || name === 'MaxChildren') {
                 const otherField = name === 'MaxAdults' ? 'MaxChildren' : 'MaxAdults';
                 const totalPeople = numValue + (formData[otherField] || 0);
-
                 setFormData(prev => ({
                     ...prev,
                     [name]: numValue,
@@ -161,12 +150,10 @@ const AddRoomType = () => {
     // Handle image upload
     const handleImageUpload = (e) => {
         const files = Array.from(e.target.files);
-
         if (files.length > 5) {
             toast.error('Chỉ được tải lên tối đa 5 ảnh');
             return;
         }
-
         setFormData(prev => ({
             ...prev,
             Images: files
@@ -200,7 +187,6 @@ const AddRoomType = () => {
 
     const validateStep2 = () => {
         const newErrors = {};
-
         formData.pricingEntries.forEach((entry, index) => {
             if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá phải lớn hơn 0 VNĐ`;
             if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê phải lớn hơn 0 VNĐ`;
@@ -246,28 +232,25 @@ const AddRoomType = () => {
         }));
     };
 
-    const handleNextStep = () => {
-        if (validateForm()) {
-            setStep(2);
-        } else {
-            const firstError = Object.keys(errors)[0];
-            const element = document.querySelector(`[name="${firstError}"]`);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const handleSubmit = (e) => {
+        if (e) e.preventDefault();
+        if (step === 1) {
+            if (validateForm()) {
+                setStep(2);
+            } else {
+                const firstError = Object.keys(errors)[0];
+                const element = document.querySelector(`[name="${firstError}"]`);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+            return;
+        }
+        if (step === 2) {
+            if (validateStep2()) {
+                setIsModalOpen(true);
             }
         }
-    };
-
-    const handleSubmit = async (e) => {
-        if (e) e.preventDefault();
-        if (!validateForm()) {
-            setStep(1);
-            return;
-        }
-        if (!validateStep2()) {
-            return;
-        }
-        setIsModalOpen(true);
     };
 
     const confirmSubmit = async () => {
@@ -765,8 +748,7 @@ const AddRoomType = () => {
                             <motion.button
                                 whileHover={{ scale: 1.02, x: 4 }}
                                 whileTap={{ scale: 0.98 }}
-                                type={step === 1 ? "button" : "submit"}
-                                onClick={step === 1 ? handleNextStep : undefined}
+                                type="submit"
                                 disabled={loading}
                                 className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
