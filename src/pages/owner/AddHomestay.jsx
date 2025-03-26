@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaMapMarkerAlt, FaTimes } from 'react-icons/fa';
+import { FaHome, FaMapMarkerAlt, FaCloudUploadAlt, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
@@ -9,34 +9,20 @@ import homestayAPI from '../../services/api/homestayAPI';
 const API_KEY = "MdlDIjhDKvUnozmB9NJjiW4L5Pu5ogxX";
 const BASE_URL = "https://mapapis.openmap.vn/v1/autocomplete";
 
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            duration: 0.5,
-            when: "beforeChildren",
-            staggerChildren: 0.1
-        }
-    }
+const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
 };
 
-const formVariants = {
+const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.6, ease: "easeOut" }
-    }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
 };
 
 const inputGroupVariants = {
     hidden: { opacity: 0, x: -20 },
-    visible: {
-        opacity: 1,
-        x: 0,
-        transition: { duration: 0.5 }
-    }
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5 } }
 };
 
 const AddHomestay = () => {
@@ -57,6 +43,7 @@ const AddHomestay = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const searchTimeout = useRef(null);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
@@ -69,7 +56,7 @@ const AddHomestay = () => {
             toast.error('Không tìm thấy thông tin tài khoản');
             navigate('/login');
         }
-    }, []);
+    }, [navigate]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -136,308 +123,285 @@ const AddHomestay = () => {
             latitude: lat,
         }));
         setShowSuggestions(false);
-        setSearchResults([]);
     };
 
     return (
         <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 
-                dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8"
         >
-            <div className="max-w-4xl mx-auto">
-                {/* Header Section với animation cải tiến */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="text-center mb-10"
-                >
-                    <div className="inline-block p-2 bg-primary/10 dark:bg-primary/20 
-                        rounded-2xl mb-4 backdrop-blur-sm">
-                        <FaHome className="w-10 h-10 text-primary" />
-                    </div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-primary-dark to-primary 
-                        bg-clip-text text-transparent mb-4">
-                        Thêm nhà nghỉ mới
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-                        Tạo không gian nghỉ dưỡng tuyệt vời cho khách hàng của bạn
-                    </p>
-                </motion.div>
+            <Toaster position="top-right" />
 
-                <motion.form
-                    variants={formVariants}
-                    onSubmit={handleSubmit}
-                    className="bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-xl 
-                        border border-gray-100 dark:border-gray-700 overflow-hidden
-                        backdrop-blur-sm"
+            {/* Back button and title */}
+            <div className="max-w-7xl mx-auto mb-8">
+                <button
+                    onClick={() => navigate('/owner/homestays')}
+                    className="flex items-center text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light transition-colors duration-200"
                 >
-                    {/* Form Header với gradient cải tiến */}
-                    <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5
-                        dark:from-primary/10 dark:via-primary/20 dark:to-primary/10 
-                        px-8 py-6 border-b border-gray-100 dark:border-gray-700">
-                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white 
-                            flex items-center gap-3">
+                    <FaArrowLeft className="mr-2" />
+                    <span>Quay lại danh sách homestay</span>
+                </button>
+
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-6 bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+                    Thêm homestay mới
+                </h1>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    Điền thông tin để tạo homestay mới cho hệ thống của bạn
+                </p>
+            </div>
+
+            {/* Main form */}
+            <div className="max-w-7xl mx-auto">
+                <motion.div
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
+                >
+                    <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/20 dark:to-primary/10 px-8 py-6 border-b border-gray-100 dark:border-gray-700">
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-3">
                             <FaHome className="text-primary" />
-                            <span className="bg-gradient-to-r from-primary to-primary-dark 
-                                bg-clip-text text-transparent">
-                                Thông tin cơ bản
+                            <span className="bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+                                Thông tin homestay
                             </span>
                         </h2>
                     </div>
 
-                    <div className="p-8 space-y-6">
-                        {/* Name Input với hiệu ứng focus cải tiến */}
-                        <motion.div variants={inputGroupVariants} className="group">
-                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 
-                                flex items-center gap-2">
-                                <span>Tên nhà nghỉ</span>
-                                <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative group">
-                                <input
-                                    type="text"
-                                    name="name"
-                                    placeholder='Nhập tên nhà nghỉ'
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 pl-11 rounded-xl border-2 border-gray-200 
-                                        dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
-                                        focus:border-primary dark:focus:border-primary
-                                        focus:ring-4 focus:ring-primary/20
-                                        transition-all duration-300"
-                                    required
-                                />
-                                <FaHome className="absolute left-4 top-1/2 -translate-y-1/2 
-                                    text-gray-400 group-focus-within:text-primary 
-                                    transition-colors duration-300" />
-                            </div>
-                        </motion.div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="p-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Left column */}
+                                <div className="space-y-6">
+                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
+                                        <FaHome className="mr-2 text-primary" />
+                                        Thông tin cơ bản
+                                    </h2>
 
-                        {/* Description Input với auto-resize */}
-                        <motion.div variants={inputGroupVariants} className="group">
-                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 
-                                flex items-center gap-2">
-                                <span>Mô tả</span>
-                                <span className="text-red-500">*</span>
-                            </label>
-                            <textarea
-                                name="description"
-                                placeholder='Mô tả chi tiết về nhà nghỉ'
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 
-                                    dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
-                                    focus:border-primary dark:focus:border-primary
-                                    focus:ring-4 focus:ring-primary/20
-                                    transition-all duration-300 min-h-[120px] resize-y"
-                                required
-                            />
-                        </motion.div>
-
-                        {/* Address Input với Autocomplete cải tiến */}
-                        <motion.div variants={inputGroupVariants} className="group relative">
-                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 
-                                flex items-center gap-2">
-                                <span>Địa chỉ</span>
-                                <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder='Nhập địa chỉ của nhà nghỉ'
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleInputChange}
-                                    className="w-full pl-11 pr-4 py-3 rounded-xl border-2 
-                                        border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
-                                        focus:border-primary dark:focus:border-primary
-                                        focus:ring-4 focus:ring-primary/20
-                                        transition-all duration-300"
-                                    required
-                                />
-                                <FaMapMarkerAlt className="absolute left-4 top-1/2 -translate-y-1/2 
-                                    text-gray-400 group-focus-within:text-primary 
-                                    transition-colors duration-300" />
-                            </div>
-
-                            {/* Address Suggestions với animation cải tiến */}
-                            <AnimatePresence>
-                                {showSuggestions && searchResults.length > 0 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-700 
-                                            rounded-xl shadow-xl border border-gray-100 
-                                            dark:border-gray-600 overflow-hidden"
-                                    >
-                                        {searchResults.map((result, index) => (
-                                            <motion.div
-                                                key={index}
-                                                whileHover={{
-                                                    backgroundColor: "rgba(var(--color-primary), 0.1)",
-                                                    x: 4
-                                                }}
-                                                className="px-4 py-3 cursor-pointer hover:bg-primary/5 
-                                                    dark:hover:bg-primary/20 transition-all duration-300
-                                                    flex items-center gap-3"
-                                                onClick={() => handleSelectAddress(result)}
-                                            >
-                                                <FaMapMarkerAlt className="text-primary" />
-                                                <span className="text-gray-700 dark:text-gray-200">
-                                                    {result.properties.label}
-                                                </span>
-                                            </motion.div>
-                                        ))}
+                                    {/* Name */}
+                                    <motion.div variants={inputGroupVariants} className="group">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                            Tên homestay <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleInputChange}
+                                            placeholder="Nhập tên homestay"
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                        />
+                                        {errors.name && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                                        )}
                                     </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </motion.div>
 
-                        {/* Area Input với validation visual */}
-                        <motion.div variants={inputGroupVariants} className="group">
-                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                Khu vực
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    name="area"
-                                    value={formData.area}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 
-                                        dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
-                                        focus:border-primary dark:focus:border-primary
-                                        focus:ring-4 focus:ring-primary/20
-                                        transition-all duration-300"
-                                />
-                            </div>
-                        </motion.div>
+                                    {/* Description */}
+                                    <motion.div variants={inputGroupVariants} className="group">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                            Mô tả <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleInputChange}
+                                            rows="4"
+                                            placeholder="Mô tả chi tiết về homestay này..."
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300 resize-none"
+                                        />
+                                        {errors.description && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+                                        )}
+                                    </motion.div>
 
-                        {/* Image Upload với drag & drop cải tiến */}
-                        <motion.div variants={inputGroupVariants} className="space-y-4">
-                            <label className="text-base font-medium text-gray-700 dark:text-gray-300 block">
-                                Hình ảnh
-                            </label>
-                            <motion.div
-                                whileHover={{ scale: 1.01 }}
-                                className="border-2 border-dashed border-gray-300 dark:border-gray-600 
-                                    rounded-xl p-8 text-center hover:border-primary dark:hover:border-primary 
-                                    transition-all duration-300 cursor-pointer relative
-                                    bg-gray-50/50 dark:bg-gray-700/50 group"
-                            >
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                />
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    className="flex flex-col items-center"
-                                >
-                                    <FaHome className="w-12 h-12 text-gray-400 
-                                        group-hover:text-primary transition-colors duration-300" />
-                                    <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                                        Kéo thả hoặc click để tải ảnh lên
-                                    </p>
-                                    <p className="mt-2 text-xs text-gray-500">
-                                        Hỗ trợ: JPG, PNG (Tối đa 5MB)
-                                    </p>
-                                </motion.div>
-                            </motion.div>
+                                    {/* Address */}
+                                    <motion.div variants={inputGroupVariants} className="group relative">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block flex items-center">
+                                            <FaMapMarkerAlt className="mr-2 text-primary" />
+                                            Địa chỉ <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="Nhập địa chỉ của nhà nghỉ"
+                                            name="address"
+                                            value={formData.address}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                        />
+                                        {errors.address && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+                                        )}
 
-                            {/* Image Preview Grid với animation */}
-                            {previewImages.length > 0 && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6"
-                                >
-                                    {previewImages.map((preview, index) => (
-                                        <motion.div
-                                            key={index}
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="relative group rounded-lg overflow-hidden
-                                                shadow-md hover:shadow-xl transition-shadow duration-300"
-                                        >
-                                            <img
-                                                src={preview}
-                                                alt={`Preview ${index + 1}`}
-                                                className="w-full h-32 object-cover transform 
-                                                    group-hover:scale-110 transition-transform duration-500"
+                                        {/* Address suggestions */}
+                                        <AnimatePresence>
+                                            {showSuggestions && searchResults.length > 0 && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-y-auto"
+                                                >
+                                                    {searchResults.map((result, index) => (
+                                                        <motion.div
+                                                            key={index}
+                                                            whileHover={{
+                                                                backgroundColor: "rgba(var(--color-primary), 0.1)",
+                                                                x: 4
+                                                            }}
+                                                            className="px-4 py-3 cursor-pointer hover:bg-primary/5 
+                                                                dark:hover:bg-primary/20 transition-all duration-300
+                                                                flex items-center gap-3"
+                                                            onClick={() => handleSelectAddress(result)}
+                                                        >
+                                                            <FaMapMarkerAlt className="text-primary" />
+                                                            <span className="text-gray-700 dark:text-gray-200">
+                                                                {result.properties.label}
+                                                            </span>
+                                                        </motion.div>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.div>
+
+                                    {/* Area */}
+                                    <motion.div variants={inputGroupVariants} className="group">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                            Khu vực
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                name="area"
+                                                value={formData.area}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 
+                                                    dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
+                                                    focus:border-primary dark:focus:border-primary
+                                                    focus:ring-4 focus:ring-primary/20
+                                                    transition-all duration-300"
                                             />
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                onClick={() => {
-                                                    setPreviewImages(prev => prev.filter((_, i) => i !== index));
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        images: prev.images.filter((_, i) => i !== index)
-                                                    }));
-                                                }}
-                                                className="absolute top-2 right-2 p-1.5 bg-red-500/90 
-                                                    text-white rounded-full opacity-0 group-hover:opacity-100 
-                                                    transition-all duration-300 hover:bg-red-600"
-                                            >
-                                                <FaTimes className="w-4 h-4" />
-                                            </motion.button>
-                                        </motion.div>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </motion.div>
-                    </div>
+                                        </div>
+                                    </motion.div>
+                                </div>
 
-                    {/* Form Actions với button cải tiến */}
-                    <div className="px-8 py-6 bg-gray-50/80 dark:bg-gray-800/80 border-t 
-                        border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
-                        <motion.button
-                            whileHover={{ scale: 1.02, x: -4 }}
-                            whileTap={{ scale: 0.98 }}
-                            type="button"
-                            onClick={() => navigate('/owner/homestays')}
-                            className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300
-                                hover:bg-gray-100 dark:hover:bg-gray-700 
-                                transition-all duration-300 flex items-center gap-2"
-                        >
-                            <span>Hủy</span>
-                        </motion.button>
-                        <motion.button
-                            whileHover={{ scale: 1.02, x: 4 }}
-                            whileTap={{ scale: 0.98 }}
-                            type="submit"
-                            disabled={loading}
-                            className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark
-                                text-white font-medium transition-all duration-300 
-                                hover:shadow-lg hover:shadow-primary/25
-                                disabled:opacity-50 disabled:cursor-not-allowed
-                                flex items-center gap-2"
-                        >
-                            {loading ? (
-                                <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                                />
-                            ) : (
-                                <>
-                                    <FaHome className="w-5 h-5" />
-                                    <span>Thêm nhà nghỉ</span>
-                                </>
-                            )}
-                        </motion.button>
-                    </div>
-                </motion.form>
+                                {/* Right column */}
+                                <div className="space-y-6">
+                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
+                                        <FaCloudUploadAlt className="mr-2 text-primary" />
+                                        Hình ảnh
+                                    </h2>
+
+                                    {/* Image Upload */}
+                                    <motion.div variants={inputGroupVariants} className="space-y-4">
+                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 block">
+                                            Hình ảnh homestay <span className="text-red-500">*</span>
+                                        </label>
+                                        <div
+                                            className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 
+                                            flex flex-col items-center justify-center cursor-pointer hover:border-primary 
+                                            transition-all duration-300 bg-gray-50 dark:bg-gray-700/30"
+                                            onClick={() => document.getElementById('image-upload').click()}
+                                        >
+                                            <input
+                                                id="image-upload"
+                                                type="file"
+                                                multiple
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="hidden"
+                                            />
+                                            <FaCloudUploadAlt className="text-primary text-4xl mb-2" />
+                                            <p className="text-gray-600 dark:text-gray-400 mb-1">
+                                                Kéo thả hoặc click để tải ảnh lên
+                                            </p>
+                                            <p className="text-gray-500 dark:text-gray-500 text-sm">
+                                                Hỗ trợ JPG, PNG, WEBP (Tối đa 5 ảnh)
+                                            </p>
+                                        </div>
+                                        {errors.images && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.images}</p>
+                                        )}
+                                    </motion.div>
+
+                                    {/* Preview Images */}
+                                    {previewImages.length > 0 && (
+                                        <div className="space-y-4">
+                                            <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                                                Xem trước ({previewImages.length} ảnh)
+                                            </h3>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {previewImages.map((img, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="relative group rounded-xl overflow-hidden h-40"
+                                                    >
+                                                        <img
+                                                            src={img}
+                                                            alt={`Preview ${index + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setPreviewImages(prev => prev.filter((_, i) => i !== index));
+                                                                    setFormData(prev => ({
+                                                                        ...prev,
+                                                                        images: prev.images.filter((_, i) => i !== index)
+                                                                    }));
+                                                                }}
+                                                                className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                                                            >
+                                                                <FaTrash className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Form Actions */}
+                        <div className="px-8 py-6 bg-gray-50/80 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="button"
+                                onClick={() => navigate('/owner/homestays')}
+                                className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
+                            >
+                                Hủy
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                disabled={loading}
+                                className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {loading ? (
+                                    <motion.div
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                                    />
+                                ) : (
+                                    <>
+                                        <FaHome className="w-5 h-5" />
+                                        <span>Thêm homestay</span>
+                                    </>
+                                )}
+                            </motion.button>
+                        </div>
+                    </form>
+                </motion.div>
             </div>
-            <Toaster />
         </motion.div>
     );
 };
