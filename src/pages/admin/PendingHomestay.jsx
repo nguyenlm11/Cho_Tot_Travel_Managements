@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp } from 'react-icons/fa';
+import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock } from 'react-icons/fa';
 import { TbHomePlus } from "react-icons/tb";
 import { IoClose } from 'react-icons/io5';
 import axios from 'axios';
@@ -263,7 +263,7 @@ export default function PendingHomestay() {
                 >
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
+                            <FaUserCheck className="w-6 h-6 text-white" />
                         </div>
                         <div>
                             <p className="text-white/80 text-sm">Tổng số đã phê duyệt</p>
@@ -279,7 +279,7 @@ export default function PendingHomestay() {
                 >
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
+                            <FaUserClock  className="w-6 h-6 text-white" />
                         </div>
                         <div>
                             <p className="text-white/80 text-sm">Tổng số chờ phê duyệt</p>
