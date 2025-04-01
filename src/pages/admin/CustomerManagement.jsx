@@ -120,6 +120,8 @@ const CustomerManagement = () => {
             const customerAccounts = response.data.filter(account =>
                 !account.roles.includes('Owner') && !account.roles.includes('Admin')
             );
+            console.log(response.data);
+            
             setCustomers(customerAccounts);
             setLoading(false);
         } catch (error) {
@@ -198,13 +200,13 @@ const CustomerManagement = () => {
         },
         {
             label: 'Khách hàng hoạt động',
-            value: customers.filter(customer => customer.token !== null).length,
+            value: customers.filter(customer => customer.status === true).length,
             icon: <FaUserCheck className="w-6 h-6 text-white" />,
             gradient: 'from-green-500 to-green-600'
         },
         {
             label: 'Khách hàng không hoạt động',
-            value: customers.filter(customer => customer.token === null).length,
+            value: customers.filter(customer => customer.status === false).length,
             icon: <FaUserTimes className="w-6 h-6 text-white" />,
             gradient: 'from-red-500 to-red-600'
         }
@@ -315,10 +317,10 @@ const CustomerManagement = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-full text-sm font-medium
-                                                ${customer.token ?
+                                                ${customer.status ?
                                                     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
                                                     'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}>
-                                                {customer.token ? 'Hoạt động' : 'Không hoạt động'}
+                                                {customer.status ? 'Hoạt động' : 'Không hoạt động'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">

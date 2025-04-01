@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaSearch, FaSort, FaArrowDown, FaArrowUp, FaUser, FaFilter } from 'react-icons/fa';
+import { FaSearch, FaSort, FaArrowDown, FaArrowUp, FaUser, FaFilter, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import adminAPI from '../../services/api/adminAPI';
 import { toast, Toaster } from 'react-hot-toast';
@@ -304,7 +304,7 @@ export default function AdminHomestay() {
                             <FaUser className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-white/80 text-sm">Tổng số HomeStay đã duyệt</p>
+                            <p className="text-white/80 text-sm">Tổng số HomeStay</p>
                             <p className="text-white text-2xl font-bold">{totalHomeStays}</p>
                         </div>
                     </div>
@@ -316,7 +316,7 @@ export default function AdminHomestay() {
                 >
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
+                            <FaUserCheck className="w-6 h-6 text-white" />
                         </div>
                         <div>
                             <p className="text-white/80 text-sm">Đang hoạt động</p>
@@ -331,7 +331,7 @@ export default function AdminHomestay() {
                 >
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
+                            <FaUserTimes className="w-6 h-6 text-white" />
                         </div>
                         <div>
                             <p className="text-white/80 text-sm">Đã dừng hoạt động</p>

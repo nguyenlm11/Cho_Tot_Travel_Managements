@@ -7,7 +7,8 @@ const adminAPI = {
             const response = await axiosInstance.get('/homestay/GetAllHomeStayWithOwnerName');
             return response.data;
         } catch (error) {
-            throw error;
+            console.error('Error fetching homestays:', error);
+            return { error: 'Không thể lấy danh sách homestay' };
         }
     },
     // Quản lý tất cả Homestay đăng kí
@@ -16,7 +17,8 @@ const adminAPI = {
             const response = await axiosInstance.get('/homestay/GetAllRegisterHomeStay');
             return response.data;
         } catch (error) {
-            throw error;
+            console.error('Error fetching registered homestays:', error);
+            return { error: 'Không thể lấy danh sách homestay đăng ký' };
         }
     },
     // Thay đổi trạng thái của homestay

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUserTie, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaUserTie, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaUserCheck } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { API_CONFIG } from '../../services/config';
@@ -196,7 +196,7 @@ const OwnerManagement = () => {
         {
             label: 'Chủ nhà đang hoạt động',
             value: owners.filter(owner => owner.token !== null).length,
-            icon: <FaUserTie className="w-6 h-6 text-white" />,
+            icon: <FaUserCheck className="w-6 h-6 text-white" />,
             gradient: 'from-green-500 to-green-600'
         }
     ];
