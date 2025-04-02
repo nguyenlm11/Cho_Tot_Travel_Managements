@@ -76,7 +76,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
       icon: <FaCalendarAlt />,
       submenu: [
         { title: 'Tất cả đặt phòng', path: `/owner/homestays/${selectedHomestay}/bookings` },
-        { title: 'Chờ xác nhận', path: `/owner/homestays/${selectedHomestay}/bookings/pending` },
+        { title: 'Chờ thanh toán', path: `/owner/homestays/${selectedHomestay}/bookings/pending` },
       ],
     },
     { title: 'Khách hàng', path: `/owner/homestays/${selectedHomestay}/customers`, icon: <FaUsers /> },
