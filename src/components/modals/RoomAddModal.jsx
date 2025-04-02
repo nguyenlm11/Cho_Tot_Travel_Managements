@@ -24,7 +24,7 @@ const RoomAddModal = ({ isOpen, onClose, roomTypeId, onSuccess }) => {
             try {
                 const dataToSubmit = {
                     roomNumber: formData.roomNumber.trim(),
-                    isUsed: true,
+                    isUsed: false,
                     isActive: true,
                     roomTypesID: parseInt(roomTypeId)
                 };

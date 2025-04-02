@@ -11,6 +11,9 @@ import HomestayRentalList from '../pages/owner/HomestayRentalList';
 import HomestayRentalDetail from '../pages/owner/HomestayRentalDetail';
 import RoomList from '../pages/owner/RoomList';
 import AddRoomType from '../pages/owner/AddRoomType';
+import { path } from 'framer-motion/client';
+import { elements } from 'chart.js';
+import BookingList from '../pages/owner/BookingList';
 
 export const ownerRoutes = [
   {
@@ -56,6 +59,10 @@ export const ownerRoutes = [
   {
     path: 'homestays/:id/rentals/:rentalId/room-types/:roomTypeId/rooms',
     element: <RoomList />
+  },
+  {
+    path: 'homestays/:id/bookings',
+    element: <BookingList />
   },
   {
     path: 'homestays/:id/customers',
