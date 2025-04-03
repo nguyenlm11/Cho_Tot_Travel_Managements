@@ -52,14 +52,9 @@ const chatAPI = {
   },
 
   // Lấy lịch sử tin nhắn của một cuộc trò chuyện
-  getMessages: async (customerId, homestayId) => {
+  getMessages: async (conversationId) => {
     try {
-      const response = await axiosInstance.get(`/Chat/messages`, {
-        params: {
-          customerId,
-          homeStayId: homestayId
-        }
-      });
+      const response = await axiosInstance.get(`/Chat/messages/${conversationId}`);
 
       console.log('Raw messages response:', response.data);
 
@@ -74,13 +69,23 @@ const chatAPI = {
         return [];
       }
 
+      // Lấy thông tin người dùng hiện tại từ localStorage
+      let currentUserId = null;
+      try {
+        const userInfo = localStorage.getItem('userInfo');
+        currentUserId = userInfo ? JSON.parse(userInfo)?.AccountID : null;
+      } catch (error) {
+        console.warn('Error getting current user ID:', error);
+      }
+
       // Trả về dữ liệu đã được định dạng
       return messagesArray.map(msg => ({
         id: msg.messageID,
-        sender: msg.senderID === customerId ? 'customer' : 'owner',
+        sender: msg.senderID === currentUserId ? 'owner' : 'customer',
         text: msg.content || '',
         timestamp: formatMessageTime(msg.sentAt),
-        isRead: !!msg.isRead
+        isRead: !!msg.isRead,
+        senderName: msg.senderName
       }));
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -89,11 +94,11 @@ const chatAPI = {
   },
 
   // Đánh dấu tin nhắn đã đọc
-  markAsRead: async (customerId, homestayId) => {
+  markAsRead: async (conversationId, userId) => {
     try {
-      const response = await axiosInstance.put(`/Chat/mark-as-read`, {
-        customerId,
-        homeStayId: homestayId
+      const response = await axiosInstance.put(`/Chat/mark-all-as-read`, {
+        conversationId,
+        userId
       });
       return response.data;
     } catch (error) {
@@ -103,13 +108,38 @@ const chatAPI = {
   },
 
   // Gửi tin nhắn (backup API nếu SignalR không hoạt động)
-  sendMessage: async (customerId, homestayId, content) => {
+  sendMessage: async (receiverId, homestayId, content, images = []) => {
     try {
-      const response = await axiosInstance.post(`/Chat/send-message`, {
-        customerId,
-        homeStayId: homestayId,
-        content
+      // Tạo FormData object
+      const formData = new FormData();
+      
+      // Lấy thông tin người dùng từ localStorage
+      const userInfo = localStorage.getItem('userInfo');
+      const userInfoObj = userInfo ? JSON.parse(userInfo) : null;
+      const senderId = userInfoObj?.AccountID;
+      const senderName = userInfoObj?.Name || 'Owner';
+      
+      // Thêm các field vào FormData
+      formData.append('SenderID', senderId);
+      formData.append('ReceiverID', receiverId);
+      formData.append('SenderName', senderName);
+      formData.append('HomeStayId', homestayId);
+      formData.append('Content', content);
+      
+      // Thêm ảnh nếu có
+      if (images && images.length > 0) {
+        images.forEach(image => {
+          formData.append('Images', image);
+        });
+      }
+      
+      // Gửi request với content-type là multipart/form-data
+      const response = await axiosInstance.post(`/Chat/send-message`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
+      
       return response.data;
     } catch (error) {
       console.error('Error sending message:', error);
