@@ -4,7 +4,6 @@ import { toast, Toaster } from 'react-hot-toast';
 import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaQrcode, FaCheck } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import QRScannerModal from '../../components/modals/QRScannerModal';
-import axiosInstance from '../../services/config';
 import CountUp from 'react-countup';
 import { useParams } from 'react-router-dom';
 import bookingAPI from '../../services/api/bookingAPI';
@@ -40,7 +39,7 @@ const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
 const bookingStatusConfig = {
     [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chờ xác nhận' },
     [BookingStatus.Confirmed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã xác nhận' },
-    [BookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang ở' },
+    [BookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang phục vụ' },
     [BookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã trả phòng' },
     [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
     [BookingStatus.NoShow]: { color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-100', text: 'Không đến' }
@@ -487,6 +486,8 @@ const BookingList = () => {
                                     const bookingDetail = booking.bookingDetails[0] || {};
                                     const bookingStatusInfo = bookingStatusConfig[booking.status];
                                     const paymentStatusInfo = paymentStatusConfig[booking.paymentStatus];
+                                    // console.log(bookingStatusInfo);
+                                    // console.log(paymentStatusInfo);
 
                                     return (
                                         <motion.tr
@@ -533,12 +534,12 @@ const BookingList = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${bookingStatusInfo.color}`}>
-                                                    {bookingStatusInfo.icon} {bookingStatusInfo.text}
+                                                    {bookingStatusInfo.text}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${paymentStatusInfo.color}`}>
-                                                    {paymentStatusInfo.icon} {paymentStatusInfo.text}
+                                                    {paymentStatusInfo.text}
                                                 </span>
                                             </td>
                                         </motion.tr>

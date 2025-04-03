@@ -14,6 +14,7 @@ import AddRoomType from '../pages/owner/AddRoomType';
 import { path } from 'framer-motion/client';
 import { elements } from 'chart.js';
 import BookingList from '../pages/owner/BookingList';
+import ChatHomestay from '../pages/owner/ChatHomestay';
 
 export const ownerRoutes = [
   {
@@ -67,6 +68,10 @@ export const ownerRoutes = [
   {
     path: 'homestays/:id/customers',
     element: <CustomerList />
+  },
+  {
+    path: 'homestays/:id/chat',
+    element: <ChatHomestay />
   },
   {
     path: 'homestays/:id/ratings',
