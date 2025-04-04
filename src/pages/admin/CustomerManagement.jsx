@@ -121,7 +121,7 @@ const CustomerManagement = () => {
                 !account.roles.includes('Owner') && !account.roles.includes('Admin')
             );
             console.log(response.data);
-            
+
             setCustomers(customerAccounts);
             setLoading(false);
         } catch (error) {
@@ -292,30 +292,43 @@ const CustomerManagement = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
                                         transition={{ delay: index * 0.1 }}
-                                        className="border-b dark:border-gray-700 hover:bg-gray-50 
-                                            dark:hover:bg-gray-700/50 transition-colors"
+                                        className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
                                             <div className="flex items-center gap-3">
-                                                <span className="font-medium">{customer.name}</span>
+                                                <p className='overflow-hidden truncate max-w-md'>{customer.name}
+                                                    <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                        {customer.name}
+                                                    </span>
+                                                </p>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
                                             <div className="flex items-center gap-2">
-                                                <span>{customer.email}</span>
+                                                <p className='overflow-hidden truncate max-w-md'>{customer.email}
+                                                    <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                        {customer.email}
+                                                    </span>
+                                                </p>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
                                             <div className="flex items-center gap-2">
-                                                <span>{customer.phone}</span>
+                                                <p className='overflow-hidden truncate max-w-md'>{customer.phone}
+                                                    <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                        {customer.phone}
+                                                    </span>
+                                                </p>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <span>{customer.address}</span>
-                                            </div>
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>{customer.address}
+                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                    {customer.address}
+                                                </span>
+                                            </p>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 ">
                                             <span className={`px-3 py-1 rounded-full text-sm font-medium
                                                 ${customer.status ?
                                                     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
@@ -326,15 +339,13 @@ const CustomerManagement = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <button
-                                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg
-                                                        dark:hover:bg-blue-900/20 transition-colors"
+                                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg dark:hover:bg-blue-900/20 transition-colors"
                                                     onClick={() => {/* Handle edit */ }}
                                                 >
                                                     <FaEdit className="w-5 h-5" />
                                                 </button>
                                                 <button
-                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg
-                                                        dark:hover:bg-red-900/20 transition-colors"
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg dark:hover:bg-red-900/20 transition-colors"
                                                     onClick={() => {/* Handle delete */ }}
                                                 >
                                                     <FaTrash className="w-5 h-5" />

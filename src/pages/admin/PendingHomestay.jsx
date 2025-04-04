@@ -3,8 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock } from 'react-icons/fa';
 import { TbHomePlus } from "react-icons/tb";
 import { IoClose } from 'react-icons/io5';
-import axios from 'axios';
-import axiosInstance, { API_CONFIG } from '../../services/config';
 import { toast, Toaster } from 'react-hot-toast';
 import adminAPI from '../../services/api/adminAPI';
 

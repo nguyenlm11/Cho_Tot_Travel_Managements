@@ -34,22 +34,24 @@ const adminAPI = {
         }
     },
 
-    // Quản lý homestay
-    getAllHomestays: async () => {
+    // Quản lý tài khoản chủ homeStay
+    getAllOwnerHomestays: async () => {
         try {
-            const response = await axiosInstance.get('/admin/homestays');
+            const response = await axiosInstance.get('/account/Get-all-accounts');
             return response.data;
         } catch (error) {
-            throw error;
+            console.error('Error fetching owners homestays:', error);
+            return { error: 'Không thể lấy danh sách chủ homestay' };
         }
     },
 
-    approveHomestay: async (homestayId) => {
+    addOwnerHomestay: async (ownerData) => {
         try {
-            const response = await axiosInstance.put(`/admin/homestays/${homestayId}/approve`);
+            const response = await axiosInstance.post('/account/create account', ownerData);
             return response.data;
         } catch (error) {
-            throw error;
+            console.error('Error adding owner:', error);
+            return { error: 'Không thể thêm mới chủ homestay' };
         }
     },
 
