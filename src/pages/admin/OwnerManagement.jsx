@@ -4,7 +4,9 @@ import { FaUserTie, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash,
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { API_CONFIG } from '../../services/config';
-import { IoClose } from 'react-icons/io5';
+import { IoClose, IoEye, IoEyeOff } from 'react-icons/io5';
+import { IoPersonAddSharp } from "react-icons/io5";
+import adminAPI from '../../services/api/adminAPI';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -105,6 +107,22 @@ const OwnerManagement = () => {
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    // State để lưu trữ thông tin owner mới
+    const [newOwner, setNewOwner] = useState({
+        userID: '',
+        userName: '',
+        email: '',
+        name: '',
+        address: '',
+        phone: '',
+        taxcode: '',
+        bankAccountNumber: '',
+        role: 'Owner'
+    });
+
     const itemsPerPage = 10;
 
     useEffect(() => {
@@ -113,14 +131,18 @@ const OwnerManagement = () => {
 
     const fetchOwners = async () => {
         try {
-            const response = await axios.get(`${API_CONFIG.BASE_URL}/account/Get-all-accounts`);
-            const ownerAccounts = response.data.filter(account =>
+            const response = await adminAPI.getAllOwnerHomestays();
+            if (response.error) {
+                throw new Error(response.error);
+            }
+            const ownerAccounts = response.filter(account =>
                 account.roles.includes('Owner')
             );
             setOwners(ownerAccounts);
             setLoading(false);
         } catch (error) {
-            toast.error('Không thể tải danh sách chủ nhà');
+            console.error("Error fetching owners:", error);
+            toast.error('Không thể tải danh sách chủ nhà: ' + (error.message || 'Có lỗi xảy ra'));
             setLoading(false);
         }
     };
@@ -201,6 +223,32 @@ const OwnerManagement = () => {
         }
     ];
 
+    const handleCreateOwner = async () => {
+        const confirmAdd = window.confirm("Bạn có chắc chắn muốn thêm chủ nhà mới?");
+        if (confirmAdd) {
+            // Kiểm tra các trường cần thiết
+            if (!newOwner.userName || !newOwner.email || !newOwner.name || !newOwner.phone || !newOwner.address || !newOwner.bankAccountNumber) {
+                toast.error('Vui lòng điền đầy đủ thông tin!');
+                return;
+            }
+
+            try {
+                console.log("Dữ liệu gửi đi:", newOwner); // Thêm log để kiểm tra
+                const result = await adminAPI.addOwnerHomestay(newOwner); // Gọi API để thêm owner
+                if (result.error) {
+                    throw new Error(result.error); // Kiểm tra nếu có lỗi từ API
+                }
+                toast.success('Chủ nhà mới đã được thêm thành công!');
+                setIsModalOpen(false); // Đóng modal sau khi thêm
+                fetchOwners(); // Cập nhật danh sách chủ nhà
+            } catch (error) {
+                toast.error('Không thể thêm chủ nhà: ' + (error.message || 'Có lỗi xảy ra'));
+            }
+        } else {
+            toast.info('Thêm chủ nhà đã bị hủy.');
+        }
+    };
+
     return (
         <motion.div
             variants={pageVariants}
@@ -242,15 +290,146 @@ const OwnerManagement = () => {
                 ))}
             </div>
 
-            {/* Search Bar */}
-            <motion.div variants={itemVariants} className="mb-6">
+            {/* Search Bar and Create Owner Button */}
+            <motion.div variants={itemVariants} className="mb-6 flex items-center justify-between">
                 <SearchBar
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
                     handleSearch={handleSearch}
                     setActualSearchTerm={setActualSearchTerm}
                 />
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-6 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-all duration-200"
+                >
+                    <p className='flex justify-center items-center gap-4'>
+                        <IoPersonAddSharp />
+                        Thêm chủ nhà
+                    </p>
+                </button>
             </motion.div>
+
+            {/* Modal for Creating Owner */}
+            <AnimatePresence>
+                {isModalOpen && (
+                    <motion.div
+                        className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4 overflow-y-auto max-h-[80vh]">
+                            <h2 className="text-2xl font-bold mb-4">Thêm chủ nhà mới</h2>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium">Tên tài khoản</label>
+                                <input
+                                    type="text"
+                                    value={newOwner.userName}
+                                    onChange={(e) => setNewOwner({ ...newOwner, userName: e.target.value })}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
+                                    placeholder="Nhập tên tài khoản..."
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium">Email</label>
+                                <input
+                                    type="email"
+                                    value={newOwner.email}
+                                    onChange={(e) => setNewOwner({ ...newOwner, email: e.target.value })}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
+                                    placeholder="Nhập email..."
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium">Mật khẩu</label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        onChange={(e) => setNewOwner({ ...newOwner, password: e.target.value })}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
+                                        placeholder="Nhập mật khẩu..."
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                                    >
+                                        {showPassword ? (
+                                            <IoEyeOff className="w-5 h-5 text-gray-500" />
+                                        ) : (
+                                            <IoEye className="w-5 h-5 text-gray-500" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium">Họ và tên</label>
+                                <input
+                                    type="text"
+                                    value={newOwner.name}
+                                    onChange={(e) => setNewOwner({ ...newOwner, name: e.target.value })}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
+                                    placeholder="Nhập họ và tên..."
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium">Số điện thoại</label>
+                                <input
+                                    type="text"
+                                    value={newOwner.phone}
+                                    onChange={(e) => setNewOwner({ ...newOwner, phone: e.target.value })}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
+                                    placeholder="Nhập số điện thoại..."
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium">Địa chỉ</label>
+                                <input
+                                    type="text"
+                                    value={newOwner.address}
+                                    onChange={(e) => setNewOwner({ ...newOwner, address: e.target.value })}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
+                                    placeholder="Nhập địa chỉ..."
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium">Số tài khoản</label>
+                                <input
+                                    type="text"
+                                    value={newOwner.bankAccountNumber}
+                                    onChange={(e) => setNewOwner({ ...newOwner, bankAccountNumber: e.target.value })}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
+                                    placeholder="Nhập số tài khoản ngân hàng..."
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium">Vai trò</label>
+                                <select
+                                    value={newOwner.role[0]}
+                                    onChange={(e) => setNewOwner({ ...newOwner, role: [e.target.value] })}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
+                                >
+                                    <option value="Owner">Owner</option>
+                                </select>
+                            </div>
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    onClick={handleCreateOwner}
+                                    className="ml-2 px-4 py-2 bg-green-500 text-white rounded-lg"
+                                >
+                                    Thêm
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Owners Table */}
             <motion.div
@@ -265,7 +444,6 @@ const OwnerManagement = () => {
                                 <TableHeader label="Email" sortKey="email" />
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
-                                {/* <TableHeader label="Mã số thuế" sortKey="taxcode" /> */}
                                 <th className="px-6 py-3 text-left">Thao tác</th>
                             </tr>
                         </thead>
@@ -278,34 +456,42 @@ const OwnerManagement = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
                                         transition={{ delay: index * 0.1 }}
-                                        className="border-b dark:border-gray-700 hover:bg-gray-50 
-                                            dark:hover:bg-gray-700/50 transition-colors"
+                                        className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <span className="font-medium">{owner.name}</span>
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
+
+                                            <p className='overflow-hidden truncate max-w-md'>{owner.name}
+                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                    {owner.name}
+                                                </span>
+                                            </p>
+
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>{owner.email}
+                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                    {owner.email}
+                                                </span>
+                                            </p>
+                                        </td>
+                                        <td className="px-9 py-4 whitespace-nowrap relative group">
+                                            <div className="flex items-center gap-2">
+                                                <p className='overflow-hidden truncate max-w-md'>
+                                                    {owner?.phone}
+                                                    <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                        {owner?.phone}
+                                                    </span>
+                                                </p>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <span>{owner.email}</span>
-                                            </div>
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>
+                                                {owner.address}
+                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                    {owner.address}
+                                                </span>
+                                            </p>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <span>{owner.phone}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <span>{owner.address}</span>
-                                            </div>
-                                        </td>
-                                        {/* <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <span>{owner.taxcode}</span>
-                                            </div>
-                                        </td> */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <button

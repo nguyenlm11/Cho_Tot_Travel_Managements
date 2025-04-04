@@ -6,13 +6,13 @@ import adminAPI from '../../services/api/adminAPI';
 import { toast, Toaster } from 'react-hot-toast';
 
 // Mock data với trạng thái active/inactive
-const mockData = Array.from({ length: 20 }, (_, index) => ({
-    id: index + 1,
-    name: `HomeStay ${index + 1}`,
-    address: `Địa chỉ ${index + 1}`,
-    status: 'approved',
-    isActive: index % 2 === 0 // true/false để thể hiện đang hoạt động hay không
-}));
+// const mockData = Array.from({ length: 20 }, (_, index) => ({
+//     id: index + 1,
+//     name: `HomeStay ${index + 1}`,
+//     address: `Địa chỉ ${index + 1}`,
+//     status: 'approved',
+//     isActive: index % 2 === 0 // true/false để thể hiện đang hoạt động hay không
+// }));
 
 // Thêm component FilterBar
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
