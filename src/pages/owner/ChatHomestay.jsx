@@ -628,9 +628,6 @@ const ChatHomestay = () => {
             status: 'sending'
         };
 
-        // Update UI immediately
-        setMessages(prev => [...prev, tempMessage]);
-
         // Update conversation list
         setCustomers(prev =>
             prev.map(customer =>
@@ -641,13 +638,7 @@ const ChatHomestay = () => {
         );
 
         try {
-            // Send message via SignalR
-            const success = await signalRService.sendMessage(selectedCustomerId, text.trim(), homestayId);
-
-            if (!success) {
-                // Fallback to REST API
-                await chatAPI.sendMessage(selectedCustomerId, homestayId, text.trim(), images);
-            }
+            await chatAPI.sendMessage(selectedCustomerId, homestayId, text.trim(), images);
 
             // Update message status
             setMessages(prev =>
@@ -659,8 +650,6 @@ const ChatHomestay = () => {
             );
         } catch (error) {
             console.error('Error sending message:', error);
-
-            // Update message status to error
             setMessages(prev =>
                 prev.map(msg =>
                     msg.id === tempMessage.id
@@ -668,7 +657,6 @@ const ChatHomestay = () => {
                         : msg
                 )
             );
-
             toast.error('Không thể gửi tin nhắn');
         }
     };
@@ -730,9 +718,9 @@ const ChatHomestay = () => {
                     const formattedMessages = Array.isArray(messagesData) ? messagesData : [];
 
                     // Cập nhật messageIdSet với tất cả ID từ API để tránh duplicate với SignalR
-                    formattedMessages.forEach(msg => {
-                        if (msg.id) messageIdSet.current.add(msg.id);
-                    });
+                    // formattedMessages.forEach(msg => {
+                    //     if (msg.id) messageIdSet.current.add(msg.id);
+                    // });
 
                     setMessages(formattedMessages);
 
