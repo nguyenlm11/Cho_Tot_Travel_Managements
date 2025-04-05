@@ -302,11 +302,6 @@ const HomestayRentalCard = ({ rental, onEdit, onDelete }) => {
                                         <p className="text-xl font-bold text-primary">
                                             {formatPrice(firstPricing.rentPrice)}
                                         </p>
-                                        {firstPricing.unitPrice !== firstPricing.rentPrice && (
-                                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 line-through">
-                                                {formatPrice(firstPricing.unitPrice)}
-                                            </p>
-                                        )}
                                     </div>
                                 </>
                             ) : (

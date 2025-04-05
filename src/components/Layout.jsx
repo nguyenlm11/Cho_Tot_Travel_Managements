@@ -64,7 +64,7 @@ const Layout = ({ children }) => {
 
         {/* Main Content */}
         <main
-          className="relative z-10 p-6 overflow-x-hidden
+          className="relative z-10 p-3 overflow-x-hidden
           min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))]
           dark:text-dark-text-primary text-light-text-primary"
         >
