@@ -62,6 +62,11 @@ const AddHomestay = () => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
 
+        // Xóa thông báo lỗi khi người dùng nhập lại
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: null }));
+        }
+
         if (name === 'address') {
             searchAddress(value);
         }
@@ -69,6 +74,11 @@ const AddHomestay = () => {
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
+
+        if (files.length > 0) {
+            setErrors(prev => ({ ...prev, images: null }));
+        }
+
         setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }));
         files.forEach(file => {
             const reader = new FileReader();
@@ -77,11 +87,59 @@ const AddHomestay = () => {
         });
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Kiểm tra tên homestay
+        if (!formData.name || !formData.name.trim()) {
+            newErrors.name = 'Tên homestay không được để trống hoặc chỉ chứa khoảng trắng';
+        }
+
+        // Kiểm tra mô tả
+        if (!formData.description || !formData.description.trim()) {
+            newErrors.description = 'Mô tả không được để trống hoặc chỉ chứa khoảng trắng';
+        }
+
+        // Kiểm tra địa chỉ
+        if (!formData.address || !formData.address.trim()) {
+            newErrors.address = 'Địa chỉ không được để trống hoặc chỉ chứa khoảng trắng';
+        }
+
+        // Kiểm tra khu vực
+        if (!formData.area || !formData.area.trim()) {
+            newErrors.area = 'Khu vực không được để trống hoặc chỉ chứa khoảng trắng';
+        }
+
+        // Kiểm tra hình ảnh
+        if (formData.images.length === 0) {
+            newErrors.images = 'Vui lòng tải lên ít nhất một hình ảnh';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            // Hiển thị thông báo tổng hợp nếu có lỗi
+            toast.error('Vui lòng điền đầy đủ thông tin và không để trống');
+            return;
+        }
+
         setLoading(true);
         try {
-            const response = await homestayAPI.createHomestay(formData);
+            // Chuẩn hóa dữ liệu trước khi gửi
+            const sanitizedData = {
+                ...formData,
+                name: formData.name.trim(),
+                description: formData.description.trim(),
+                address: formData.address.trim(),
+                area: formData.area.trim(),
+            };
+
+            const response = await homestayAPI.createHomestay(sanitizedData);
             toast.success('Tạo homestay thành công!');
             navigate('/owner/homestays');
         } catch (error) {
@@ -123,6 +181,11 @@ const AddHomestay = () => {
             latitude: lat,
         }));
         setShowSuggestions(false);
+
+        // Xóa lỗi địa chỉ nếu có
+        if (errors.address) {
+            setErrors(prev => ({ ...prev, address: null }));
+        }
     };
 
     return (
@@ -191,7 +254,7 @@ const AddHomestay = () => {
                                             value={formData.name}
                                             onChange={handleInputChange}
                                             placeholder="Nhập tên homestay"
-                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                            className={`w-full px-4 py-3 rounded-xl border-2 ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary/20'} bg-white/50 dark:bg-gray-700/50 transition-all duration-300`}
                                         />
                                         {errors.name && (
                                             <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -209,7 +272,7 @@ const AddHomestay = () => {
                                             onChange={handleInputChange}
                                             rows="4"
                                             placeholder="Mô tả chi tiết về homestay này..."
-                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300 resize-none"
+                                            className={`w-full px-4 py-3 rounded-xl border-2 ${errors.description ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary/20'} bg-white/50 dark:bg-gray-700/50 transition-all duration-300 resize-none`}
                                         />
                                         {errors.description && (
                                             <p className="text-red-500 text-sm mt-1">{errors.description}</p>
@@ -220,7 +283,7 @@ const AddHomestay = () => {
                                     <motion.div variants={inputGroupVariants} className="group relative">
                                         <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block flex items-center">
                                             <FaMapMarkerAlt className="mr-2 text-primary" />
-                                            Địa chỉ <span className="text-red-500">*</span>
+                                            Địa chỉ <span className="text-red-500 ml-1">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -228,7 +291,7 @@ const AddHomestay = () => {
                                             name="address"
                                             value={formData.address}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
+                                            className={`w-full px-4 py-3 rounded-xl border-2 ${errors.address ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary/20'} bg-white/50 dark:bg-gray-700/50 transition-all duration-300`}
                                         />
                                         {errors.address && (
                                             <p className="text-red-500 text-sm mt-1">{errors.address}</p>
@@ -269,7 +332,7 @@ const AddHomestay = () => {
                                     {/* Area */}
                                     <motion.div variants={inputGroupVariants} className="group">
                                         <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                            Khu vực
+                                            Khu vực <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative">
                                             <input
@@ -277,13 +340,13 @@ const AddHomestay = () => {
                                                 name="area"
                                                 value={formData.area}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 
-                                                    dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
-                                                    focus:border-primary dark:focus:border-primary
-                                                    focus:ring-4 focus:ring-primary/20
-                                                    transition-all duration-300"
+                                                placeholder="VD: Hồ Chí Minh"
+                                                className={`w-full px-4 py-3 rounded-xl border-2 ${errors.area ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary/20'} bg-white/50 dark:bg-gray-700/50 transition-all duration-300`}
                                             />
                                         </div>
+                                        {errors.area && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.area}</p>
+                                        )}
                                     </motion.div>
                                 </div>
 
@@ -300,9 +363,9 @@ const AddHomestay = () => {
                                             Hình ảnh homestay <span className="text-red-500">*</span>
                                         </label>
                                         <div
-                                            className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 
-                                            flex flex-col items-center justify-center cursor-pointer hover:border-primary 
-                                            transition-all duration-300 bg-gray-50 dark:bg-gray-700/30"
+                                            className={`border-2 border-dashed ${errors.images ? 'border-red-500' : 'border-gray-300 dark:border-gray-600 hover:border-primary'} rounded-xl p-6 
+                                            flex flex-col items-center justify-center cursor-pointer 
+                                            transition-all duration-300 bg-gray-50 dark:bg-gray-700/30`}
                                             onClick={() => document.getElementById('image-upload').click()}
                                         >
                                             <input
@@ -313,7 +376,7 @@ const AddHomestay = () => {
                                                 onChange={handleImageChange}
                                                 className="hidden"
                                             />
-                                            <FaCloudUploadAlt className="text-primary text-4xl mb-2" />
+                                            <FaCloudUploadAlt className={`${errors.images ? 'text-red-500' : 'text-primary'} text-4xl mb-2`} />
                                             <p className="text-gray-600 dark:text-gray-400 mb-1">
                                                 Kéo thả hoặc click để tải ảnh lên
                                             </p>
@@ -352,6 +415,12 @@ const AddHomestay = () => {
                                                                         ...prev,
                                                                         images: prev.images.filter((_, i) => i !== index)
                                                                     }));
+
+                                                                    // Kiểm tra lại nếu không còn ảnh nào
+                                                                    const newImages = [...formData.images].filter((_, i) => i !== index);
+                                                                    if (newImages.length === 0) {
+                                                                        setErrors(prev => ({ ...prev, images: 'Vui lòng tải lên ít nhất một hình ảnh' }));
+                                                                    }
                                                                 }}
                                                                 className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
                                                             >

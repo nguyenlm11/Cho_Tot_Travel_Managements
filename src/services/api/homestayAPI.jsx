@@ -49,7 +49,15 @@ const homestayAPI = {
             throw error;
         }
     },
-
+    updateHomestay: async (homestayId, updatedData) => {
+        try {
+            const response = await axiosInstance.put(`/homestay/UpdateHomeStay/${homestayId}`, updatedData);
+            return response.data;
+        } catch (error) {
+            console.error("Error updating homestay:", error);
+            throw error;
+        }
+    },
     updateHomestayStatus: async (homestayId, status) => {
         try {
             const response = await axiosInstance.put(`/homestay/UpdateHomeStayStatus/${homestayId}`, { status });
@@ -59,5 +67,6 @@ const homestayAPI = {
         }
     },
 };
+
 
 export default homestayAPI;
