@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaMapMarkerAlt, FaCloudUploadAlt, FaTrash, FaArrowLeft } from 'react-icons/fa';
+import { FaHome, FaMapMarkerAlt, FaCloudUploadAlt, FaTrash, FaArrowLeft, FaCheck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
@@ -9,470 +9,466 @@ import homestayAPI from '../../services/api/homestayAPI';
 const API_KEY = "MdlDIjhDKvUnozmB9NJjiW4L5Pu5ogxX";
 const BASE_URL = "https://mapapis.openmap.vn/v1/autocomplete";
 
-const pageVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
-};
-
-const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
-};
-
-const inputGroupVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.5 } }
-};
-
 const AddHomestay = () => {
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        address: '',
-        longitude: 0,
-        latitude: 0,
-        rentalType: 1,
-        area: '',
-        accountId: '',
-        images: []
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    address: '',
+    longitude: 0,
+    latitude: 0,
+    rentalType: 1,
+    area: '',
+    accountId: '',
+    images: []
+  });
+  const [loading, setLoading] = useState(false);
+  const [previewImages, setPreviewImages] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const searchTimeout = useRef(null);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+    if (userInfo?.AccountID) {
+      setFormData(prev => ({
+        ...prev,
+        accountId: userInfo.AccountID
+      }));
+    } else {
+      toast.error('Không tìm thấy thông tin tài khoản');
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+    if (name === 'address') {
+      searchAddress(value);
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 5) {
+      toast.error('Chỉ được tải lên tối đa 5 ảnh');
+      return;
+    }
+    if (files.length > 0) {
+      setErrors(prev => ({ ...prev, images: null }));
+    }
+    setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }));
+    
+    const newPreviews = [];
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newPreviews.push(reader.result);
+        if (newPreviews.length === files.length) {
+          setPreviewImages(prev => [...prev, ...newPreviews]);
+        }
+      };
+      reader.readAsDataURL(file);
     });
-    const [loading, setLoading] = useState(false);
-    const [previewImages, setPreviewImages] = useState([]);
-    const [searchResults, setSearchResults] = useState([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const searchTimeout = useRef(null);
-    const [errors, setErrors] = useState({});
+  };
 
-    useEffect(() => {
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        if (userInfo?.AccountID) {
-            setFormData(prev => ({
-                ...prev,
-                accountId: userInfo.AccountID
-            }));
-        } else {
-            toast.error('Không tìm thấy thông tin tài khoản');
-            navigate('/login');
-        }
-    }, [navigate]);
+  const removeImage = (index) => {
+    const newPreviews = [...previewImages];
+    newPreviews.splice(index, 1);
+    setPreviewImages(newPreviews);
+    const newImages = [...formData.images];
+    newImages.splice(index, 1);
+    setFormData(prev => ({
+      ...prev,
+      images: newImages
+    }));
+    if (newImages.length === 0) {
+      setErrors(prev => ({ ...prev, images: 'Vui lòng tải lên ít nhất một hình ảnh' }));
+    }
+  };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name || !formData.name.trim()) {
+      newErrors.name = 'Tên homestay không được để trống';
+    }
+    if (!formData.description || !formData.description.trim()) {
+      newErrors.description = 'Mô tả không được để trống';
+    }
+    if (!formData.address || !formData.address.trim()) {
+      newErrors.address = 'Địa chỉ không được để trống';
+    }
+    if (formData.images.length === 0) {
+      newErrors.images = 'Vui lòng tải lên ít nhất một hình ảnh';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-        // Xóa thông báo lỗi khi người dùng nhập lại
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: null }));
-        }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error('Vui lòng điền đầy đủ thông tin và không để trống');
+      return;
+    }
+    setIsModalOpen(true);
+  };
 
-        if (name === 'address') {
-            searchAddress(value);
-        }
-    };
+  const confirmSubmit = async () => {
+    setLoading(true);
+    try {
+      const sanitizedData = {
+        ...formData,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        address: formData.address.trim(),
+      };
 
-    const handleImageChange = (e) => {
-        const files = Array.from(e.target.files);
+      await homestayAPI.createHomestay(sanitizedData);
+      toast.success('Tạo homestay thành công!');
+      navigate('/owner/homestays');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo homestay');
+    } finally {
+      setLoading(false);
+      setIsModalOpen(false);
+    }
+  };
 
-        if (files.length > 0) {
-            setErrors(prev => ({ ...prev, images: null }));
-        }
+  const cancelSubmit = () => {
+    setIsModalOpen(false);
+  };
 
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }));
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => setPreviewImages(prev => [...prev, reader.result]);
-            reader.readAsDataURL(file);
+  const searchAddress = async (query) => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (!query) {
+      setSearchResults([]);
+      setShowSuggestions(false);
+      return;
+    }
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const response = await axios.get(BASE_URL, {
+          params: { text: query, apikey: API_KEY, size: 6 }
         });
-    };
+        setSearchResults(response.data.features || []);
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error('Error searching address:', error);
+      }
+    }, 300);
+  };
 
-    const validateForm = () => {
-        const newErrors = {};
+  const handleSelectAddress = (result) => {
+    const { label } = result.properties;
+    const { region } = result.properties;
+    const [lng, lat] = result.geometry.coordinates;
+    setFormData(prev => ({
+      ...prev,
+      address: label,
+      area: region,
+      longitude: lng,
+      latitude: lat,
+    }));
+    setShowSuggestions(false);
+    if (errors.address) {
+      setErrors(prev => ({ ...prev, address: null }));
+    }
+  };
 
-        // Kiểm tra tên homestay
-        if (!formData.name || !formData.name.trim()) {
-            newErrors.name = 'Tên homestay không được để trống hoặc chỉ chứa khoảng trắng';
-        }
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-right" />
 
-        // Kiểm tra mô tả
-        if (!formData.description || !formData.description.trim()) {
-            newErrors.description = 'Mô tả không được để trống hoặc chỉ chứa khoảng trắng';
-        }
+      {/* Back button and title section */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => navigate('/owner/homestays')}
+            className="flex items-center text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light transition-colors py-2 px-4"
+          >
+            <FaArrowLeft className="mr-2" />
+            <span>Quay lại danh sách homestay</span>
+          </button>
+        </div>
 
-        // Kiểm tra địa chỉ
-        if (!formData.address || !formData.address.trim()) {
-            newErrors.address = 'Địa chỉ không được để trống hoặc chỉ chứa khoảng trắng';
-        }
+        <div className="mt-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Thêm homestay mới
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Điền thông tin để tạo homestay mới cho hệ thống của bạn
+          </p>
+        </div>
+      </div>
 
-        // Kiểm tra khu vực
-        if (!formData.area || !formData.area.trim()) {
-            newErrors.area = 'Khu vực không được để trống hoặc chỉ chứa khoảng trắng';
-        }
+      {/* Main form */}
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
+          <div className="bg-primary/10 dark:bg-primary/5 px-6 py-4">
+            <h2 className="text-lg font-medium text-gray-800 dark:text-white flex items-center">
+              <FaHome className="text-primary mr-2" />
+              Thông tin homestay
+            </h2>
+          </div>
 
-        // Kiểm tra hình ảnh
-        if (formData.images.length === 0) {
-            newErrors.images = 'Vui lòng tải lên ít nhất một hình ảnh';
-        }
+          <form onSubmit={handleSubmit}>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                    Thông tin cơ bản
+                  </h3>
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Tên homestay <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Nhập tên homestay"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                    )}
+                  </div>
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Mô tả <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      rows="3"
+                      placeholder="Mô tả chi tiết về homestay này..."
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary resize-none"
+                    />
+                    {errors.description && (
+                      <p className="mt-1 text-sm text-red-500">{errors.description}</p>
+                    )}
+                  </div>
+                </div>
 
-        if (!validateForm()) {
-            // Hiển thị thông báo tổng hợp nếu có lỗi
-            toast.error('Vui lòng điền đầy đủ thông tin và không để trống');
-            return;
-        }
+                {/* Location Information */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                    Thông tin vị trí
+                  </h3>
 
-        setLoading(true);
-        try {
-            // Chuẩn hóa dữ liệu trước khi gửi
-            const sanitizedData = {
-                ...formData,
-                name: formData.name.trim(),
-                description: formData.description.trim(),
-                address: formData.address.trim(),
-                area: formData.area.trim(),
-            };
+                  {/* Address */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                      <FaMapMarkerAlt className="mr-1 text-gray-400" />
+                      Địa chỉ <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nhập địa chỉ của homestay"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                    />
+                    {errors.address && (
+                      <p className="mt-1 text-sm text-red-500">{errors.address}</p>
+                    )}
 
-            const response = await homestayAPI.createHomestay(sanitizedData);
-            toast.success('Tạo homestay thành công!');
-            navigate('/owner/homestays');
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo homestay');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const searchAddress = async (query) => {
-        if (searchTimeout.current) clearTimeout(searchTimeout.current);
-
-        if (!query) {
-            setSearchResults([]);
-            setShowSuggestions(false);
-            return;
-        }
-
-        searchTimeout.current = setTimeout(async () => {
-            try {
-                const response = await axios.get(BASE_URL, {
-                    params: { text: query, apikey: API_KEY, size: 6 }
-                });
-                setSearchResults(response.data.features || []);
-                setShowSuggestions(true);
-            } catch (error) {
-                console.error('Error searching address:', error);
-            }
-        }, 300);
-    };
-
-    const handleSelectAddress = (result) => {
-        const { label } = result.properties;
-        const [lng, lat] = result.geometry.coordinates;
-        setFormData(prev => ({
-            ...prev,
-            address: label,
-            longitude: lng,
-            latitude: lat,
-        }));
-        setShowSuggestions(false);
-
-        // Xóa lỗi địa chỉ nếu có
-        if (errors.address) {
-            setErrors(prev => ({ ...prev, address: null }));
-        }
-    };
-
-    return (
-        <motion.div
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8"
-        >
-            <Toaster position="top-right" />
-
-            {/* Back button and title */}
-            <div className="max-w-7xl mx-auto mb-8">
-                <button
-                    onClick={() => navigate('/owner/homestays')}
-                    className="flex items-center text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light transition-colors duration-200"
-                >
-                    <FaArrowLeft className="mr-2" />
-                    <span>Quay lại danh sách homestay</span>
-                </button>
-
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-6 bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
-                    Thêm homestay mới
-                </h1>
-                <p className="mt-2 text-gray-600 dark:text-gray-400">
-                    Điền thông tin để tạo homestay mới cho hệ thống của bạn
-                </p>
-            </div>
-
-            {/* Main form */}
-            <div className="max-w-7xl mx-auto">
-                <motion.div
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
-                >
-                    <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/20 dark:to-primary/10 px-8 py-6 border-b border-gray-100 dark:border-gray-700">
-                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-3">
-                            <FaHome className="text-primary" />
-                            <span className="bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
-                                Thông tin homestay
-                            </span>
-                        </h2>
-                    </div>
-
-                    <form onSubmit={handleSubmit}>
-                        <div className="p-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Left column */}
-                                <div className="space-y-6">
-                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
-                                        <FaHome className="mr-2 text-primary" />
-                                        Thông tin cơ bản
-                                    </h2>
-
-                                    {/* Name */}
-                                    <motion.div variants={inputGroupVariants} className="group">
-                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                            Tên homestay <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleInputChange}
-                                            placeholder="Nhập tên homestay"
-                                            className={`w-full px-4 py-3 rounded-xl border-2 ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary/20'} bg-white/50 dark:bg-gray-700/50 transition-all duration-300`}
-                                        />
-                                        {errors.name && (
-                                            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-                                        )}
-                                    </motion.div>
-
-                                    {/* Description */}
-                                    <motion.div variants={inputGroupVariants} className="group">
-                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                            Mô tả <span className="text-red-500">*</span>
-                                        </label>
-                                        <textarea
-                                            name="description"
-                                            value={formData.description}
-                                            onChange={handleInputChange}
-                                            rows="4"
-                                            placeholder="Mô tả chi tiết về homestay này..."
-                                            className={`w-full px-4 py-3 rounded-xl border-2 ${errors.description ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary/20'} bg-white/50 dark:bg-gray-700/50 transition-all duration-300 resize-none`}
-                                        />
-                                        {errors.description && (
-                                            <p className="text-red-500 text-sm mt-1">{errors.description}</p>
-                                        )}
-                                    </motion.div>
-
-                                    {/* Address */}
-                                    <motion.div variants={inputGroupVariants} className="group relative">
-                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block flex items-center">
-                                            <FaMapMarkerAlt className="mr-2 text-primary" />
-                                            Địa chỉ <span className="text-red-500 ml-1">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="Nhập địa chỉ của nhà nghỉ"
-                                            name="address"
-                                            value={formData.address}
-                                            onChange={handleInputChange}
-                                            className={`w-full px-4 py-3 rounded-xl border-2 ${errors.address ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary/20'} bg-white/50 dark:bg-gray-700/50 transition-all duration-300`}
-                                        />
-                                        {errors.address && (
-                                            <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-                                        )}
-
-                                        {/* Address suggestions */}
-                                        <AnimatePresence>
-                                            {showSuggestions && searchResults.length > 0 && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-y-auto"
-                                                >
-                                                    {searchResults.map((result, index) => (
-                                                        <motion.div
-                                                            key={index}
-                                                            whileHover={{
-                                                                backgroundColor: "rgba(var(--color-primary), 0.1)",
-                                                                x: 4
-                                                            }}
-                                                            className="px-4 py-3 cursor-pointer hover:bg-primary/5 
-                                                                dark:hover:bg-primary/20 transition-all duration-300
-                                                                flex items-center gap-3"
-                                                            onClick={() => handleSelectAddress(result)}
-                                                        >
-                                                            <FaMapMarkerAlt className="text-primary" />
-                                                            <span className="text-gray-700 dark:text-gray-200">
-                                                                {result.properties.label}
-                                                            </span>
-                                                        </motion.div>
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </motion.div>
-
-                                    {/* Area */}
-                                    <motion.div variants={inputGroupVariants} className="group">
-                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                            Khu vực <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                name="area"
-                                                value={formData.area}
-                                                onChange={handleInputChange}
-                                                placeholder="VD: Hồ Chí Minh"
-                                                className={`w-full px-4 py-3 rounded-xl border-2 ${errors.area ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary/20'} bg-white/50 dark:bg-gray-700/50 transition-all duration-300`}
-                                            />
-                                        </div>
-                                        {errors.area && (
-                                            <p className="text-red-500 text-sm mt-1">{errors.area}</p>
-                                        )}
-                                    </motion.div>
-                                </div>
-
-                                {/* Right column */}
-                                <div className="space-y-6">
-                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
-                                        <FaCloudUploadAlt className="mr-2 text-primary" />
-                                        Hình ảnh
-                                    </h2>
-
-                                    {/* Image Upload */}
-                                    <motion.div variants={inputGroupVariants} className="space-y-4">
-                                        <label className="text-base font-medium text-gray-700 dark:text-gray-300 block">
-                                            Hình ảnh homestay <span className="text-red-500">*</span>
-                                        </label>
-                                        <div
-                                            className={`border-2 border-dashed ${errors.images ? 'border-red-500' : 'border-gray-300 dark:border-gray-600 hover:border-primary'} rounded-xl p-6 
-                                            flex flex-col items-center justify-center cursor-pointer 
-                                            transition-all duration-300 bg-gray-50 dark:bg-gray-700/30`}
-                                            onClick={() => document.getElementById('image-upload').click()}
-                                        >
-                                            <input
-                                                id="image-upload"
-                                                type="file"
-                                                multiple
-                                                accept="image/*"
-                                                onChange={handleImageChange}
-                                                className="hidden"
-                                            />
-                                            <FaCloudUploadAlt className={`${errors.images ? 'text-red-500' : 'text-primary'} text-4xl mb-2`} />
-                                            <p className="text-gray-600 dark:text-gray-400 mb-1">
-                                                Kéo thả hoặc click để tải ảnh lên
-                                            </p>
-                                            <p className="text-gray-500 dark:text-gray-500 text-sm">
-                                                Hỗ trợ JPG, PNG, WEBP (Tối đa 5 ảnh)
-                                            </p>
-                                        </div>
-                                        {errors.images && (
-                                            <p className="text-red-500 text-sm mt-1">{errors.images}</p>
-                                        )}
-                                    </motion.div>
-
-                                    {/* Preview Images */}
-                                    {previewImages.length > 0 && (
-                                        <div className="space-y-4">
-                                            <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                                                Xem trước ({previewImages.length} ảnh)
-                                            </h3>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                {previewImages.map((img, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="relative group rounded-xl overflow-hidden h-40"
-                                                    >
-                                                        <img
-                                                            src={img}
-                                                            alt={`Preview ${index + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                        <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setPreviewImages(prev => prev.filter((_, i) => i !== index));
-                                                                    setFormData(prev => ({
-                                                                        ...prev,
-                                                                        images: prev.images.filter((_, i) => i !== index)
-                                                                    }));
-
-                                                                    // Kiểm tra lại nếu không còn ảnh nào
-                                                                    const newImages = [...formData.images].filter((_, i) => i !== index);
-                                                                    if (newImages.length === 0) {
-                                                                        setErrors(prev => ({ ...prev, images: 'Vui lòng tải lên ít nhất một hình ảnh' }));
-                                                                    }
-                                                                }}
-                                                                className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
-                                                            >
-                                                                <FaTrash className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                    {/* Address suggestions */}
+                    <AnimatePresence>
+                      {showSuggestions && searchResults.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-y-auto"
+                        >
+                          {searchResults.map((result, index) => (
+                            <div
+                              key={index}
+                              className="px-4 py-2.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2 transition-colors"
+                              onClick={() => handleSelectAddress(result)}
+                            >
+                              <FaMapMarkerAlt className="text-primary" />
+                              <span className="text-gray-700 dark:text-gray-200 truncate">
+                                {result.properties.label}
+                              </span>
                             </div>
-                        </div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
 
-                        {/* Form Actions */}
-                        <div className="px-8 py-6 bg-gray-50/80 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
+                {/* Images */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                    Hình ảnh
+                  </h3>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Hình ảnh homestay <span className="text-red-500">*</span>
+                    </label>
+                    <div
+                      className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors"
+                      onClick={() => document.getElementById('image-upload').click()}
+                    >
+                      <input
+                        id="image-upload"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                      <FaCloudUploadAlt className="mx-auto h-10 w-10 text-gray-400" />
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        Kéo thả hoặc click để tải ảnh lên
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Hỗ trợ JPG, PNG, WEBP (Tối đa 5 ảnh)
+                      </p>
+                    </div>
+                    {errors.images && (
+                      <p className="mt-1 text-sm text-red-500">{errors.images}</p>
+                    )}
+                  </div>
+
+                  {/* Preview Images */}
+                  {previewImages.length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Xem trước ({previewImages.length} ảnh)
+                        </h3>
+                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                          {previewImages.length}/5 ảnh
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {previewImages.map((img, index) => (
+                          <div key={index} className="relative rounded-lg overflow-hidden h-32 border border-gray-200 dark:border-gray-700">
+                            <img
+                              src={img}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button
                                 type="button"
-                                onClick={() => navigate('/owner/homestays')}
-                                className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
-                            >
-                                Hủy
-                            </motion.button>
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                type="submit"
-                                disabled={loading}
-                                className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            >
-                                {loading ? (
-                                    <motion.div
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                                    />
-                                ) : (
-                                    <>
-                                        <FaHome className="w-5 h-5" />
-                                        <span>Thêm homestay</span>
-                                    </>
-                                )}
-                            </motion.button>
-                        </div>
-                    </form>
-                </motion.div>
+                                onClick={() => removeImage(index)}
+                                className="p-1.5 bg-red-500 rounded-full text-white"
+                              >
+                                <FaTrash className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-        </motion.div>
-    );
+
+            {/* Form Actions */}
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => navigate('/owner/homestays')}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                ) : (
+                  <>
+                    <FaCheck className="mr-2" />
+                    <span>Thêm homestay</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm mx-4 shadow-xl"
+            >
+              <div className="text-center mb-4">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-200 text-green-600 mb-4">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">
+                  Xác nhận thêm mới
+                </h3>
+              </div>
+              <p className="mb-6 text-gray-600 dark:text-gray-300 text-center">
+                Bạn có chắc chắn muốn thêm homestay mới?
+              </p>
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={cancelSubmit}
+                  disabled={loading}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors min-w-[100px]"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={confirmSubmit}
+                  disabled={loading}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors min-w-[100px] flex items-center justify-center"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    "Xác nhận"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 };
 
 export default AddHomestay;
