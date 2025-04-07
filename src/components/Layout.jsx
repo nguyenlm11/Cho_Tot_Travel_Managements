@@ -11,8 +11,8 @@ const Layout = ({ children }) => {
   const { isDarkMode } = useTheme();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const location = useLocation();
+  const isChatPage = location.pathname.includes('/chat-homestay');
 
-  // Cuộn về đầu trang khi route thay đổi
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
@@ -64,9 +64,9 @@ const Layout = ({ children }) => {
 
         {/* Main Content */}
         <main
-          className="relative z-10 p-3 overflow-x-hidden
-          min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))]
-          dark:text-dark-text-primary text-light-text-primary"
+          className={`relative z-10 ${isChatPage ? 'p-0' : 'p-3'} overflow-hidden
+          ${isChatPage ? 'h-[calc(100vh-theme(spacing.16)-theme(spacing.16))]' : 'min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))]'}
+          dark:text-dark-text-primary text-light-text-primary`}
         >
           {children}
         </main>
