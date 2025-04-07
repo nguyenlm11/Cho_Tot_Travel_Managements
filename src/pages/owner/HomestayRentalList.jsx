@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaRegClock, FaEdit, FaTrash, FaSearch, FaFilter, FaChevronLeft, FaChevronRight, FaChartLine, FaHome, FaBed, FaBath, FaUtensils, FaWifi, FaUsers, FaEye, FaUser, FaChild } from 'react-icons/fa';
@@ -386,6 +386,7 @@ const HomestayRentalList = () => {
         fetchRentals();
     }, [homestayId]);
 
+
     // Lọc và phân trang
     const filteredRentals = useMemo(() => {
         return rentals.filter(rental => {
@@ -428,7 +429,7 @@ const HomestayRentalList = () => {
         const loadingToast = toast.loading('Đang xóa căn thuê...');
 
         try {
-            const response = await homestayRentalAPI.deleteHomeStayRental(rentalToDelete.homeStayRentalID);
+            const response = await homestayRentalAPI.deleteHomestayRental(rentalToDelete.homeStayRentalID);
             if (response && response.statusCode === 200) {
                 toast.dismiss(loadingToast);
                 toast.success('Xóa căn thuê thành công');
@@ -579,7 +580,7 @@ const HomestayRentalList = () => {
                                 <HomestayRentalCard
                                     key={rental.homeStayRentalID}
                                     rental={rental}
-                                    onEdit={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental.homeStayRentalID}/edit`)}
+                                    onEdit={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental.homeStayRentalID}/editHomestayRental`)}
                                     onDelete={() => handleDeleteClick(rental)}
                                 />
                             ))}

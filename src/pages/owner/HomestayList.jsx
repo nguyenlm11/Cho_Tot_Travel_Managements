@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CountUp from 'react-countup';
 import { Toaster, toast } from 'react-hot-toast';
 import { FaBed, FaChartLine, FaChevronLeft, FaChevronRight, FaEdit, FaFilter, FaHome, FaMapMarkerAlt, FaPlus, FaRegClock, FaSearch, FaStar, FaTrash } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { Link, useNavigate } from 'react-router-dom';
 import homestayAPI from '../../services/api/homestayAPI';
-import { EditHomestayModal } from './EditHomestayModal';
+import { EditHomestayModal } from '../../components/modals/EditHomestayModal';
 
 const pageVariants = {
   initial: { opacity: 0 },
@@ -201,7 +201,8 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 };
 
 // HomestayCard Component
-const HomestayCard = ({ homestay, index, onEdit }) => {
+const HomestayCard = ({ homestay, index, onEdit, setShowDeleteModal }) => {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
   const formatDate = (dateString) => {
@@ -270,6 +271,7 @@ const HomestayCard = ({ homestay, index, onEdit }) => {
                   whileTap={{ scale: 0.9 }}
                   className="p-2 bg-white/90 rounded-full hover:bg-white
                     transform hover:scale-110 transition-all duration-200"
+                  onClick={() => setShowDeleteModal({ homestaySelect: homestay.id, isOpen: true })}
                 >
                   <FaTrash className="w-5 h-5 text-red-500" />
                 </motion.button>
@@ -308,8 +310,6 @@ const HomestayCard = ({ homestay, index, onEdit }) => {
   );
 };
 
-
-
 const HomestayList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [actualSearchTerm, setActualSearchTerm] = useState('');
@@ -321,6 +321,7 @@ const HomestayList = () => {
   const itemsPerPage = 6;
   const [editingHomestay, setEditingHomestay] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState({ isOpen: false, homestaySelect: null });
 
   // Hàm lấy trạng thái
   const getStatusText = (status) => {
@@ -339,7 +340,7 @@ const HomestayList = () => {
   };
 
   // Hàm gọi API
-  const fetchHomestays = async () => {
+  const fetchHomestays = useCallback(async () => {
     setLoading(true);
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
@@ -374,13 +375,26 @@ const HomestayList = () => {
     } finally {
       setTimeout(() => setLoading(false), 1500);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     fetchHomestays();
-  }, []);
+  }, [fetchHomestays]);
 
-
+  const handleDelete = useCallback(async (id) => {
+    try {
+      const res = await homestayAPI.deleteHomestay(id);
+      if (res.statusCode === 200) {
+        fetchHomestays();
+        toast.success("Xóa homestay thành công");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Xóa homestay thất bại");
+    } finally {
+      setShowDeleteModal(prev => ({ ...prev, isOpen: false }))
+    }
+  }, [fetchHomestays])
 
   // Lọc và phân trang
   const filteredHomestays = useMemo(() => {
@@ -439,8 +453,6 @@ const HomestayList = () => {
     setIsEditModalOpen(false);
     setEditingHomestay(null);
   };
-
-
 
   return (
     <>
@@ -551,7 +563,13 @@ const HomestayList = () => {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {paginatedHomestays.map((homestay, index) => (
-                <HomestayCard key={homestay.id} homestay={homestay} index={index} onEdit={openEditModal} />
+                <HomestayCard
+                  key={homestay.id}
+                  homestay={homestay}
+                  index={index}
+                  onEdit={openEditModal}
+                  setShowDeleteModal={setShowDeleteModal}
+                />
               ))}
             </motion.div>
 
@@ -637,6 +655,49 @@ const HomestayList = () => {
         setLoading={setLoading}
         fetchHomestays={fetchHomestays}
       />
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full"
+            >
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                Xác nhận xóa
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Bạn có chắc chắn muốn xóa chứ?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(prev => ({ ...prev, isOpen: false }))}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700
+                  dark:hover:bg-gray-600 text-gray-800 dark:text-white
+                  rounded-lg transition-colors duration-200"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={() => handleDelete(showDeleteModal.homestaySelect)}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white
+                  rounded-lg transition-colors duration-200"
+                >
+                  Xóa
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

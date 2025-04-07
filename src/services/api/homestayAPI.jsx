@@ -41,6 +41,15 @@ const homestayAPI = {
         }
     },
 
+    getHomestaysById: async (id) => {
+        try {
+            const response = await axiosInstance.get(`/homestay/GetHomeStayDetail/${id}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     deleteHomestay: async (homestayId) => {
         try {
             const response = await axiosInstance.delete(`/homestay/DeleteHomeStay/${homestayId}`);

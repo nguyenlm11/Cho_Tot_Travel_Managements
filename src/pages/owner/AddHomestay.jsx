@@ -64,7 +64,7 @@ const AddHomestay = () => {
       setErrors(prev => ({ ...prev, images: null }));
     }
     setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }));
-    
+
     const newPreviews = [];
     files.forEach(file => {
       const reader = new FileReader();
