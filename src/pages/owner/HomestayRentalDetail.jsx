@@ -7,6 +7,8 @@ import homestayRentalAPI from '../../services/api/homestayrentalAPI';
 import EditPricingModal from '../../components/modals/EditPricingModal';
 import pricingAPI from '../../services/api/pricingAPI';
 import axiosInstance from '../../services/config';
+import AddPricingModal from '../../components/modals/AddPricingModal';
+import EditRoomTypeModal from '../../components/modals/EditRoomTypeModal';
 
 // Animation variants (giữ nguyên như code ban đầu)
 const pageVariants = {
@@ -92,6 +94,10 @@ const HomestayRentalDetail = () => {
     const itemsPerPage = 3;
     const [isEditPricingModalOpen, setIsEditPricingModalOpen] = useState(false);
     const [selectedPricing, setSelectedPricing] = useState(null);
+    const [isAddPricingModalOpen, setIsAddPricingModalOpen] = useState(false);
+    const [isEditRoomTypeModalOpen, setIsEditRoomTypeModalOpen] = useState(false);
+    const [selectedRoomType, setSelectedRoomType] = useState(null);
+
 
     // Animation with scroll
     const { scrollY } = useScroll();
@@ -228,7 +234,7 @@ const HomestayRentalDetail = () => {
         setIsEditPricingModalOpen(true);
     };
 
-    const handleSavePricing = async (updatedPricing) => {
+    const handleUpdatePricing = async (updatedPricing) => {
         if (updatedPricing?.pricingID) {
             try {
                 const res = await pricingAPI.updatePricing(updatedPricing.pricingID, updatedPricing);
@@ -244,6 +250,28 @@ const HomestayRentalDetail = () => {
                 console.error('Error updating pricing:', error);
                 toast.error('Không thể cập nhật giá thuê: ' + error.message);
             }
+        }
+    }
+
+    const handleAddPricing = async (data) => {
+        const formatData = { ...data, homeStayRentalID: rentalId }
+        if (rental?.pricing?.find(item => (item?.dayType == 0 && formatData?.dayType == 0) || (item?.dayType == 1 && formatData?.dayType == 1))) {
+            toast.error(`Gói ${formatData?.dayType == 0 ? "ngày thường" : "ngày cuối tuần"} đã tồn tại`);
+            return;
+        }
+
+        try {
+            const res = await pricingAPI.addPricing(formatData);
+            if (res.statusCode === 200) {
+                toast.success('Thêm giá thuê thành công!');
+                setIsAddPricingModalOpen(false);
+                fetchRentalDetails();
+            } else {
+                toast.error('Không thể thêm giá thuê: ' + res.message);
+            }
+        } catch (error) {
+            console.error('Error updating pricing:', error);
+            toast.error('Không thể thêm giá thuê: ' + error.message);
         }
     }
 
@@ -704,12 +732,15 @@ const HomestayRentalDetail = () => {
 
 
                                                                             <div className="mt-4 flex justify-between items-center">
-                                                                                <Link
-                                                                                    to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/edit`}
-                                                                                    className="text-blue-500 hover:text-blue-700 transition-colors flex items-center"
+                                                                                <div
+                                                                                    onClick={() => {
+                                                                                        setSelectedRoomType(roomType)
+                                                                                        setIsEditRoomTypeModalOpen(true)
+                                                                                    }}
+                                                                                    className="text-blue-500 hover:text-blue-700 transition-colors flex items-center cursor-pointer"
                                                                                 >
                                                                                     <FaEdit className="inline mr-1" /> Chỉnh sửa
-                                                                                </Link>
+                                                                                </div>
                                                                                 <Link
                                                                                     to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/rooms`}
                                                                                     className="text-blue-500 hover:text-blue-700 transition-colors flex items-center"
@@ -871,7 +902,7 @@ const HomestayRentalDetail = () => {
                                             <FaEdit className="mr-2" /> Chỉnh sửa thông tin
                                         </motion.button>
 
-                                        {rental?.rentWhole === false && (
+                                        {rental?.rentWhole === false ? (
                                             <motion.button
                                                 variants={buttonVariants}
                                                 whileHover="hover"
@@ -881,7 +912,15 @@ const HomestayRentalDetail = () => {
                                             >
                                                 <FaPlus className="mr-2" /> Thêm loại phòng
                                             </motion.button>
-                                        )}
+                                        ) : <motion.button
+                                            variants={buttonVariants}
+                                            whileHover="hover"
+                                            whileTap="tap"
+                                            onClick={() => setIsAddPricingModalOpen(true)}
+                                            className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center"
+                                        >
+                                            <FaPlus className="mr-2" /> Thêm gói
+                                        </motion.button>}
 
                                         <motion.button
                                             variants={buttonVariants}
@@ -896,7 +935,7 @@ const HomestayRentalDetail = () => {
                                 </div>
                             </motion.div>
 
-                            <motion.div
+                            {/* <motion.div
                                 variants={contentVariants}
                                 className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 backdrop-blur-sm
                   border border-gray-100 dark:border-gray-700"
@@ -916,7 +955,7 @@ const HomestayRentalDetail = () => {
                                         </motion.span>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </motion.div> */}
 
                             {rental?.pricing?.map((pricing, index) => (
                                 <motion.div
@@ -926,7 +965,7 @@ const HomestayRentalDetail = () => {
                   border border-gray-100 dark:border-gray-700"
                                 >
                                     <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Gói {index + 1}</h2>
+                                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Gói {pricing?.dayType == 0 ? "ngày thường" : pricing?.dayType == 1 ? "ngày cuối tuần" : "ngày lễ"}</h2>
                                         <div className="flex items-center justify-center gap-2">
                                             {/* <motion.button
                                                 whileHover={{ scale: 1.1 }}
@@ -1087,7 +1126,24 @@ const HomestayRentalDetail = () => {
                         setIsEditPricingModalOpen(false);
                         setSelectedPricing(null);
                     }}
-                    onSave={handleSavePricing}
+                    onSave={handleUpdatePricing}
+                />
+            )}
+
+            {isAddPricingModalOpen && (
+                <AddPricingModal
+                    isOpen={isAddPricingModalOpen}
+                    onClose={() => setIsAddPricingModalOpen(false)}
+                    onSave={handleAddPricing}
+                />
+            )}
+
+            {isEditRoomTypeModalOpen && (
+                <EditRoomTypeModal
+                    roomType={selectedRoomType}
+                    isOpen={isEditRoomTypeModalOpen}
+                    onClose={() => setIsEditRoomTypeModalOpen(false)}
+                    fetchRoomType={fetchRentalDetails}
                 />
             )}
         </>
