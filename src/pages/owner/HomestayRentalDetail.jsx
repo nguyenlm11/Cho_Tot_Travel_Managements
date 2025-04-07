@@ -5,6 +5,8 @@ import { FaBath, FaBed, FaChevronLeft, FaChevronRight, FaChild, FaCog, FaEdit, F
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import homestayRentalAPI from '../../services/api/homestayrentalAPI';
 import EditPricingModal from '../../components/modals/EditPricingModal';
+import pricingAPI from '../../services/api/pricingAPI';
+import axiosInstance from '../../services/config';
 
 // Animation variants (giữ nguyên như code ban đầu)
 const pageVariants = {
@@ -225,6 +227,25 @@ const HomestayRentalDetail = () => {
         setSelectedPricing(pricing);
         setIsEditPricingModalOpen(true);
     };
+
+    const handleSavePricing = async (updatedPricing) => {
+        if (updatedPricing?.pricingID) {
+            try {
+                const res = await pricingAPI.updatePricing(updatedPricing.pricingID, updatedPricing);
+                if (res.statusCode === 200) {
+                    toast.success('Cập nhật giá thuê thành công!');
+                    setIsEditPricingModalOpen(false);
+                    setSelectedPricing(null);
+                    fetchRentalDetails();
+                } else {
+                    toast.error('Không thể cập nhật giá thuê: ' + res.message);
+                }
+            } catch (error) {
+                console.error('Error updating pricing:', error);
+                toast.error('Không thể cập nhật giá thuê: ' + error.message);
+            }
+        }
+    }
 
 
     if (loading) {
@@ -907,7 +928,7 @@ const HomestayRentalDetail = () => {
                                     <div className="flex justify-between items-center mb-4">
                                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Gói {index + 1}</h2>
                                         <div className="flex items-center justify-center gap-2">
-                                            <motion.button
+                                            {/* <motion.button
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.9 }}
                                                 className="p-2 bg-primary/10 text-primary hover:bg-primary/20 
@@ -915,7 +936,7 @@ const HomestayRentalDetail = () => {
                                                 title="Xem chi tiết"
                                             >
                                                 <FaEye className="w-5 h-5" />
-                                            </motion.button>
+                                            </motion.button> */}
                                             <motion.button
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.9 }}
@@ -963,7 +984,19 @@ const HomestayRentalDetail = () => {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-600 dark:text-gray-400">Loại ngày:</span>
+                                                <motion.span
+                                                    whileHover={{ scale: 1.05 }}
+                                                    className="px-3 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100 rounded-full font-medium text-sm"
+                                                >
+                                                    {pricing?.dayType == 0 ? "Ngày thường" : pricing?.dayType == 1 ? "Ngày cuối tuần" : "Ngày lễ"}
+                                                </motion.span>
+                                            </div>
+                                        </div>
+
+                                        {!pricing?.isDefault && (<div className="space-y-3">
                                             <p className="text-gray-600 dark:text-gray-400">Có giá trị từ ngày:</p>
                                             <motion.p
                                                 whileHover={{ scale: 1.05 }}
@@ -973,7 +1006,7 @@ const HomestayRentalDetail = () => {
                                                 <span>-</span>
                                                 <span className='text-gray-600 dark:text-gray-400'>{formatDate(pricing?.endDate)}</span>
                                             </motion.p>
-                                        </div>
+                                        </div>)}
                                     </div>
                                 </motion.div>
                             ))}
@@ -1049,6 +1082,7 @@ const HomestayRentalDetail = () => {
             {isEditPricingModalOpen && (
                 <EditPricingModal
                     pricing={selectedPricing}
+                    isOpen={isEditPricingModalOpen}
                     onClose={() => {
                         setIsEditPricingModalOpen(false);
                         setSelectedPricing(null);
