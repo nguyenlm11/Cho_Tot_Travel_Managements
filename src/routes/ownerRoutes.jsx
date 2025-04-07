@@ -15,6 +15,9 @@ import { path } from 'framer-motion/client';
 import { elements } from 'chart.js';
 import BookingList from '../pages/owner/BookingList';
 import ChatHomestay from '../pages/owner/ChatHomestay';
+import EditHomestayRental from '../pages/owner/EditHomestayRental';
+import EditHomestay from '../pages/owner/EditHomestay';
+import EditRoomType from '../pages/owner/EditRoomType';
 
 export const ownerRoutes = [
   {
@@ -24,6 +27,10 @@ export const ownerRoutes = [
   {
     path: 'homestays/add',
     element: <AddHomestay />
+  },
+  {
+    path: 'homestays/:id/edit',
+    element: <EditHomestay />
   },
   {
     path: 'homestays/:id/dashboard',
@@ -58,6 +65,10 @@ export const ownerRoutes = [
     element: <AddRoomType />
   },
   {
+    path: 'homestays/:id/rentals/:rentalId/room-types/:roomTypeId/edit',
+    element: <EditRoomType />
+  },
+  {
     path: 'homestays/:id/rentals/:rentalId/room-types/:roomTypeId/rooms',
     element: <RoomList />
   },
@@ -76,5 +87,9 @@ export const ownerRoutes = [
   {
     path: 'homestays/:id/ratings',
     element: <RatingList />
-  }
+  },
+  {
+    path: 'homestays/:homestayId/rentals/:rentalId/editHomestayRental',
+    element: <EditHomestayRental />
+  },
 ]; 

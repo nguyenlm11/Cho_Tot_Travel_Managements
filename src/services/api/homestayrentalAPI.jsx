@@ -57,6 +57,30 @@ const homestayRentalAPI = {
             throw error;
         }
     },
+
+    updateHomestayRental: async (rentalData, rentalId) => {
+        try {
+            console.log(rentalData);
+
+            // Gửi yêu cầu API
+            const response = await axiosInstance.put(`/homestayrental/UpdateHomeStayRental/${rentalId}`, rentalData);
+
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },
+
+    deleteHomestayRental: async (rentalId) => {
+        try {
+            const response = await axiosInstance.delete(`/homestayrental/DeleteHomeStayRental/${rentalId}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },
 };
 
 export default homestayRentalAPI;

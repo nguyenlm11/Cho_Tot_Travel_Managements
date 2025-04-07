@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useSpring, useTransform } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import {
-    FaBed, FaBath, FaUtensils, FaWifi, FaUsers, FaChild, FaUser,
-    FaEdit, FaTrash, FaHome, FaChevronLeft, FaChevronRight,
-    FaMapMarkerAlt, FaCog, FaPlus, FaRegClock, FaRegCalendarAlt, FaTags, FaInfoCircle, FaTimes
-} from 'react-icons/fa';
+import { FaBath, FaBed, FaChevronLeft, FaChevronRight, FaChild, FaCog, FaEdit, FaEye, FaHome, FaInfoCircle, FaMapMarkerAlt, FaPlus, FaRegCalendarAlt, FaRegClock, FaTags, FaTimes, FaTrash, FaUser, FaUsers, FaUtensils, FaWifi } from 'react-icons/fa';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import homestayRentalAPI from '../../services/api/homestayrentalAPI';
+import EditPricingModal from '../../components/modals/EditPricingModal';
 
 // Animation variants (giữ nguyên như code ban đầu)
 const pageVariants = {
@@ -91,6 +88,8 @@ const HomestayRentalDetail = () => {
     const [scrollPosition, setScrollPosition] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 3;
+    const [isEditPricingModalOpen, setIsEditPricingModalOpen] = useState(false);
+    const [selectedPricing, setSelectedPricing] = useState(null);
 
     // Animation with scroll
     const { scrollY } = useScroll();
@@ -221,6 +220,13 @@ const HomestayRentalDetail = () => {
         ] : []),
     ];
 
+    // Thêm hàm xử lý khi click vào nút edit
+    const handleEditPricing = (pricing) => {
+        setSelectedPricing(pricing);
+        setIsEditPricingModalOpen(true);
+    };
+
+
     if (loading) {
         return (
             <motion.div
@@ -268,17 +274,6 @@ const HomestayRentalDetail = () => {
                                         <span className="truncate max-w-[200px] md:max-w-xs">{rental?.homeStayName}</span>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/edit`)}
-                                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center md:inline-flex"
-                                >
-                                    <FaEdit className="mr-2" /> <span className="hidden md:inline">Chỉnh sửa</span>
-                                </motion.button>
                             </div>
                         </div>
                     </div>
@@ -686,10 +681,17 @@ const HomestayRentalDetail = () => {
                                                                                 </p>
                                                                             )}
 
-                                                                            <div className="mt-4 flex justify-end">
+
+                                                                            <div className="mt-4 flex justify-between items-center">
+                                                                                <Link
+                                                                                    to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/edit`}
+                                                                                    className="text-blue-500 hover:text-blue-700 transition-colors flex items-center"
+                                                                                >
+                                                                                    <FaEdit className="inline mr-1" /> Chỉnh sửa
+                                                                                </Link>
                                                                                 <Link
                                                                                     to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/rooms`}
-                                                                                    className="text-blue-500 hover:text-blue-700 transition-colors"
+                                                                                    className="text-blue-500 hover:text-blue-700 transition-colors flex items-center"
                                                                                 >
                                                                                     <FaEdit className="inline mr-1" /> Quản lý
                                                                                 </Link>
@@ -842,7 +844,7 @@ const HomestayRentalDetail = () => {
                                             variants={buttonVariants}
                                             whileHover="hover"
                                             whileTap="tap"
-                                            onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/edit`)}
+                                            onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental.homeStayRentalID}/editHomestayRental`)}
                                             className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center"
                                         >
                                             <FaEdit className="mr-2" /> Chỉnh sửa thông tin
@@ -872,6 +874,109 @@ const HomestayRentalDetail = () => {
                                     </div>
                                 </div>
                             </motion.div>
+
+                            <motion.div
+                                variants={contentVariants}
+                                className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 backdrop-blur-sm
+                  border border-gray-100 dark:border-gray-700"
+                            >
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Các gói thuê</h2>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 dark:text-gray-400">Tổng số gói:</span>
+                                        <motion.span
+                                            whileHover={{ scale: 1.05 }}
+                                            className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium"
+                                        >
+                                            {rental?.pricing?.length || 0}
+                                        </motion.span>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {rental?.pricing?.map((pricing, index) => (
+                                <motion.div
+                                    key={index}
+                                    variants={contentVariants}
+                                    className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 backdrop-blur-sm
+                  border border-gray-100 dark:border-gray-700"
+                                >
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Gói {index + 1}</h2>
+                                        <div className="flex items-center justify-center gap-2">
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                className="p-2 bg-primary/10 text-primary hover:bg-primary/20 
+                                  rounded-full transition-colors"
+                                                title="Xem chi tiết"
+                                            >
+                                                <FaEye className="w-5 h-5" />
+                                            </motion.button>
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
+                                  rounded-full transition-colors"
+                                                title="Chỉnh sửa"
+                                                onClick={() => handleEditPricing(pricing)}
+                                            >
+                                                <FaEdit className="w-5 h-5" />
+                                            </motion.button>
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 
+                                  rounded-full transition-colors"
+                                                title="Xóa"
+                                            >
+                                                <FaTrash className="w-5 h-5" />
+                                            </motion.button>
+                                        </div>
+                                    </div>
+
+                                    <div className='flex flex-col gap-2'>
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-600 dark:text-gray-400">Đơn giá:</span>
+                                                <motion.span
+                                                    whileHover={{ scale: 1.05 }}
+                                                    className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium text-sm"
+                                                >
+                                                    {formatPrice(pricing?.unitPrice)}
+                                                </motion.span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-600 dark:text-gray-400">Giá thuê:</span>
+                                                <motion.span
+                                                    whileHover={{ scale: 1.05 }}
+                                                    className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium text-sm"
+                                                >
+                                                    {formatPrice(pricing?.rentPrice)}
+                                                </motion.span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <p className="text-gray-600 dark:text-gray-400">Có giá trị từ ngày:</p>
+                                            <motion.p
+                                                whileHover={{ scale: 1.05 }}
+                                                className='flex items-center justify-between text-gray-300'
+                                            >
+                                                <span className='text-gray-600 dark:text-gray-400'>{formatDate(pricing?.startDate)}</span>
+                                                <span>-</span>
+                                                <span className='text-gray-600 dark:text-gray-400'>{formatDate(pricing?.endDate)}</span>
+                                            </motion.p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -939,6 +1044,18 @@ const HomestayRentalDetail = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Thêm EditPricingModal vào cuối component */}
+            {isEditPricingModalOpen && (
+                <EditPricingModal
+                    pricing={selectedPricing}
+                    onClose={() => {
+                        setIsEditPricingModalOpen(false);
+                        setSelectedPricing(null);
+                    }}
+                    onSave={handleSavePricing}
+                />
+            )}
         </>
     );
 };

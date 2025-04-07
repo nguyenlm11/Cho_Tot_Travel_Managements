@@ -9,6 +9,7 @@ import {
 import { IoClose } from 'react-icons/io5';
 import roomAPI from '../../services/api/roomAPI';
 import RoomAddModal from '../../components/modals/RoomAddModal';
+import RoomEditModal from '../../components/modals/RoomEditModal';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -165,8 +166,10 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
     );
 };
 
-const RoomCard = ({ room, homestayId, rentalId, roomTypeId, onDelete }) => {
+const RoomCard = ({ room, homestayId, rentalId, roomTypeId, onDelete, setIsEditModalOpen }) => {
     const navigate = useNavigate();
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
 
     return (
         <motion.div
@@ -211,7 +214,7 @@ const RoomCard = ({ room, homestayId, rentalId, roomTypeId, onDelete }) => {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rentalId}/roomtypes/${roomTypeId}/rooms/${room.roomID}`)}
+                            onClick={() => setIsViewModalOpen(true)}
                             className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                         >
                             <FaEye className="w-4 h-4" />
@@ -220,7 +223,7 @@ const RoomCard = ({ room, homestayId, rentalId, roomTypeId, onDelete }) => {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rentalId}/roomtypes/${roomTypeId}/rooms/${room.roomID}/edit`)}
+                            onClick={() => setIsEditModalOpen({ isOpen: true, roomSelect: room?.roomID })}
                             className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors"
                         >
                             <FaEdit className="w-4 h-4" />
@@ -255,6 +258,7 @@ const RoomList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 9;
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState({ isOpen: false, roomSelect: null });
 
     useEffect(() => {
         fetchRooms();
@@ -440,6 +444,7 @@ const RoomList = () => {
                                     room={room}
                                     homestayId={homestayId}
                                     roomTypeId={roomTypeId}
+                                    setIsEditModalOpen={setIsEditModalOpen}
                                     onDelete={handleDeleteClick}
                                 />
                             ))}
@@ -569,6 +574,13 @@ const RoomList = () => {
             <RoomAddModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
+                roomTypeId={roomTypeId}
+                onSuccess={fetchRooms}
+            />
+
+            <RoomEditModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(prev => { return { ...prev, isOpen: false } })}
                 roomTypeId={roomTypeId}
                 onSuccess={fetchRooms}
             />

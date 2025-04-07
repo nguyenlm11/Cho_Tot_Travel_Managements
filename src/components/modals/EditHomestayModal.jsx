@@ -23,23 +23,48 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
     const searchTimeout = useRef(null);
     const [searchResults, setSearchResults] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-
+    const [originalCoords, setOriginalCoords] = useState({ longitude: 0, latitude: 0 });
+    const [addressSelectedFromSuggestion, setAddressSelectedFromSuggestion] = useState(false);
 
     const API_KEY = "MdlDIjhDKvUnozmB9NJjiW4L5Pu5ogxX";
     const BASE_URL = "https://mapapis.openmap.vn/v1/autocomplete";
 
-
     useEffect(() => {
         if (homestay) {
+            console.log("Loading homestay with coordinates:", {
+                longitude: homestay.longitude,
+                latitude: homestay.latitude
+            });
+
+            // Đảm bảo lưu giữ tọa độ gốc dưới dạng số
+            let longitude = homestay.longitude;
+            let latitude = homestay.latitude;
+
+            // Chỉ chuyển đổi kiểu dữ liệu, không đặt giá trị mặc định 0
+            if (longitude !== undefined && longitude !== null) {
+                longitude = typeof longitude === 'number' ? longitude : parseFloat(longitude);
+                if (isNaN(longitude)) longitude = 0;
+            }
+
+            if (latitude !== undefined && latitude !== null) {
+                latitude = typeof latitude === 'number' ? latitude : parseFloat(latitude);
+                if (isNaN(latitude)) latitude = 0;
+            }
+
+            // Lưu trữ tọa độ ban đầu
+            setOriginalCoords({ longitude, latitude });
+
             setFormData({
                 name: homestay.name || '',
                 description: homestay.description || '',
                 address: homestay.address || '',
-                longitude: homestay.longitude || '',
-                latitude: homestay.latitude || '',
+                longitude: longitude,
+                latitude: latitude,
                 rentalType: 1,
                 area: homestay.area || ''
             });
+
+            console.log("Set form data with coordinates:", { longitude, latitude });
             setFormErrors({});
         }
     }, [homestay]);
@@ -92,15 +117,23 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
     };
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Nếu thay đổi địa chỉ NHƯNG không phải từ gợi ý, giữ tọa độ ban đầu
+        if (name === 'address') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                // Giữ tọa độ ban đầu nếu người dùng đang chỉnh sửa địa chỉ
+                // (tọa độ sẽ được cập nhật trong handleSelectAddress nếu chọn từ gợi ý)
+            }));
+            searchAddress(value);
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
 
         // Xóa thông báo lỗi khi người dùng nhập lại
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
-        }
-
-        if (name === 'address') {
-            searchAddress(value);
         }
     };
     const handleSelectAddress = (result) => {
@@ -113,12 +146,15 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
             longitude: lng,
             latitude: lat,
         }));
+        setAddressSelectedFromSuggestion(true); // Đánh dấu đã chọn từ gợi ý
         setShowSuggestions(false);
 
         // Xóa lỗi địa chỉ nếu có
         if (errors.address) {
             setErrors(prev => ({ ...prev, address: null }));
         }
+
+        console.log("Selected new coordinates:", { longitude: lng, latitude: lat });
     };
 
     const searchAddress = async (query) => {
@@ -164,14 +200,23 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
         }
 
         // Chuẩn hóa dữ liệu trước khi gửi
+        // ĐẢM BẢO GIỮ NGUYÊN CÁC GIÁ TRỊ TỌA ĐỘ BAN ĐẦU
         const sanitizedData = {
             ...formData,
             name: formData.name.trim(),
             description: formData.description.trim(),
             address: formData.address.trim(),
             area: formData.area.trim(),
+            // Quan trọng: giữ nguyên các giá trị tọa độ từ formData
+            longitude: formData.longitude,
+            latitude: formData.latitude,
             rentalType: 1
         };
+
+        console.log("Sending coordinates:", {
+            longitude: formData.longitude,
+            latitude: formData.latitude
+        });
 
         setShowConfirmation(false);
         handleEditSubmit(sanitizedData);
@@ -207,16 +252,45 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
             setLoading(true);
             const loadingToast = toast.loading('Đang cập nhật thông tin...');
 
+            // Kiểm tra xem địa chỉ có thay đổi không
+            const addressChanged = updatedData.address !== homestay.address;
+
+            // Nếu địa chỉ thay đổi nhưng không phải từ gợi ý, giữ tọa độ ban đầu
+            let longitude, latitude;
+
+            if (addressSelectedFromSuggestion) {
+                // Nếu đã chọn địa chỉ từ gợi ý, sử dụng tọa độ mới từ formData
+                longitude = updatedData.longitude;
+                latitude = updatedData.latitude;
+            } else if (!addressChanged) {
+                // Nếu địa chỉ không thay đổi, sử dụng tọa độ ban đầu
+                longitude = originalCoords.longitude;
+                latitude = originalCoords.latitude;
+            } else {
+                // Nếu địa chỉ thay đổi bằng cách nhập thủ công (không chọn từ gợi ý)
+                // Chúng ta không có tọa độ mới, sử dụng tọa độ mặc định 0
+                longitude = 0;
+                latitude = 0;
+            }
+
+            // Đảm bảo là số
+            longitude = parseFloat(longitude) || 0;
+            latitude = parseFloat(latitude) || 0;
+
+            console.log("Final coordinates for update:", { longitude, latitude });
+
             // Chuẩn hóa dữ liệu
             const dataToSend = {
                 name: updatedData.name.trim(),
                 description: updatedData.description.trim(),
                 address: updatedData.address.trim(),
                 area: updatedData.area.trim(),
-                longitude: updatedData.longitude,
-                latitude: updatedData.latitude,
-                rentalType: 1  // Giá trị mặc định
+                longitude: longitude,
+                latitude: latitude,
+                rentalType: 1
             };
+
+            console.log("Sending data:", dataToSend);
 
             const response = await homestayAPI.updateHomestay(homestayId, dataToSend);
 
@@ -279,8 +353,8 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                     onChange={handleChange}
                                     className={`mt-1 block w-full px-3 py-2 border ${formErrors.name ? 'border-red-500' : 'border-gray-300'
                                         } rounded-md shadow-sm 
-                      focus:outline-none focus:ring-primary focus:border-primary 
-                      dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+                       focus:outline-none focus:ring-primary focus:border-primary 
+                       dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
                                     required
                                 />
                                 {formErrors.name && (
@@ -321,8 +395,8 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                                         x: 4
                                                     }}
                                                     className="px-4 py-3 cursor-pointer hover:bg-primary/5 
-                                                                  dark:hover:bg-primary/20 transition-all duration-300
-                                                                  flex items-center gap-3"
+                                                                   dark:hover:bg-primary/20 transition-all duration-300
+                                                                   flex items-center gap-3"
                                                     onClick={() => handleSelectAddress(result)}
                                                 >
                                                     <FaMapMarkerAlt className="text-primary" />
@@ -335,28 +409,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                     )}
                                 </AnimatePresence>
                             </motion.div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Loại cho thuê
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        name="rentalTypeDisplay"
-                                        value="Nhà nghỉ"
-                                        readOnly={true}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
-                        focus:outline-none focus:ring-primary focus:border-primary 
-                        dark:bg-gray-700 dark:border-gray-600 dark:text-white bg-gray-100 cursor-not-allowed"
-                                    />
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
-                                        Mặc định
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mb-4">
+                            {/* <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Khu vực <span className="text-red-500">*</span>
                                 </label>
@@ -367,15 +420,15 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                     onChange={handleChange}
                                     className={`mt-1 block w-full px-3 py-2 border ${formErrors.area ? 'border-red-500' : 'border-gray-300'
                                         } rounded-md shadow-sm 
-                      focus:outline-none focus:ring-primary focus:border-primary 
-                      dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+                       focus:outline-none focus:ring-primary focus:border-primary 
+                       dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
                                     placeholder="VD: Hồ Chí Minh"
                                     required
                                 />
                                 {formErrors.area && (
                                     <p className="mt-1 text-sm text-red-500">{formErrors.area}</p>
                                 )}
-                            </div>
+                            </div> */}
 
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -388,8 +441,8 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                     rows="4"
                                     className={`mt-1 block w-full px-3 py-2 border ${formErrors.description ? 'border-red-500' : 'border-gray-300'
                                         } rounded-md shadow-sm 
-                      focus:outline-none focus:ring-primary focus:border-primary 
-                      dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+                       focus:outline-none focus:ring-primary focus:border-primary 
+                       dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
                                     placeholder="Mô tả về homestay của bạn..."
                                     required
                                 ></textarea>
@@ -397,6 +450,18 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                     <p className="mt-1 text-sm text-red-500">{formErrors.description}</p>
                                 )}
                             </div>
+
+                            {/* Hidden inputs to store coordinates */}
+                            <input
+                                type="hidden"
+                                name="longitude"
+                                value={formData.longitude}
+                            />
+                            <input
+                                type="hidden"
+                                name="latitude"
+                                value={formData.latitude}
+                            />
 
                             <div className="flex justify-end space-x-3 mt-6">
                                 <button
@@ -409,7 +474,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                 <button
                                     type="submit"
                                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors
-                      flex items-center gap-2"
+                       flex items-center gap-2"
                                 >
                                     <FaEdit className="w-4 h-4" />
                                     Lưu thay đổi
@@ -449,14 +514,14 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                             <button
                                                 onClick={handleCancel}
                                                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors
-                            min-w-[100px]"
+                             min-w-[100px]"
                                             >
                                                 Hủy
                                             </button>
                                             <button
                                                 onClick={handleConfirm}
                                                 className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors
-                            min-w-[100px]"
+                             min-w-[100px]"
                                             >
                                                 Xác nhận
                                             </button>

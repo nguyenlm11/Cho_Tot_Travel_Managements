@@ -18,7 +18,25 @@ const roomAPI = {
             console.error("Error creating room:", error);
             throw error;
         }
-    }
+    },
+    getRoomsByRoomId: async (roomId) => {
+        try {
+            const response = await axiosInstance.get(`/rooms/GetRoom/${roomId}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },
+    updateRoomsByRoomId: async (roomId, data) => {
+        try {
+            const response = await axiosInstance.put(`rooms/UpdateRoom?roomID=${roomId}`, data);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },
 };
 
 export default roomAPI; 
