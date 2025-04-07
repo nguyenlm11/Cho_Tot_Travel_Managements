@@ -1,14 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaMapMarkerAlt, FaStar, FaBed, FaShower, FaWifi, FaParking, FaSwimmingPool, FaUtensils,
     FaEdit, FaChartLine, FaCalendarAlt, FaImages, FaChevronLeft, FaChevronRight, FaRegClock
 } from 'react-icons/fa';
 import { IoPricetag } from 'react-icons/io5';
+import { useParams } from 'react-router-dom';
+import homestayAPI from '../../services/api/homestayAPI';
+import { EditHomestayModal } from '../../components/modals/EditHomestayModal';
 
 const HomestayDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0);
     const [showGallery, setShowGallery] = useState(false);
+    const { id } = useParams();
+    const [homestayData, setHomestayData] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingHomestay, setEditingHomestay] = useState(null);
+    // const [loading, setLoading] = useState(false);
+
+
+    useEffect(() => {
+        if (id) fectchHomestayDetail(id);
+    }, [id]);
+
+    const fectchHomestayDetail = async (id) => {
+        try {
+            // setLoading(true);
+            const response = await homestayAPI.getHomestaysById(id);
+            if (response.statusCode === 200 && response.data)
+                // console.log(response.data.name);
+                setHomestayData(response.data);
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const openEditModal = (homestay) => {
+        setEditingHomestay(homestay);
+        setIsEditModalOpen(true);
+    };
+
+    const closeEditModal = () => {
+        setIsEditModalOpen(false);
+        setEditingHomestay(null);
+    };
 
     const homestay = {
         name: "Sunset Beach Villa",
@@ -85,6 +121,15 @@ const HomestayDetail = () => {
         }
     ];
 
+
+    if (!homestay) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <p className="text-gray-500">Đang tải dữ liệu...</p>
+            </div>
+        );
+    }
+
     return (
         <motion.div
             variants={containerVariants}
@@ -94,16 +139,17 @@ const HomestayDetail = () => {
         >
             {/* Header Section */}
             <div className="bg-white dark:bg-gray-800 shadow-lg mb-8">
+                {/* {homestayApi.map((homestayApi) => { */}
                 <div className="max-w-7xl mx-auto px-4 py-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                                {homestay.name}
+                                {homestayData?.name}
                             </h1>
                             <div className="flex items-center gap-4 text-gray-600 dark:text-gray-300">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 w-[600px]">
                                     <FaMapMarkerAlt className="text-primary" />
-                                    <span>{homestay.location}</span>
+                                    <span className=''>{homestayData?.address}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <IoPricetag className="text-primary" />
@@ -115,6 +161,7 @@ const HomestayDetail = () => {
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
+                                onClick={() => openEditModal(homestayData)}
                                 className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2
                                     hover:bg-primary-dark transition-colors"
                             >
@@ -135,6 +182,7 @@ const HomestayDetail = () => {
                         </div>
                     </div>
                 </div>
+                {/* })} */}
             </div>
 
             {/* Main Content */}
@@ -207,7 +255,25 @@ const HomestayDetail = () => {
                                 Thông tin chi tiết
                             </h2>
                             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                {homestay.description}
+                                {homestayData?.description}
+                            </p>
+                        </motion.div>
+
+
+                        <motion.div
+                            variants={itemVariants}
+                            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
+                        >
+                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+                                Địa chỉ
+                            </h2>
+                            <p className="flex justify-center items-center gap-2">
+                                <span>
+                                    <FaMapMarkerAlt className="text-primary" />
+                                </span>
+                                <span className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                                    {homestayData?.address}
+                                </span>
                             </p>
                         </motion.div>
 
@@ -307,6 +373,16 @@ const HomestayDetail = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <EditHomestayModal
+                isOpen={isEditModalOpen}
+                onClose={closeEditModal}
+                homestay={editingHomestay}
+                // setLoading={setLoading}
+                fetchHomestays={fectchHomestayDetail}
+            />
+
+
         </motion.div>
     );
 };

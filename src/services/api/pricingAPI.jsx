@@ -10,6 +10,15 @@ const pricingAPI = {
             throw error;
         }
     },
+    addPricing: async (data) => {
+        try {
+            const response = await axiosInstance.post(`/homestay/CreatePricing`, data);
+            return response.data;
+        } catch (error) {
+            console.error("Error adding pricing:", error);
+            throw error;
+        }
+    },
     getPricingByID: async (pricingID) => {
         try {
             const response = await axiosInstance.get(`/homestay/GetPricingByID/${pricingID}`);
@@ -20,5 +29,6 @@ const pricingAPI = {
 
         };
     }
+
 }
 export default pricingAPI;

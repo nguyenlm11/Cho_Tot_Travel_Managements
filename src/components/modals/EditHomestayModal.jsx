@@ -362,7 +362,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                 )}
                             </div>
 
-                            <motion.div variants={inputGroupVariants} className="group relative mb-4">
+                            <div variants={inputGroupVariants} className="group relative mb-4">
                                 <label className="text-gray-700 dark:text-gray-300 mb-2 block flex items-center text-sm font-medium">
                                     Địa chỉ <span className="text-red-500 ml-1">*</span>
                                 </label>
@@ -408,7 +408,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </motion.div>
+                            </div>
                             {/* <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Khu vực <span className="text-red-500">*</span>

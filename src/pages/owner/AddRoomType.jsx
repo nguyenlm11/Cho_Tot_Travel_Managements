@@ -26,7 +26,6 @@ const modalVariants = {
 
 const AddRoomType = () => {
     const { id: homestayId, rentalId } = useParams();
-    console.log(rentalId);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);

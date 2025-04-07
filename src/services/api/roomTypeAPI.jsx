@@ -59,11 +59,7 @@ const roomTypeAPI = {
 
     updateRoomType: async (roomTypeId, roomTypeData) => {
         try {
-            const response = await axiosInstance.put(`/RoomType/UpdateRoomType/${roomTypeId}`, roomTypeData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            const response = await axiosInstance.put(`/RoomType/UpdateRoomType?roomID=${roomTypeId}`, roomTypeData);
             return response.data;
         } catch (error) {
             throw error;
