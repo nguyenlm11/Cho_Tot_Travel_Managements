@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaMapMarkerAlt, FaStar, FaBed, FaShower, FaWifi, FaParking, FaSwimmingPool, FaUtensils,
-    FaEdit, FaChartLine, FaCalendarAlt, FaImages, FaChevronLeft, FaChevronRight, FaRegClock
+    FaEdit, FaChartLine, FaCalendarAlt, FaImages, FaChevronLeft, FaChevronRight, FaRegClock,
+    FaClock,
+    FaTag
 } from 'react-icons/fa';
 import { IoPricetag } from 'react-icons/io5';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import homestayAPI from '../../services/api/homestayAPI';
 import { EditHomestayModal } from '../../components/modals/EditHomestayModal';
+import { formatDate } from '../../utils/utils';
+import { FaTicket } from 'react-icons/fa6';
 
 const HomestayDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0);
@@ -121,6 +125,19 @@ const HomestayDetail = () => {
         }
     ];
 
+    const navigate = useNavigate();
+    const handleViewService = () => {
+        navigate(`/owner/homestays/${homestayData?.homeStayID}/services`);
+    }
+    const handleViewBookingList = () => {
+        navigate(`/owner/homestays/${homestayData?.homeStayID}/bookings`);
+    }
+    const handleViewRating = () => {
+        navigate(`/owner/homestays/${homestayData?.homeStayID}/ratings`);
+    }
+    const handleViewDashboard = () => {
+        navigate(`/owner/homestays/${homestayData?.homeStayID}/dashboard`);
+    }
 
     if (!homestay) {
         return (
@@ -216,7 +233,7 @@ const HomestayDetail = () => {
                             variants={itemVariants}
                             className="grid grid-cols-1 md:grid-cols-2"
                         >
-                            {homestay.images.slice(0, 4).map((image, index) => (
+                            {homestayData?.imageHomeStays.map((image, index) => (
                                 <div
                                     key={index}
                                     className="relative h-50 overflow-hidden cursor-pointer group"
@@ -226,16 +243,16 @@ const HomestayDetail = () => {
                                     }}
                                 >
                                     <img
-                                        src={image}
+                                        src={image?.image}
                                         alt={`${homestay.name} ${index + 1}`}
-                                        className="w-full h-full object-cover transition-transform duration-300 
+                                        className="w-full h-[300px] object-cover transition-transform duration-300 
                                             group-hover:scale-110"
                                     />
-                                    {index === 3 && homestay.images.length > 4 && (
+                                    {index === 3 && homestayData?.imageHomeStays > 4 && (
                                         <div className="absolute inset-0 bg-black/60 flex items-center 
                                             justify-center group-hover:bg-black/70 transition-colors">
                                             <div className="text-white text-center">
-                                                <span className="text-3xl font-bold">+{homestay.images.length - 4}</span>
+                                                <span className="text-3xl font-bold">+{homestayData?.imageHomeStays - 4}</span>
                                                 <p className="text-sm">ảnh khác</p>
                                             </div>
                                         </div>
@@ -251,16 +268,28 @@ const HomestayDetail = () => {
                             variants={itemVariants}
                             className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-                                Thông tin chi tiết
-                            </h2>
+                            <div className='flex justify-between items-center'>
+                                <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+                                    Thông tin chi tiết
+                                </h2>
+                                <div className='flex items-center justify-center gap-2 -mt-2'>
+                                    <span>
+                                        <FaClock color='gray' />
+                                    </span>
+                                    <span className='text-gray-500'>
+                                        Ngày khởi tạo: {formatDate(homestayData?.createAt)}
+                                    </span>
+
+                                </div>
+                            </div>
+
                             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                                 {homestayData?.description}
                             </p>
                         </motion.div>
 
 
-                        <motion.div
+                        {/* <motion.div
                             variants={itemVariants}
                             className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
                         >
@@ -275,7 +304,7 @@ const HomestayDetail = () => {
                                     {homestayData?.address}
                                 </span>
                             </p>
-                        </motion.div>
+                        </motion.div> */}
 
                         {/* Amenities */}
                         <motion.div
@@ -312,20 +341,33 @@ const HomestayDetail = () => {
                                 Thao tác nhanh
                             </h3>
                             <div className="space-y-3">
-                                <button className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
+                                <button
+                                    onClick={handleViewBookingList}
+                                    className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
                                     font-medium hover:bg-primary/20 transition-colors flex items-center gap-2">
                                     <FaCalendarAlt />
                                     Xem lịch đặt phòng
                                 </button>
-                                <button className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
+                                <button
+                                    onClick={handleViewDashboard}
+                                    className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
                                     font-medium hover:bg-primary/20 transition-colors flex items-center gap-2">
                                     <FaChartLine />
                                     Báo cáo doanh thu
                                 </button>
-                                <button className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
+                                <button
+                                    onClick={handleViewRating}
+                                    className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
                                     font-medium hover:bg-primary/20 transition-colors flex items-center gap-2">
                                     <FaStar />
                                     Xem đánh giá
+                                </button>
+                                <button
+                                    onClick={handleViewService}
+                                    className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
+                                    font-medium hover:bg-primary/20 transition-colors flex items-center gap-2">
+                                    <FaTag />
+                                    Xem dịch vụ
                                 </button>
                             </div>
                         </div>
@@ -351,20 +393,20 @@ const HomestayDetail = () => {
                         </button>
                         <button
                             onClick={() => setSelectedImage(prev =>
-                                prev > 0 ? prev - 1 : homestay.images.length - 1)}
+                                prev > 0 ? prev - 1 : homestayData?.imageHomeStays.length - 1)}
                             className="absolute left-4 top-1/2 -translate-y-1/2 text-white 
                                 bg-black/50 p-2 rounded-full hover:bg-black/70 transition-colors"
                         >
                             <FaChevronLeft />
                         </button>
                         <img
-                            src={homestay.images[selectedImage]}
-                            alt={homestay.name}
+                            src={homestayData?.imageHomeStays[selectedImage]?.image}
+                            alt={homestayData?.name}
                             className="max-w-full max-h-[90vh] object-contain"
                         />
                         <button
                             onClick={() => setSelectedImage(prev =>
-                                prev < homestay.images.length - 1 ? prev + 1 : 0)}
+                                prev < homestayData?.imageHomeStays.length - 1 ? prev + 1 : 0)}
                             className="absolute right-4 top-1/2 -translate-y-1/2 text-white 
                                 bg-black/50 p-2 rounded-full hover:bg-black/70 transition-colors"
                         >

@@ -216,7 +216,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaBed className="mr-1 text-gray-400" />
-                                                            Giường <span className="text-red-500">*</span>
+                                                            Giường <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -237,7 +237,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaBath className="mr-1 text-gray-400" />
-                                                            Phòng tắm <span className="text-red-500">*</span>
+                                                            Phòng tắm <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -258,7 +258,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaWifi className="mr-1 text-gray-400" />
-                                                            Wifi <span className="text-red-500">*</span>
+                                                            Wifi <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -288,7 +288,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaUser className="mr-1 text-gray-400" />
-                                                            Người lớn <span className="text-red-500">*</span>
+                                                            Người lớn <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -309,7 +309,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaChild className="mr-1 text-gray-400" />
-                                                            Trẻ em <span className="text-red-500">*</span>
+                                                            Trẻ em <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -330,7 +330,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaUsers className="mr-1 text-gray-400" />
-                                                            Tổng <span className="text-red-500">*</span>
+                                                            Tổng <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"

@@ -12,9 +12,10 @@ const roomTypeAPI = {
 
     getRoomTypeDetail: async (roomTypeId) => {
         try {
-            const response = await axiosInstance.get(`/roomtype/GetRoomTypeDetail/${roomTypeId}`);
+            const response = await axiosInstance.get(`/RoomType/GetRoomTypeDetail/${roomTypeId}`);
             return response.data;
         } catch (error) {
+            console.log(error);
             throw error;
         }
     },
