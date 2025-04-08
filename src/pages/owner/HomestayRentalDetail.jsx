@@ -9,6 +9,7 @@ import pricingAPI from '../../services/api/pricingAPI';
 import axiosInstance from '../../services/config';
 import AddPricingModal from '../../components/modals/AddPricingModal';
 import EditRoomTypeModal from '../../components/modals/EditRoomTypeModal';
+import { MdManageSearch } from 'react-icons/md';
 
 // Animation variants (giữ nguyên như code ban đầu)
 const pageVariants = {
@@ -742,10 +743,16 @@ const HomestayRentalDetail = () => {
                                                                                     <FaEdit className="inline mr-1" /> Chỉnh sửa
                                                                                 </div>
                                                                                 <Link
+                                                                                    to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/infor`}
+                                                                                    className="text-blue-500 hover:text-blue-700 transition-colors flex items-center"
+                                                                                >
+                                                                                    <FaEye className="inline mr-1" /> Chi tiết
+                                                                                </Link>
+                                                                                <Link
                                                                                     to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/rooms`}
                                                                                     className="text-blue-500 hover:text-blue-700 transition-colors flex items-center"
                                                                                 >
-                                                                                    <FaEdit className="inline mr-1" /> Quản lý
+                                                                                    <MdManageSearch className="inline mr-1" /> Quản lý
                                                                                 </Link>
                                                                             </div>
                                                                         </div>
@@ -870,7 +877,7 @@ const HomestayRentalDetail = () => {
 
                                     {rental?.rentWhole === false && (
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-600 dark:text-gray-400">Số loại phòng:</span>
+                                            <span className="text-gray-600 dark:text-gray-400">Tổng số loại phòng:</span>
                                             <motion.span
                                                 whileHover={{ scale: 1.05 }}
                                                 className="px-3 py-1 bg-primary/10 text-primary rounded-full font-medium"

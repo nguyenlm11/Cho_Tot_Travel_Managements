@@ -92,4 +92,8 @@ export const ownerRoutes = [
     path: 'homestays/:homestayId/rentals/:rentalId/editHomestayRental',
     element: <EditHomestayRental />
   },
+  {
+    path: 'homestays/:homestayId/rentals/:rentalId/room-types/:roomTypeId/infor',
+    element: <RoomTypeDetail />
+  }
 ]; 
