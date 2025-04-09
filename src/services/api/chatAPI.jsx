@@ -1,30 +1,20 @@
 import axiosInstance from '../config';
 
 const chatAPI = {
-  // Lấy danh sách cuộc trò chuyện cho một homestay
   getConversations: async (homestayId) => {
     try {
       const response = await axiosInstance.get(`/Chat/conversations/by-homestay/${homestayId}`);
-
       console.log('Raw API response:', response.data);
-
-      // Handle case where response might not be an array
       if (!response.data) {
         console.warn('Empty response from API');
         return [];
       }
-
-      // Ensure we're working with an array
       const dataArray = Array.isArray(response.data) ? response.data : [response.data];
-
-      // Map the data to the expected format
       return dataArray.map(conv => {
-        // Add null checks for all properties
         if (!conv) return null;
 
         const otherUser = conv.otherUser || {};
         const lastMessage = conv.lastMessage || {};
-
         return {
           conversationId: conv.conversationID,
           id: otherUser.accountID || `unknown-${Date.now()}`,
@@ -148,7 +138,6 @@ const chatAPI = {
 // Hàm định dạng thời gian
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return 'Không có';
-
   try {
     const date = new Date(timestamp);
     const now = new Date();

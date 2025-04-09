@@ -7,6 +7,7 @@ import OTPVerification from '../pages/auth/OTPVerification';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { ownerRoutes } from './ownerRoutes';
 import { adminRoutes } from './adminRoutes';
+import PaymentCallback from '../pages/vnpay/PaymentCallback';
 
 export const routes = [
   {
@@ -24,6 +25,14 @@ export const routes = [
   {
     path: '/verify-otp',
     element: <OTPVerification />
+  },
+  {
+    path: '/paymentsuccess',
+    element: <PaymentCallback />
+  },
+  {
+    path: '/api/booking-checkout/BookingPayment',
+    element: <PaymentCallback />
   },
   {
     path: '/owner/*',
