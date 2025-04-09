@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       '/chatHub': {
         target: 'https://hungnv.iselab.cloud:7221',
+        // target: 'https://localhost:7221',
         changeOrigin: true,
         secure: false,
         ws: true,

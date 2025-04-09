@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { IoClose } from 'react-icons/io5';
-import pricingAPI from '../../services/api/pricingAPI';
+// import pricingAPI from '../../services/api/pricingAPI';
 import { FaCalendarAlt, FaDollarSign, FaEdit, FaInfoCircle, FaMoneyBillWave, FaTag } from 'react-icons/fa';
 
 

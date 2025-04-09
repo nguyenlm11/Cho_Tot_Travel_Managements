@@ -89,10 +89,17 @@ const RoomTypeDetail = () => {
         setIsEditPricingModalOpen(true);
 
     };
+    console.log(roomTypeDetailData);
 
     const handleUpdatePricing = async (updatedPricing) => {
         const formatData = { ...updatedPricing, roomTypesID: +roomTypeId, homeStayRentalID: +rentalId }
         if (updatedPricing?.pricingID) {
+            if (roomTypeDetailData?.pricings
+                ?.filter(item => item?.pricingID != updatedPricing?.pricingID)
+                ?.find(item => (item?.dayType == 0 && updatedPricing?.dayType == 0) || (item?.dayType == 1 && updatedPricing?.dayType == 1))) {
+                toast.error(`Gói ${updatedPricing?.dayType == 0 ? "ngày thường" : "ngày cuối tuần"} đã tồn tại`);
+                return;
+            }
             try {
                 const res = await pricingAPI.updatePricing(formatData.pricingID, formatData);
                 if (res.statusCode === 200) {
