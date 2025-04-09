@@ -82,6 +82,7 @@ const roomTypeVariants = {
     }
 };
 
+
 const HomestayRentalDetail = () => {
     const { id: homestayId, rentalId } = useParams();
     const navigate = useNavigate();
@@ -108,6 +109,8 @@ const HomestayRentalDetail = () => {
         restDelta: 0.001
     });
 
+    // console.log(rental);
+
     const headerOpacity = useTransform(
         physicsScroll,
         [0, 100],
@@ -129,6 +132,7 @@ const HomestayRentalDetail = () => {
             minute: '2-digit'
         });
     };
+
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -265,6 +269,7 @@ const HomestayRentalDetail = () => {
             }
         }
     }
+    
 
     const handleAddPricing = async (data) => {
         const formatData = { ...data, homeStayRentalID: rentalId }
@@ -650,6 +655,7 @@ const HomestayRentalDetail = () => {
                                                     </motion.button>
                                                 </div>
 
+
                                                 {rental?.roomTypes && rental.roomTypes.length > 0 ? (
                                                     <>
                                                         <div className="space-y-6">
@@ -712,7 +718,7 @@ const HomestayRentalDetail = () => {
 
                                                                             <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
                                                                                 <FaRegCalendarAlt className="mr-1" />
-                                                                                <span>Ngày tạo: {formatDate(roomType.createAt)}</span>
+                                                                                <span>Ngày tạo: {formatDate(roomType?.createAt)}</span>
                                                                             </div>
 
                                                                             {roomType.pricings && roomType.pricings.length > 0 ? (
@@ -892,7 +898,7 @@ const HomestayRentalDetail = () => {
                                             <span className="text-gray-600 dark:text-gray-400">Tổng số loại phòng:</span>
                                             <motion.span
                                                 whileHover={{ scale: 1.05 }}
-                                                className="px-3 py-1 bg-primary/10 text-primary rounded-full font-medium"
+                                                className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium"
                                             >
                                                 {(rental?.roomTypes?.length || 0)}
                                             </motion.span>
@@ -907,6 +913,24 @@ const HomestayRentalDetail = () => {
                                             {rental?.imageHomeStayRentals?.length || 0}
                                         </motion.span>
                                     </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 dark:text-gray-400">Giá ngày thường:</span>
+                                        <motion.span
+                                            whileHover={{ scale: 1.05 }}
+                                            className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium"
+                                        >
+                                            {rental?.rentWhole ? (
+                                                <p className="text-xl font-bold">
+                                                    {formatPrice(rental?.pricing[0]?.rentPrice)}
+                                                </p>
+                                            ) : (
+                                                <p className="text-md text-gray-500 dark:text-gray-200">
+                                                    Giá theo loại phòng
+                                                </p>
+                                            )}
+                                        </motion.span>
+                                    </div>
+
                                 </div>
 
                                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
