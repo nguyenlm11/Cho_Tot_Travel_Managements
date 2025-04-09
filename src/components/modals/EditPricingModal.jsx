@@ -41,7 +41,6 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen }) => {
                 homeStayRentalID: formData.homeStayRentalID,
                 roomTypesID: formData.roomTypesID,
             };
-
             onSave(updatedData);
         } catch (error) {
             console.error('Error updating pricing:', error);

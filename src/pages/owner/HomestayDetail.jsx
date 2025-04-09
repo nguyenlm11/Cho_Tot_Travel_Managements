@@ -6,12 +6,16 @@ import {
     FaClock,
     FaTag
 } from 'react-icons/fa';
+import { HiOutlineReceiptRefund } from "react-icons/hi";
 import { IoPricetag } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
 import homestayAPI from '../../services/api/homestayAPI';
 import { EditHomestayModal } from '../../components/modals/EditHomestayModal';
 import { formatDate } from '../../utils/utils';
 import { FaTicket } from 'react-icons/fa6';
+import AddpolicyModal from '../../components/modals/AddPolicyModal';
+import EditPolicyModal from '../../components/modals/EditPolicyModal';
+import toast, { Toaster } from 'react-hot-toast';
 
 const HomestayDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0);
@@ -21,13 +25,14 @@ const HomestayDetail = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingHomestay, setEditingHomestay] = useState(null);
     // const [loading, setLoading] = useState(false);
-
+    const [isAddPolicyModalOpen, setIsAddPolicyModalOpen] = useState(false);
+    const [isEditPolicyModalOpen, setIsEditPolicyModalOpen] = useState(false);
 
     useEffect(() => {
-        if (id) fectchHomestayDetail(id);
+        if (id) fectchHomestayDetail();
     }, [id]);
 
-    const fectchHomestayDetail = async (id) => {
+    const fectchHomestayDetail = async () => {
         try {
             // setLoading(true);
             const response = await homestayAPI.getHomestaysById(id);
@@ -154,6 +159,7 @@ const HomestayDetail = () => {
             animate="visible"
             className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-12"
         >
+            <Toaster />
             {/* Header Section */}
             <div className="bg-white dark:bg-gray-800 shadow-lg mb-8">
                 {/* {homestayApi.map((homestayApi) => { */}
@@ -289,23 +295,41 @@ const HomestayDetail = () => {
                         </motion.div>
 
 
-                        {/* <motion.div
+                        {homestayData?.cancelPolicy && (<motion.div
                             variants={itemVariants}
                             className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-                                Địa chỉ
+                            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-5">
+                                Chính sách hoàn trả
                             </h2>
-                            <p className="flex justify-center items-center gap-2">
-                                <span>
-                                    <FaMapMarkerAlt className="text-primary" />
-                                </span>
-                                <span className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                    {homestayData?.address}
-                                </span>
-                            </p>
-                        </motion.div> */}
 
+                            <div className='flex justify-between items-center mb-3'>
+                                <div className='flex items-center justify-center gap-2 -mt-2'>
+                                    <span>
+                                        <FaClock color='gray' />
+                                    </span>
+                                    <span className='text-gray-500'>
+                                        Ngày khởi tạo: {formatDate(homestayData?.cancelPolicy?.createAt)}
+                                    </span>
+                                </div>
+                                <div className='flex items-center justify-center gap-2 -mt-2'>
+                                    <span>
+                                        <FaClock color='gray' />
+                                    </span>
+                                    <span className='text-gray-500'>
+                                        Ngày cập nhật: {formatDate(homestayData?.cancelPolicy?.updateAt)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p className='text-gray-600 dark:text-gray-300 leading-relaxed mb-3'>
+                                Hủy trước: {homestayData?.cancelPolicy?.dayBeforeCancel} ngày
+                            </p>
+                            <p className='text-gray-600 dark:text-gray-300 leading-relaxed'>
+                                Tỉ lệ hoàn trả: {homestayData?.cancelPolicy?.refundPercentage * 100}%
+                            </p>
+
+                        </motion.div>)}
                         {/* Amenities */}
                         <motion.div
                             variants={itemVariants}
@@ -369,6 +393,13 @@ const HomestayDetail = () => {
                                     <FaTag />
                                     Xem dịch vụ
                                 </button>
+                                <button
+                                    onClick={() => homestayData?.cancelPolicy ? setIsEditPolicyModalOpen(true) : setIsAddPolicyModalOpen(true)}
+                                    className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
+                                    font-medium hover:bg-primary/20 transition-colors flex items-center gap-2">
+                                    <HiOutlineReceiptRefund />
+                                    {homestayData?.cancelPolicy ? "Cập nhật chính sách hoàn trả" : "Thêm chính sách hoàn trả"}
+                                </button>
                             </div>
                         </div>
                     </motion.div>
@@ -423,8 +454,23 @@ const HomestayDetail = () => {
                 // setLoading={setLoading}
                 fetchHomestays={fectchHomestayDetail}
             />
+            {isAddPolicyModalOpen && (
+                <AddpolicyModal
+                    isOpen={isAddPolicyModalOpen}
+                    onClose={() => setIsAddPolicyModalOpen(false)}
+                    homeStayID={homestayData?.homeStayID}
+                    fetchHomestay={fectchHomestayDetail}
+                />
+            )}
 
-
+            {isEditPolicyModalOpen && (
+                <EditPolicyModal
+                    isOpen={isEditPolicyModalOpen}
+                    onClose={() => setIsEditPolicyModalOpen(false)}
+                    cancelPolicy={homestayData?.cancelPolicy}
+                    fetchHomestay={fectchHomestayDetail}
+                />
+            )}
         </motion.div>
     );
 };

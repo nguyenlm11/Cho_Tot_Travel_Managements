@@ -37,6 +37,7 @@ const cardVariants = {
     }
 };
 
+
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
     const searchInputRef = useRef(null);
 
@@ -186,6 +187,7 @@ const HomestayRentalCard = ({ rental, onEdit, onDelete }) => {
             currency: 'VND'
         }).format(price || 0);
     };
+
 
     // Lấy giá đầu tiên trong mảng pricing (nếu có)
     const firstPricing = rental.pricing && rental.pricing.length > 0 ? rental.pricing[0] : null;

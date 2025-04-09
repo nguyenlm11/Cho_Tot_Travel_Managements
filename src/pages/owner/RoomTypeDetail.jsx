@@ -89,10 +89,17 @@ const RoomTypeDetail = () => {
         setIsEditPricingModalOpen(true);
 
     };
+    console.log(roomTypeDetailData);
 
     const handleUpdatePricing = async (updatedPricing) => {
         const formatData = { ...updatedPricing, roomTypesID: +roomTypeId, homeStayRentalID: +rentalId }
         if (updatedPricing?.pricingID) {
+            if (roomTypeDetailData?.pricings
+                ?.filter(item => item?.pricingID != updatedPricing?.pricingID)
+                ?.find(item => (item?.dayType == 0 && updatedPricing?.dayType == 0) || (item?.dayType == 1 && updatedPricing?.dayType == 1))) {
+                toast.error(`Gói ${updatedPricing?.dayType == 0 ? "ngày thường" : "ngày cuối tuần"} đã tồn tại`);
+                return;
+            }
             try {
                 const res = await pricingAPI.updatePricing(formatData.pricingID, formatData);
                 if (res.statusCode === 200) {
@@ -463,6 +470,25 @@ const RoomTypeDetail = () => {
                                             {roomTypeDetailData?.imageRoomTypes?.length || 0}
                                         </motion.span>
                                     </div>
+
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 dark:text-gray-400">Giá ngày thường:</span>
+                                        <motion.span
+                                            whileHover={{ scale: 1.05 }}
+                                            className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium"
+                                        >
+                                            {roomTypeDetailData?.pricings?.length > 0 ? (
+                                                <p className="text-xl font-bold">
+                                                    {formatPrice(roomTypeDetailData?.pricings[0]?.rentPrice)}
+                                                </p>
+                                            ) : (
+                                                <p className="text-lg text-gray-600 dark:text-gray-400">
+                                                    Giá theo loại phòng
+                                                </p>
+                                            )}
+                                        </motion.span>
+                                    </div>
+
                                 </div>
 
                                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
