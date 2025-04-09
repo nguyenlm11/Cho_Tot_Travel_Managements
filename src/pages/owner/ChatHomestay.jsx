@@ -217,6 +217,7 @@ const ChatHomestay = () => {
                         avatar: `https://ui-avatars.com/api/?name=Customer&background=random`,
                         lastMessage: message.content,
                         timestamp: 'Vừa xong',
+                        lastMessageTime: message.sentAt || new Date().toISOString(),
                         unread: isViewingConversation ? 0 : 1,
                         isOnline: false
                     },
@@ -228,18 +229,16 @@ const ChatHomestay = () => {
                     ...updatedList[existingIndex],
                     lastMessage: message.content,
                     timestamp: 'Vừa xong',
+                    lastMessageTime: message.sentAt || new Date().toISOString(),
                     unread: isViewingConversation
                         ? updatedList[existingIndex].unread
                         : (updatedList[existingIndex].unread || 0) + 1
                 };
-                if (existingIndex > 0) {
-                    const conversation = updatedList[existingIndex];
-                    updatedList.splice(existingIndex, 1);
-                    updatedList.unshift(conversation);
-                }
+                const conversation = updatedList[existingIndex];
+                updatedList.splice(existingIndex, 1);
+                updatedList.unshift(conversation);
                 return updatedList;
             }
-
             return prevCustomers;
         });
     }, [selectedCustomerId]);
@@ -267,7 +266,18 @@ const ChatHomestay = () => {
                 const conversations = await chatAPI.getConversations(homestayId);
                 if (isMounted) {
                     const conversationsArray = Array.isArray(conversations) ? conversations : [];
-                    setCustomers(conversationsArray);
+                    console.log("conversationsArray", conversationsArray);
+                    const sortedConversations = conversationsArray.sort((a, b) => {
+                        if (a.timestamp && b.timestamp) {
+                            return new Date(b.timestamp) - new Date(a.timestamp);
+                        }
+                        if (a.updatedAt && b.updatedAt) {
+                            return new Date(b.updatedAt) - new Date(a.updatedAt);
+                        }
+                        return 0;
+                    });
+
+                    setCustomers(sortedConversations);
                     setIsLoadingConversations(false);
                 }
                 return () => { };
@@ -311,7 +321,12 @@ const ChatHomestay = () => {
         setCustomers(prev =>
             prev.map(customer =>
                 customer.id === selectedCustomerId
-                    ? { ...customer, lastMessage: messageText.trim() || 'Đã gửi hình ảnh', timestamp: 'Vừa xong' }
+                    ? {
+                        ...customer,
+                        lastMessage: messageText.trim() || 'Đã gửi hình ảnh',
+                        timestamp: 'Vừa xong',
+                        lastMessageTime: new Date().toISOString()
+                    }
                     : customer
             )
         );
@@ -390,7 +405,6 @@ const ChatHomestay = () => {
                 }
             }
         };
-
         loadMessages();
     }, [selectedCustomerId]);
 
@@ -402,17 +416,37 @@ const ChatHomestay = () => {
         }
     }, []);
 
+    const filteredCustomers = useMemo(() => {
+        if (!searchTerm.trim()) return customers;
+
+        const filtered = customers.filter(customer =>
+            customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (customer.lastMessage && customer.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+
+        return filtered.sort((a, b) => {
+            if (a.lastMessageTime && b.lastMessageTime) {
+                return new Date(b.lastMessageTime) - new Date(a.lastMessageTime);
+            }
+            return 0;
+        });
+    }, [customers, searchTerm]);
+
     const selectedCustomer = customers.find(customer => customer.id === selectedCustomerId);
     return (
         <div className="h-[calc(100vh-theme(spacing.16)-theme(spacing.16))] flex overflow-hidden">
             <Toaster position="bottom-right" />
+
             {isLoadingConversations && (
-                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl flex items-center gap-4">
-                        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl flex items-center gap-5 max-w-md transform transition-all duration-300 scale-100">
+                        <div className="relative w-12 h-12">
+                            <div className="absolute inset-0 rounded-full border-t-4 border-primary dark:border-primary-dark border-r-4 border-transparent animate-spin"></div>
+                            <div className="absolute inset-3 rounded-full border-t-4 border-primary-light dark:border-primary-light border-l-4 border-transparent animate-spin animation-delay-500"></div>
+                        </div>
                         <div>
-                            <p className="font-medium text-gray-800 dark:text-white">Đang tải cuộc trò chuyện</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Vui lòng đợi trong giây lát...</p>
+                            <p className="font-medium text-gray-800 dark:text-white text-lg">Đang kết nối</p>
+                            <p className="text-gray-500 dark:text-gray-400">Đang tải cuộc trò chuyện, vui lòng đợi trong giây lát...</p>
                         </div>
                     </div>
                 </div>
@@ -420,27 +454,27 @@ const ChatHomestay = () => {
 
             {/* Danh sách cuộc trò chuyện - fixed width */}
             <div className="w-[350px] h-full flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-                <div className="h-14 flex items-center px-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-                    <h2 className="text-lg font-medium text-gray-800 dark:text-white">Trò chuyện</h2>
+                <div className="h-16 flex items-center px-5 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 bg-gray-50 dark:bg-gray-800">
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Trò chuyện</h2>
                 </div>
 
                 {/* Search box */}
-                <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                     <div className="relative">
                         <input
                             type="text"
                             placeholder="Tìm kiếm khách hàng..."
-                            className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                         {searchTerm && (
                             <button
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                                 onClick={() => setSearchTerm('')}
                             >
-                                <IoClose />
+                                <IoClose size={18} />
                             </button>
                         )}
                     </div>
@@ -448,21 +482,21 @@ const ChatHomestay = () => {
 
                 {/* Danh sách cuộc trò chuyện - scrollable */}
                 <div className="flex-1 overflow-y-auto scrollbar-none hover:scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-500">
-                    {customers.length > 0 ? (
+                    {filteredCustomers.length > 0 ? (
                         <div className="py-2">
-                            {customers.map(customer => (
+                            {filteredCustomers.map(customer => (
                                 <div
                                     key={customer.id}
                                     onClick={() => setSelectedCustomerId(customer.id)}
-                                    className={`px-3 py-2 flex items-center gap-3 cursor-pointer transition-colors
-                                        hover:bg-gray-100 dark:hover:bg-gray-700 
-                                        ${selectedCustomerId === customer.id ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                                    className={`px-4 py-3 flex items-center gap-3 cursor-pointer transition-all duration-200
+                                        hover:bg-gray-50 dark:hover:bg-gray-700 
+                                        ${selectedCustomerId === customer.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-primary dark:border-primary-dark' : 'border-l-4 border-transparent'}`}
                                 >
                                     <div className="relative flex-shrink-0">
                                         <img
                                             src={customer.avatar}
                                             alt={customer.name}
-                                            className="w-12 h-12 rounded-full object-cover"
+                                            className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm"
                                         />
                                         {customer.isOnline && (
                                             <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white dark:ring-gray-800"></span>
@@ -476,7 +510,7 @@ const ChatHomestay = () => {
                                         <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{customer.lastMessage}</p>
                                     </div>
                                     {customer.unread > 0 && (
-                                        <span className="flex-shrink-0 min-w-5 h-5 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center px-1.5">
+                                        <span className="flex-shrink-0 w-6 h-6 bg-primary dark:bg-primary-dark text-white rounded-full text-xs flex items-center justify-center">
                                             {customer.unread}
                                         </span>
                                     )}
@@ -484,8 +518,22 @@ const ChatHomestay = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="p-6 text-center text-gray-500 dark:text-gray-400">
-                            {searchTerm ? 'Không tìm thấy khách hàng phù hợp' : 'Chưa có cuộc trò chuyện nào'}
+                        <div className="p-6 text-center text-gray-500 dark:text-gray-400 mt-8">
+                            {searchTerm ? (
+                                <>
+                                    <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
+                                        <FaSearch className="text-gray-400 dark:text-gray-500 text-xl" />
+                                    </div>
+                                    <p>Không tìm thấy cuộc trò chuyện phù hợp</p>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
+                                        <FaRegSmile className="text-gray-400 dark:text-gray-500 text-xl" />
+                                    </div>
+                                    <p>Chưa có cuộc trò chuyện nào</p>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
@@ -495,25 +543,26 @@ const ChatHomestay = () => {
             <div className="flex-1 h-full flex flex-col bg-[#f5f6f7] dark:bg-gray-900">
                 {selectedCustomer ? (
                     <>
-                        <div className="h-14 px-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
+                        {/* Header cuộc trò chuyện */}
+                        <div className="h-16 px-5 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <div className="relative">
                                     <img
                                         src={selectedCustomer.avatar}
                                         alt={selectedCustomer.name}
-                                        className="w-10 h-10 rounded-full object-cover"
+                                        className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
                                     />
                                     {selectedCustomer.isOnline && (
                                         <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white dark:ring-gray-800"></span>
                                     )}
                                 </div>
                                 <div>
-                                    <h3 className="font-medium text-gray-900 dark:text-white">{selectedCustomer.name}</h3>
+                                    <h3 className="font-semibold text-gray-900 dark:text-white">{selectedCustomer.name}</h3>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                         {selectedCustomer.isOnline ? (
                                             <>
                                                 <FaCircle className="w-2 h-2 text-green-500" />
-                                                Đang hoạt động
+                                                <span>Đang hoạt động</span>
                                             </>
                                         ) : (
                                             'Không hoạt động'
@@ -526,30 +575,33 @@ const ChatHomestay = () => {
                         {/* Khu vực tin nhắn - scrollable */}
                         <div
                             ref={chatContainerRef}
-                            className="flex-1 overflow-y-auto scrollbar-none hover:scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-500 p-4 flex flex-col gap-2 scroll-smooth"
+                            className="flex-1 overflow-y-auto scrollbar-none hover:scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-500 p-5 flex flex-col gap-2 scroll-smooth bg-gray-50 dark:bg-gray-900"
                             id="chat-container"
                         >
                             {isLoadingMessages ? (
                                 <div className="flex items-center justify-center h-full">
-                                    <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-10 h-10 border-4 border-primary dark:border-primary-dark border-t-transparent rounded-full animate-spin mb-3"></div>
+                                        <p className="text-gray-500 dark:text-gray-400">Đang tải tin nhắn...</p>
+                                    </div>
                                 </div>
                             ) : (
                                 <>
                                     {hasMoreMessages && (
-                                        <div className="flex justify-center mb-4 sticky top-0 z-10">
+                                        <div className="flex justify-center mb-4 sticky z-10">
                                             <button
                                                 onClick={loadMoreMessages}
                                                 disabled={isLoadingMore}
-                                                className="px-4 py-2 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm flex items-center gap-2"
+                                                className="px-4 py-2 bg-white dark:bg-gray-800 text-primary dark:text-primary-dark rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm flex items-center gap-2"
                                             >
                                                 {isLoadingMore ? (
                                                     <>
-                                                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                                        Đang tải...
+                                                        <div className="w-4 h-4 border-2 border-primary dark:border-primary-dark border-t-transparent rounded-full animate-spin"></div>
+                                                        <span>Đang tải...</span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        Xem thêm {Math.min(messages.length - visibleMessages, 30)} tin nhắn cũ hơn
+                                                        <span>Xem thêm {Math.min(messages.length - visibleMessages, 30)} tin nhắn cũ hơn</span>
                                                     </>
                                                 )}
                                             </button>
@@ -571,7 +623,7 @@ const ChatHomestay = () => {
                                                         <img
                                                             src={selectedCustomer.avatar}
                                                             alt={selectedCustomer.name}
-                                                            className="w-8 h-8 rounded-full"
+                                                            className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700"
                                                         />
                                                     </div>
                                                 )}
@@ -579,11 +631,11 @@ const ChatHomestay = () => {
                                                     <div className="w-8 h-8 mr-2 flex-shrink-0"></div>
                                                 )}
                                                 <div
-                                                    className={`max-w-[75%] px-3 py-2 ${isFirstInGroup ? 'rounded-t-2xl' : 'rounded-t-md'} 
+                                                    className={`max-w-[75%] px-4 py-2.5 ${isFirstInGroup ? 'rounded-t-2xl' : 'rounded-t-md'} 
                                                         ${isLastInGroup ? 'rounded-b-2xl' : 'rounded-b-md'}
                                                         ${message.sender === 'owner' ?
-                                                            `${isFirstInGroup ? 'rounded-tr-sm' : 'rounded-tr-md'} bg-[#0084ff] text-white` :
-                                                            `${isFirstInGroup ? 'rounded-tl-sm' : 'rounded-tl-md'} bg-white dark:bg-gray-700 text-gray-800 dark:text-white`}`}
+                                                            `${isFirstInGroup ? 'rounded-tr-sm' : 'rounded-tr-md'} bg-primary dark:bg-primary-dark text-white shadow-sm` :
+                                                            `${isFirstInGroup ? 'rounded-tl-sm' : 'rounded-tl-md'} bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm`}`}
                                                 >
                                                     {(() => {
                                                         const { hasImages, content } = parseMessageContent(message.text);
@@ -595,7 +647,7 @@ const ChatHomestay = () => {
                                                                         <img
                                                                             src={item.url}
                                                                             alt="Hình ảnh"
-                                                                            className="rounded-lg max-h-60 w-auto cursor-pointer"
+                                                                            className="rounded-lg max-h-60 w-auto cursor-pointer hover:opacity-95 transition-opacity"
                                                                             onClick={() => window.open(item.url, '_blank')}
                                                                             onLoad={() => {
                                                                                 const container = document.getElementById('chat-container');
@@ -629,9 +681,16 @@ const ChatHomestay = () => {
                                         );
                                     }) : (
                                         <div className="flex items-center justify-center h-full text-center">
-                                            <div>
-                                                <FaRegSmile className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                                                <p className="text-gray-500 dark:text-gray-400">Chưa có tin nhắn nào. Bắt đầu cuộc trò chuyện với khách hàng!</p>
+                                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm max-w-md">
+                                                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                    <FaRegSmile className="w-10 h-10 text-gray-300 dark:text-gray-500" />
+                                                </div>
+                                                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                                    Chưa có tin nhắn nào
+                                                </h3>
+                                                <p className="text-gray-500 dark:text-gray-400">
+                                                    Bắt đầu cuộc trò chuyện với khách hàng!
+                                                </p>
                                             </div>
                                         </div>
                                     )}
@@ -642,25 +701,26 @@ const ChatHomestay = () => {
                             {showScrollButton && (
                                 <button
                                     onClick={scrollToBottom}
-                                    className="absolute bottom-20 right-4 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 p-2 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-10"
+                                    className="absolute bottom-28 right-1/3 bg-primary dark:bg-primary-dark text-white p-2.5 rounded-full shadow-lg hover:bg-primary-dark dark:hover:bg-primary-light transition-colors z-10"
                                 >
                                     <FaArrowDown />
                                 </button>
                             )}
                         </div>
 
+                        {/* Selected images preview */}
                         {selectedImages.length > 0 && (
-                            <div className="px-4 py-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex overflow-x-auto scrollbar-none hover:scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent gap-2 flex-shrink-0">
+                            <div className="px-4 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex overflow-x-auto scrollbar-none hover:scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent gap-3 flex-shrink-0">
                                 {selectedImages.map((img, index) => (
                                     <div key={index} className="relative group">
                                         <img
                                             src={URL.createObjectURL(img)}
                                             alt={`Selected ${index}`}
-                                            className="w-16 h-16 object-cover rounded-md border border-gray-200 dark:border-gray-600"
+                                            className="w-20 h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm"
                                         />
                                         <button
                                             onClick={() => removeSelectedImage(index)}
-                                            className="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute -top-2 -right-2 bg-gray-700 dark:bg-gray-900 text-white rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-500 dark:hover:bg-red-500"
                                         >
                                             <FaTimes size={10} />
                                         </button>
@@ -670,12 +730,12 @@ const ChatHomestay = () => {
                         )}
 
                         {/* Input message bar - fixed height */}
-                        <div className="p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-                            <div className="flex items-end gap-2">
+                        <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+                            <div className="flex items-end gap-3">
                                 <div className="relative flex-1">
                                     <textarea
-                                        className="w-full px-4 py-2 pr-24 bg-gray-100 dark:bg-gray-700 rounded-2xl text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none max-h-32 min-h-[40px] transition-all"
-                                        placeholder="Aa"
+                                        className="w-full px-5 py-3 pr-14 bg-gray-100 dark:bg-gray-700 rounded-2xl text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark transition-all resize-none max-h-32 min-h-[44px] shadow-inner"
+                                        placeholder="Nhập tin nhắn..."
                                         rows={Math.min(3, Math.max(1, newMessage.split('\n').length))}
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
@@ -683,15 +743,16 @@ const ChatHomestay = () => {
                                     ></textarea>
 
                                     {/* Emoji picker button */}
-                                    <div className="absolute right-2 bottom-1/2 transform translate-y-1/2">
+                                    <div className="absolute right-3 bottom-1/2 transform translate-y-1/2">
                                         <button
                                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                            className="p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                            className="p-2 text-gray-500 hover:text-primary dark:hover:text-primary-dark rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                            title="Chèn biểu tượng cảm xúc"
                                         >
-                                            <FaRegSmile />
+                                            <FaRegSmile className="text-xl" />
                                         </button>
                                         {showEmojiPicker && (
-                                            <div className="absolute bottom-12 right-0 z-10">
+                                            <div className="absolute bottom-12 right-0 z-20 shadow-xl rounded-lg overflow-hidden">
                                                 <EmojiPicker
                                                     onEmojiClick={handleEmojiClick}
                                                     width={300}
@@ -713,38 +774,40 @@ const ChatHomestay = () => {
                                 />
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                    className="p-3 text-gray-500 hover:text-primary dark:hover:text-primary-dark rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                    title="Tải ảnh lên"
                                 >
-                                    <FaImage />
+                                    <FaImage className="text-xl" />
                                 </button>
 
                                 {/* Send button */}
                                 <button
                                     onClick={() => handleSendMessage(newMessage, selectedImages)}
                                     disabled={!newMessage.trim() && selectedImages.length === 0}
-                                    className={`p-2 rounded-full transition-all ${newMessage.trim() || selectedImages.length > 0
-                                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                    className={`p-3 rounded-full transition-all ${newMessage.trim() || selectedImages.length > 0
+                                        ? 'bg-primary dark:bg-primary-dark text-white hover:bg-primary-dark dark:hover:bg-primary-light'
                                         : 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed'
                                         }`}
+                                    title="Gửi tin nhắn"
                                 >
-                                    <FaPaperPlane />
+                                    <FaPaperPlane className="text-xl" />
                                 </button>
                             </div>
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center bg-[#f5f6f7] dark:bg-gray-900">
-                        <div className="text-center max-w-sm mx-auto">
-                            <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <FaUser className="w-10 h-10 text-blue-500 dark:text-blue-400" />
+                    <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                        <div className="text-center max-w-md mx-auto bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm">
+                            <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <FaUser className="w-12 h-12 text-primary dark:text-primary-dark" />
                             </div>
-                            <h3 className="text-xl font-medium text-gray-800 dark:text-white mb-3">
+                            <h3 className="text-2xl font-semibold text-gray-800 dark:text-white mb-3">
                                 Chưa chọn cuộc trò chuyện
                             </h3>
-                            <p className="text-gray-500 dark:text-gray-400 mb-6">
-                                Chọn một cuộc trò chuyện từ danh sách để bắt đầu nhắn tin với khách hàng
+                            <p className="text-gray-500 dark:text-gray-400 mb-6 text-lg">
+                                Chọn một cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin với khách hàng
                             </p>
-                            <div className="w-16 h-1 bg-blue-500/50 mx-auto rounded-full"></div>
+                            <div className="w-20 h-1 bg-primary/30 dark:bg-primary-dark/30 mx-auto rounded-full"></div>
                         </div>
                     </div>
                 )}

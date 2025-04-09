@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaQrcode, FaCheck } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaQrcode, FaCheck, FaMoneyBillWave, FaCopy, FaExternalLinkAlt, FaInfoCircle, FaSync } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import QRScannerModal from '../../components/modals/QRScannerModal';
 import CountUp from 'react-countup';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import bookingAPI from '../../services/api/bookingAPI';
 
 const pageVariants = {
@@ -34,7 +34,7 @@ const cardVariants = {
     }
 };
 
-const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, NoShow: 5 };
+const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, NoShow: 5, Refund: 6 };
 const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
 const bookingStatusConfig = {
     [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chờ xác nhận' },
@@ -42,12 +42,13 @@ const bookingStatusConfig = {
     [BookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang phục vụ' },
     [BookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã trả phòng' },
     [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
-    [BookingStatus.NoShow]: { color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-100', text: 'Không đến' }
+    [BookingStatus.NoShow]: { color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-100', text: 'Không đến' },
+    [BookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' }
 };
 const paymentStatusConfig = {
     [PaymentStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chưa thanh toán' },
-    [PaymentStatus.Deposited]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã đặt cọc' },
-    [PaymentStatus.FullyPaid]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đã thanh toán đủ' },
+    [PaymentStatus.Deposited]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đặt cọc' },
+    [PaymentStatus.FullyPaid]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Thanh toán đủ' },
     [PaymentStatus.Refunded]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Đã hoàn tiền' }
 };
 
@@ -190,6 +191,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
 const BookingList = () => {
     const { id: homestayId } = useParams();
+    const [searchParams] = useSearchParams();
     const [bookings, setBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -336,6 +338,73 @@ const BookingList = () => {
         }
     };
 
+    const handleRefund = async (bookingId) => {
+        try {
+            setIsLoading(true);
+            
+            // Lưu thông tin homestayId vào localStorage để sử dụng khi quay lại sau khi hoàn tiền
+            const currentHomestayId = window.location.pathname.split('/')[3];
+            localStorage.setItem('currentBookingInfo', JSON.stringify({
+                bookingId,
+                homestayId: currentHomestayId
+            }));
+            
+            const response = await bookingAPI.processVnPayRefund(bookingId);
+            console.log('Response từ API VNPay:', response);
+            
+            if (response) {
+                window.open(response, '_blank');
+                
+                toast.success('Đang chuyển hướng đến VNPay...', {
+                    id: 'refund-redirect',
+                    style: {
+                        borderRadius: '10px',
+                        background: '#ECFDF5',
+                        color: '#065F46',
+                        border: '1px solid #6EE7B7'
+                    },
+                });
+                
+                toast.info('Hãy hoàn tất quá trình hoàn tiền trên cổng VNPay', {
+                    id: 'vnpay-info',
+                    duration: 5000,
+                    style: {
+                        borderRadius: '10px',
+                        background: '#E0F2FE',
+                        color: '#075985',
+                        border: '1px solid #7DD3FC'
+                    },
+                });
+            }
+        } catch (error) {
+            console.error('Error processing VNPay refund:', error);
+            toast.error('Có lỗi xảy ra khi xử lý hoàn tiền VNPay', {
+                id: 'refund-error',
+                style: {
+                    borderRadius: '10px',
+                    background: '#FEE2E2',
+                    color: '#991B1B',
+                    border: '1px solid #FCA5A5'
+                },
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRefresh = () => {
+        fetchBookings();
+        toast.success('Đã làm mới danh sách đặt phòng', {
+            id: 'refresh-success',
+            style: {
+                borderRadius: '10px',
+                background: '#ECFDF5',
+                color: '#065F46',
+                border: '1px solid #6EE7B7'
+            },
+        });
+    };
+
     const TableHeader = ({ label, sortKey }) => {
         const isSorted = sortConfig.key === sortKey;
         return (
@@ -390,13 +459,22 @@ const BookingList = () => {
                             Quản lý tất cả các đặt phòng của khách hàng
                         </p>
                     </div>
-                    <button
-                        onClick={() => setIsScannerOpen(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white 
-              font-medium rounded-lg transition-colors shadow-sm hover:shadow-lg hover:shadow-primary/20"
-                    >
-                        <FaQrcode className="w-4 h-4" /> Quét QR Check-in
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleRefresh}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white 
+                            font-medium rounded-lg transition-colors shadow-sm hover:shadow-lg"
+                        >
+                            <FaSync className="w-4 h-4" /> Làm mới
+                        </button>
+                        <button
+                            onClick={() => setIsScannerOpen(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white 
+                            font-medium rounded-lg transition-colors shadow-sm hover:shadow-lg hover:shadow-primary/20"
+                        >
+                            <FaQrcode className="w-4 h-4" /> Quét QR Check-in
+                        </button>
+                    </div>
                 </div>
 
                 <motion.section
@@ -479,6 +557,11 @@ const BookingList = () => {
                                     <TableHeader label="Check-out" sortKey="checkOutDate" />
                                     <TableHeader label="Trạng thái" sortKey="status" />
                                     <TableHeader label="Thanh toán" sortKey="paymentStatus" />
+                                    <th className="px-6 py-3 text-left">
+                                        <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                            Hành động
+                                        </span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -486,8 +569,9 @@ const BookingList = () => {
                                     const bookingDetail = booking.bookingDetails[0] || {};
                                     const bookingStatusInfo = bookingStatusConfig[booking.status];
                                     const paymentStatusInfo = paymentStatusConfig[booking.paymentStatus];
-                                    // console.log(bookingStatusInfo);
-                                    // console.log(paymentStatusInfo);
+                                    
+                                    const canRefund = booking.status === BookingStatus.Refund;
+                                    const isRefunded = booking.status === BookingStatus.Refunded;
 
                                     return (
                                         <motion.tr
@@ -541,6 +625,25 @@ const BookingList = () => {
                                                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${paymentStatusInfo.color}`}>
                                                     {paymentStatusInfo.text}
                                                 </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {canRefund && (
+                                                    <button
+                                                        onClick={() => handleRefund(booking.bookingID)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-500 hover:bg-purple-600 
+                                                        text-white text-sm font-medium rounded-lg transition-colors"
+                                                    >
+                                                        <FaMoneyBillWave className="w-3.5 h-3.5" />
+                                                        Hoàn tiền
+                                                    </button>
+                                                )}
+                                                {isRefunded && (
+                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5
+                                                    text-green-600 text-sm font-medium">
+                                                        <FaCheck className="w-3.5 h-3.5" />
+                                                        Đã hoàn tiền
+                                                    </span>
+                                                )}
                                             </td>
                                         </motion.tr>
                                     );
