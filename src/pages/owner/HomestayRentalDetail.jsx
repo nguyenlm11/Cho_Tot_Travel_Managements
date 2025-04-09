@@ -237,6 +237,18 @@ const HomestayRentalDetail = () => {
 
     const handleUpdatePricing = async (updatedPricing) => {
         if (updatedPricing?.pricingID) {
+
+            // console.log(rental?.pricing);
+            // console.log(rental?.pricing
+            //     ?.filter(item => item?.pricingID != updatedPricing?.pricingID));
+            // console.log(updatedPricing);
+
+            if (rental?.pricing
+                ?.filter(item => item?.pricingID != updatedPricing?.pricingID)
+                ?.find(item => (item?.dayType == 0 && updatedPricing?.dayType == 0) || (item?.dayType == 1 && updatedPricing?.dayType == 1))) {
+                toast.error(`Gói ${updatedPricing?.dayType == 0 ? "ngày thường" : "ngày cuối tuần"} đã tồn tại`);
+                return;
+            }
             try {
                 const res = await pricingAPI.updatePricing(updatedPricing.pricingID, updatedPricing);
                 if (res.statusCode === 200) {
