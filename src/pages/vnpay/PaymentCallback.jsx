@@ -20,7 +20,7 @@ const PaymentCallback = () => {
                     return;
                 }
                 const params = {};
-                console.log(searchParams.entries());
+                console.log('params', params);
                 for (const [key, value] of searchParams.entries()) {
                     if (key.startsWith('vnp_')) {
                         params[key] = value;
@@ -76,9 +76,7 @@ const PaymentCallback = () => {
         try {
             if (!params) return;
             const isRefund = params.vnp_OrderInfo?.includes('Refund') || params.vnp_TxnRef?.includes('Refund');
-            const apiUrl = isRefund
-                ? 'https://localhost:7221/api/booking-checkout/vnpay-return-refunded'
-                : 'https://localhost:7221/api/booking-checkout/vnpay-return';
+            const apiUrl = 'https://localhost:7221/api/booking-checkout/vnpay-return-refunded'
 
             const formattedParams = {};
             Object.keys(params).forEach(key => {
@@ -109,7 +107,6 @@ const PaymentCallback = () => {
                 return response.data;
             } catch (error) {
                 console.error('Error updating backend:', error);
-                // Vẫn tiếp tục xử lý ngay cả khi gặp lỗi API
             }
         } catch (error) {
             console.error('Error in updatePaymentStatusOnBackend:', error);

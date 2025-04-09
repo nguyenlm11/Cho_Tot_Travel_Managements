@@ -341,20 +341,15 @@ const BookingList = () => {
     const handleRefund = async (bookingId) => {
         try {
             setIsLoading(true);
-            
-            // Lưu thông tin homestayId vào localStorage để sử dụng khi quay lại sau khi hoàn tiền
-            const currentHomestayId = window.location.pathname.split('/')[3];
             localStorage.setItem('currentBookingInfo', JSON.stringify({
                 bookingId,
-                homestayId: currentHomestayId
+                homestayId
             }));
-            
-            const response = await bookingAPI.processVnPayRefund(bookingId);
+            const response = await bookingAPI.processVnPayRefund(bookingId, homestayId);
             console.log('Response từ API VNPay:', response);
-            
             if (response) {
                 window.open(response, '_blank');
-                
+
                 toast.success('Đang chuyển hướng đến VNPay...', {
                     id: 'refund-redirect',
                     style: {
@@ -364,7 +359,7 @@ const BookingList = () => {
                         border: '1px solid #6EE7B7'
                     },
                 });
-                
+
                 toast.info('Hãy hoàn tất quá trình hoàn tiền trên cổng VNPay', {
                     id: 'vnpay-info',
                     duration: 5000,
@@ -569,7 +564,7 @@ const BookingList = () => {
                                     const bookingDetail = booking.bookingDetails[0] || {};
                                     const bookingStatusInfo = bookingStatusConfig[booking.status];
                                     const paymentStatusInfo = paymentStatusConfig[booking.paymentStatus];
-                                    
+
                                     const canRefund = booking.status === BookingStatus.Refund;
                                     const isRefunded = booking.status === BookingStatus.Refunded;
 
