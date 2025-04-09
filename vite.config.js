@@ -7,19 +7,19 @@ export default defineConfig({
   server: {
     proxy: {
       '/chatHub': {
-        target: 'https://hungnv.iselab.cloud:7221',
+        target: 'https://localhost:7221/api',
         changeOrigin: true,
         secure: false,
         ws: true,
         rewriteWsOrigin: true,
       },
       '/chat': {
-        target: 'https://hungnv.iselab.cloud:7221',
+        target: 'https://localhost:7221/api',
         changeOrigin: true,
         secure: false,
       },
       '/api': {
-        target: 'https://hungnv.iselab.cloud:7221',
+        target: 'https://localhost:7221/api',
         changeOrigin: true,
         secure: false
       }
