@@ -54,6 +54,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
 
   const defaultMenuItems = [
     { title: 'Quản lý nhà nghỉ', icon: <FaHome />, path: '/owner/homestays' },
+    { title: 'Quản lý nhân viên', icon: <FaUsers />, path: '/owner/staffs' },
     { title: 'Thêm nhà nghỉ', icon: <FaPlus />, path: '/owner/homestays/add' },
   ];
 

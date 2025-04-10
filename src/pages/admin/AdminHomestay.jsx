@@ -1,18 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaSearch, FaSort, FaArrowDown, FaArrowUp, FaUser, FaFilter, FaUserCheck, FaUserTimes } from 'react-icons/fa';
+import { FaSearch, FaSort, FaArrowDown, FaArrowUp, FaUser, FaFilter, FaUserCheck, FaUserTimes, FaEllipsisV, FaEye, FaBan, FaCheck } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import adminAPI from '../../services/api/adminAPI';
 import { toast, Toaster } from 'react-hot-toast';
 
-// Mock data với trạng thái active/inactive
-// const mockData = Array.from({ length: 20 }, (_, index) => ({
-//     id: index + 1,
-//     name: `HomeStay ${index + 1}`,
-//     address: `Địa chỉ ${index + 1}`,
-//     status: 'approved',
-//     isActive: index % 2 === 0 // true/false để thể hiện đang hoạt động hay không
-// }));
+
 
 // Thêm component FilterBar
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
@@ -39,6 +32,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
             handleSearch();
         }
     };
+
 
     return (
         <div className="mb-8 space-y-4">
@@ -279,6 +273,10 @@ export default function AdminHomestay() {
             </div>
         );
     }
+    const handleViewDetail = (homestayId) => {
+        // Thêm logic xem chi tiết homestay ở đây
+        console.log('View detail for homestay:', homestayId);
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
@@ -425,17 +423,46 @@ export default function AdminHomestay() {
                                             {homeStay.status === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <button
-                                            onClick={() => handleToggleClick(homeStay.homeStayID, homeStay.status)}
-                                            className={`px-3 py-1.5 rounded-lg text-white text-sm 
-                                                ${homeStay.status === 1
-                                                    ? 'bg-red-500 hover:bg-red-600'
-                                                    : 'bg-green-500 hover:bg-green-600'
-                                                } transition-colors`}
-                                        >
-                                            {homeStay.status === 1 ? 'Dừng hoạt động' : 'Kích hoạt'}
-                                        </button>
+                                    <td className="px-6 py-4 whitespace-nowrap relative">
+                                        <div className="relative inline-block text-left">
+                                            <button
+                                                onClick={(e) => {
+                                                    const menu = e.currentTarget.nextElementSibling;
+                                                    menu.classList.toggle('hidden');
+                                                }}
+                                                className="flex items-center text-gray-600 hover:text-gray-800"
+                                            >
+                                                <FaEllipsisV className="w-5 h-5" />
+                                            </button>
+                                            <div className="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                                <div className="py-1">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            handleViewDetail(homeStay.homeStayID);
+                                                            e.currentTarget.parentElement.parentElement.classList.add('hidden');
+                                                        }}
+                                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                    >
+                                                        <FaEye className="mr-3 w-4 h-4" />
+                                                        Xem chi tiết
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            handleToggleClick(homeStay.homeStayID, homeStay.status);
+                                                            e.currentTarget.parentElement.parentElement.classList.add('hidden');
+                                                        }}
+                                                        className={`flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100 
+                        ${homeStay.status === 1 ? 'text-red-600' : 'text-green-600'}`}
+                                                    >
+                                                        {homeStay.status === 1
+                                                            ? <FaBan className="mr-3 w-4 h-4" />
+                                                            : <FaCheck className="mr-3 w-4 h-4" />
+                                                        }
+                                                        {homeStay.status === 1 ? 'Dừng hoạt động' : 'Kích hoạt'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </motion.tr>
                             ))}

@@ -18,11 +18,16 @@ import ChatHomestay from '../pages/owner/ChatHomestay';
 import EditHomestayRental from '../pages/owner/EditHomestayRental';
 import EditHomestay from '../pages/owner/EditHomestay';
 import EditRoomType from '../pages/owner/EditRoomType';
+import { StaffList } from '../pages/owner/Manage_Staff/StaffList';
 
 export const ownerRoutes = [
   {
     path: 'homestays',
     element: <HomestayList />
+  },
+  {
+    path: 'staffs',
+    element: <StaffList />
   },
   {
     path: 'homestays/add',
