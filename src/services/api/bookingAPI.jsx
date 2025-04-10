@@ -10,6 +10,15 @@ const bookingAPI = {
             throw error;
         }
     },
+    getBookingsByAccountID: async (accountId) => {
+        try {
+            const response = await axiosInstance.get(`/booking-bookingservices/GetBookingByHomeStay/${accountId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching bookings:', error);
+            throw error;
+        }
+    },
 
     updateBookingStatus: async (bookingId, status, paymentStatus) => {
         try {
