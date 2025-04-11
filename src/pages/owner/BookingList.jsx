@@ -566,9 +566,9 @@ const BookingList = () => {
                                 <tr>
                                     <TableHeader label="Ngày đặt" sortKey="bookingDate" />
                                     <TableHeader label="Khách hàng" sortKey="customerName" />
-                                    <TableHeader label="Homestay" sortKey="homestayName" />
-                                    <TableHeader label="Check-in" sortKey="checkInDate" />
-                                    <TableHeader label="Check-out" sortKey="checkOutDate" />
+                                    <TableHeader label="Căn thuê" sortKey="homestayName" />
+                                    <TableHeader label="Ngày nhận phòng" sortKey="checkInDate" />
+                                    <TableHeader label="Ngày trả phòng" sortKey="checkOutDate" />
                                     <TableHeader label="Trạng thái" sortKey="status" />
                                     <TableHeader label="Thanh toán" sortKey="paymentStatus" />
                                     <th className="px-6 py-3 text-left">

@@ -175,8 +175,8 @@ const HomestayDetail = () => {
                                     <span className=''>{homestayData?.address}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <IoPricetag className="text-primary" />
-                                    <span>{homestay.price.toLocaleString()}đ/đêm</span>
+                                    {/* <IoPricetag className="text-primary" /> */}
+                                    {/* <span>{homestay.price.toLocaleString()}đ/đêm</span> */}
                                 </div>
                             </div>
                         </div>
