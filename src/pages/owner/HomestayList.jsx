@@ -290,10 +290,10 @@ const HomestayCard = ({ homestay, index, onEdit, setShowDeleteModal }) => {
           </p>
           <div className="flex items-center justify-between mt-4 mb-6">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+              {/* <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                 <FaBed className="text-primary" />
                 <span>{homestay.rooms} phòng</span>
-              </div>
+              </div> */}
               <div className="flex items-center gap-1 text-yellow-500">
                 <FaStar />
                 <span>{homestay.rating}</span>
