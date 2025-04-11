@@ -19,6 +19,7 @@ import EditHomestayRental from '../pages/owner/EditHomestayRental';
 import EditHomestay from '../pages/owner/EditHomestay';
 import EditRoomType from '../pages/owner/EditRoomType';
 import { StaffList } from '../pages/owner/Manage_Staff/StaffList';
+import { BookingDetail } from '../pages/owner/BookingDetail';
 
 export const ownerRoutes = [
   {
@@ -80,6 +81,10 @@ export const ownerRoutes = [
   {
     path: 'homestays/:id/bookings',
     element: <BookingList />
+  },
+  {
+    path: 'homestays/:id/bookings/:bookingId',
+    element: <BookingDetail />
   },
   {
     path: 'homestays/:id/customers',

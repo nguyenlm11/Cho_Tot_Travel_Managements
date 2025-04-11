@@ -5,7 +5,7 @@ import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, Fa
 import { IoClose } from 'react-icons/io5';
 import QRScannerModal from '../../components/modals/QRScannerModal';
 import CountUp from 'react-countup';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import bookingAPI from '../../services/api/bookingAPI';
 
 const pageVariants = {
@@ -338,8 +338,10 @@ const BookingList = () => {
             });
         }
     };
-    const handleViewBooking = (bookingId) => {
-        // Xử lý logic xem chi tiết booking
+    const navigate = useNavigate();
+    const handleViewBooking = async (bookingId) => {
+        navigate(`/owner/homestays/${homestayId}/bookings/${bookingId}`);
+        
     };
 
     const handleRefund = async (bookingId) => {

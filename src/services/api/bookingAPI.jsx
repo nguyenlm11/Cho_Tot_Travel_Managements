@@ -19,6 +19,15 @@ const bookingAPI = {
             throw error;
         }
     },
+    getBookingsByID: async (bookingId) => {
+        try {
+            const response = await axiosInstance.get(`/booking-bookingservices/GetBookingByID/${bookingId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching bookings:', error);
+            throw error;
+        }
+    },
 
     updateBookingStatus: async (bookingId, status, paymentStatus) => {
         try {
