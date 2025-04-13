@@ -5,6 +5,11 @@ import { toast, Toaster } from 'react-hot-toast';
 import { IoClose, IoEye, IoEyeOff } from 'react-icons/io5';
 import { IoPersonAddSharp } from "react-icons/io5";
 import axios from 'axios';
+import staffAPI from '../../../services/api/staffApi';
+import { data } from 'autoprefixer';
+import { useNavigate } from 'react-router-dom';
+import { AddStaffAccountModal } from '../../../components/modals/AddStaffAccountModal';
+import { EditStaffAccountModal } from '../../../components/modals/EditStaffAccountModal';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -105,29 +110,27 @@ export const StaffList = () => {
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-
-    const [newStaff, setNewStaff] = useState({
-        userID: '',
-        userName: '',
-        email: '',
-        name: '',
-        address: '',
-        phone: '',
-        role: 'Staff'
-    });
-
+    // const [isModalOpen, setIsModalOpen] = useState(false);
+    // const [showPassword, setShowPassword] = useState(false);
+    const [isModalAddStaffOpen, setIsModalAddStaffOpen] = useState(false);
+    const [isModalEditStaffOpen, setIsModalEditStaffOpen] = useState(false);
+    const [selectedStaffID, setSelectedStaffID] = useState(null);
     const itemsPerPage = 10;
 
     useEffect(() => {
         fetchStaffs();
     }, []);
+    const navigate = useNavigate();
 
     const fetchStaffs = async () => {
         try {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            if (!userInfo?.AccountID) {
+                navigate('/login');
+                return;
+            }
             // Thay thế bằng API call thực tế của bạn
-            const response = await axios.get('/api/staffs');
+            const response = await staffAPI.getAllStaffsByOwner(userInfo.AccountID);
             setStaffs(response.data);
             setLoading(false);
         } catch (error) {
@@ -196,25 +199,6 @@ export const StaffList = () => {
         );
     };
 
-    const handleCreateStaff = async () => {
-        const confirmAdd = window.confirm("Bạn có chắc chắn muốn thêm nhân viên mới?");
-        if (confirmAdd) {
-            if (!newStaff.userName || !newStaff.email || !newStaff.name || !newStaff.phone || !newStaff.address) {
-                toast.error('Vui lòng điền đầy đủ thông tin!');
-                return;
-            }
-
-            try {
-                // Thay thế bằng API call thực tế của bạn
-                const response = await axios.post('/api/staffs', newStaff);
-                toast.success('Nhân viên mới đã được thêm thành công!');
-                setIsModalOpen(false);
-                fetchStaffs();
-            } catch (error) {
-                toast.error('Không thể thêm nhân viên: ' + (error.message || 'Có lỗi xảy ra'));
-            }
-        }
-    };
 
     return (
         <motion.div
@@ -286,7 +270,7 @@ export const StaffList = () => {
                     setActualSearchTerm={setActualSearchTerm}
                 />
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => setIsModalAddStaffOpen(true)}
                     className="px-6 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-all duration-200"
                 >
                     <p className='flex justify-center items-center gap-4'>
@@ -295,108 +279,6 @@ export const StaffList = () => {
                     </p>
                 </button>
             </motion.div>
-
-            {/* Modal for Creating Staff */}
-            <AnimatePresence>
-                {isModalOpen && (
-                    <motion.div
-                        className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
-                            <h2 className="text-2xl font-bold mb-4">Thêm nhân viên mới</h2>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Tên tài khoản</label>
-                                <input
-                                    type="text"
-                                    value={newStaff.userName}
-                                    onChange={(e) => setNewStaff({ ...newStaff, userName: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                                    placeholder="Nhập tên tài khoản..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Email</label>
-                                <input
-                                    type="email"
-                                    value={newStaff.email}
-                                    onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                                    placeholder="Nhập email..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Mật khẩu</label>
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                                        placeholder="Nhập mật khẩu..."
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                                    >
-                                        {showPassword ? (
-                                            <IoEyeOff className="w-5 h-5 text-gray-500" />
-                                        ) : (
-                                            <IoEye className="w-5 h-5 text-gray-500" />
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Họ và tên</label>
-                                <input
-                                    type="text"
-                                    value={newStaff.name}
-                                    onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                                    placeholder="Nhập họ và tên..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Số điện thoại</label>
-                                <input
-                                    type="text"
-                                    value={newStaff.phone}
-                                    onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                                    placeholder="Nhập số điện thoại..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Địa chỉ</label>
-                                <input
-                                    type="text"
-                                    value={newStaff.address}
-                                    onChange={(e) => setNewStaff({ ...newStaff, address: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                                    placeholder="Nhập địa chỉ..."
-                                />
-                            </div>
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={handleCreateStaff}
-                                    className="ml-2 px-4 py-2 bg-green-500 text-white rounded-lg"
-                                >
-                                    Thêm
-                                </button>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Staffs Table */}
             <motion.div
@@ -429,7 +311,7 @@ export const StaffList = () => {
                                             <div className="flex items-center">
                                                 <div className="ml-4">
                                                     <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {staff.name}
+                                                        {staff.staffName}
                                                     </div>
                                                 </div>
                                             </div>
@@ -453,7 +335,11 @@ export const StaffList = () => {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
-                                                    onClick={() => {/* Handle edit */ }}
+                                                    onClick={() => {
+                                                        setIsModalEditStaffOpen(true); setSelectedStaffID(staff?.staffIdAccount);
+
+                                                    }}
+
                                                 >
                                                     <FaEdit className="w-5 h-5" />
                                                 </button>
@@ -518,6 +404,22 @@ export const StaffList = () => {
                     </button>
                 </div>
             )}
+            {isModalAddStaffOpen && (
+                <AddStaffAccountModal
+                    fetchStaffs={fetchStaffs}
+                    isOpen={isModalAddStaffOpen}
+                    onClose={() => { setIsModalAddStaffOpen(false) }}
+                />
+            )}
+            {isModalEditStaffOpen && (
+                <EditStaffAccountModal
+                    fetchStaffs={fetchStaffs}
+                    isOpen={isModalEditStaffOpen}
+                    onClose={() => setIsModalEditStaffOpen(false)}
+                    staffIdAccount={selectedStaffID}
+                />
+            )}
         </motion.div>
+
     );
 };

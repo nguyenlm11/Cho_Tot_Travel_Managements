@@ -4,6 +4,21 @@ import { motion } from 'framer-motion';
 import bookingAPI from '../../services/api/bookingAPI';
 import { FaUser, FaCalendar, FaClock, FaChild, FaUsers, FaMoneyBillWave, FaCreditCard, FaInfoCircle } from 'react-icons/fa';
 
+// Thêm các cấu hình cho các loại trạng thái và phương thức thanh toán
+const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
+const paymentStatusConfig = {
+    [PaymentStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chưa thanh toán' },
+    [PaymentStatus.Deposited]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đặt cọc' },
+    [PaymentStatus.FullyPaid]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Thanh toán đủ' },
+    [PaymentStatus.Refunded]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Đã hoàn tiền' }
+};
+
+const paymentMethodConfig = {
+    'VNPay': { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'VNPay' },
+    'Cash': { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Tiền mặt' },
+    // Thêm các phương thức thanh toán khác nếu cần
+};
+
 export const BookingDetail = () => {
     const { bookingId } = useParams();
     const [booking, setBooking] = useState(null);
@@ -31,7 +46,7 @@ export const BookingDetail = () => {
         expiredTime,
         numberOfChildren,
         numberOfAdults,
-        status,
+        // status,
         paymentStatus,
         totalRentPrice,
         total,
@@ -101,16 +116,50 @@ export const BookingDetail = () => {
                             <p className='text-gray-600 dark:text-gray-400'><strong>Thời gian hết hạn:</strong> {new Date(expiredTime).toLocaleString()}</p>
                             <p className='text-gray-600 dark:text-gray-400'><strong>Số trẻ em:</strong> {numberOfChildren}</p>
                             <p className='text-gray-600 dark:text-gray-400'><strong>Số người lớn:</strong> {numberOfAdults}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Trạng thái:</strong> {status}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Trạng thái thanh toán:</strong> {paymentStatus}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Phương thức thanh toán:</strong> {paymentMethod}</p>
+                            {/* <p className='text-gray-600 dark:text-gray-400'><strong>Trạng thái:</strong> {status}</p> */}
+
+                            <div className="flex items-center space-x-3 mb-3">
+                                <span className="text-gray-700 dark:text-gray-400 font-bold min-w-[140px] flex items-center">
+                                    Phương thức thanh toán:
+                                </span>
+                                <span className={`
+                                    inline-flex items-center gap-2 px-3 py-1.5 
+                                    rounded-full text-sm font-medium 
+                                    transition-all duration-200 
+                                    ${paymentMethodConfig[paymentMethod]?.color}
+                                    shadow-sm hover:shadow-md
+                                    transform hover:-translate-y-0.5
+                                `}>
+                                    {paymentMethod == '1' ? (
+                                        <>
+                                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp1v7T287-ikP1m7dEUbs2n1SbbLEqkMd1ZA&s" alt="VNPay" className="w-4 h-4 object-contain" />
+                                            <span>VNPay</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FaMoneyBillWave className="w-4 h-4" />
+                                            <span>Tiền mặt</span>
+                                        </>
+                                    )}
+                                </span>
+                            </div>
+
+                            <p className='text-gray-600 dark:text-gray-400'>
+                                <strong>Trạng thái thanh toán:</strong>{' '}
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${paymentStatusConfig[paymentStatus]?.color}`}>
+                                    {paymentStatusConfig[paymentStatus]?.text}
+                                </span>
+                            </p>
                         </div>
                         <div className="space-y-3">
                             <div className="p-4 bg-blue-50 dark:bg-gray-800 rounded-lg">
-                                <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng giá thuê:</strong> {totalRentPrice.toLocaleString()} VND</p>
-                                <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng cộng:</strong> {total.toLocaleString()} VND</p>
-                                <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Đặt cọc:</strong> {bookingDeposit.toLocaleString()} VND</p>
-                                <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Số dư còn lại:</strong> {remainingBalance.toLocaleString()} VND</p>
+                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng giá thuê:</strong> {totalRentPrice.toLocaleString()} VND</p>
+                                {bookingServices.map((service, index) => (
+                                    <p key={index} className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng tiền dịch vụ:</strong> {service.total.toLocaleString()} VND</p>
+                                ))}
+                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng cộng:</strong> {total.toLocaleString()} VND</p>
+                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Đặt cọc:</strong> {bookingDeposit.toLocaleString()} VND</p>
+                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Số dư còn lại:</strong> {remainingBalance.toLocaleString()} VND</p>
                             </div>
                         </div>
                     </div>
@@ -166,14 +215,50 @@ export const BookingDetail = () => {
                         Dịch vụ đặt phòng
                     </h3>
                     {bookingServices.map((service, index) => (
-                        <div key={index} className="mb-4 p-4 bg-gray-50  dark:bg-gray-800 rounded-lg">
+                        <div key={index} className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Mã dịch vụ:</strong> {service.bookingServicesID}</p>
                             <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày dịch vụ:</strong> {new Date(service.bookingServicesDate).toLocaleString()}</p>
                             <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng tiền dịch vụ:</strong> {service.total.toLocaleString()} VND</p>
                             <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Đặt cọc dịch vụ:</strong> {service.bookingServiceDeposit.toLocaleString()} VND</p>
                             <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Số dư dịch vụ còn lại:</strong> {service.remainingBalance.toLocaleString()} VND</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Phương thức thanh toán dịch vụ:</strong> {service.paymentServicesMethod}</p>
-                            <p><strong>Trạng thái thanh toán dịch vụ:</strong> {service.paymentServiceStatus}</p>
+
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'>
+                                <strong>Trạng thái thanh toán dịch vụ:</strong>{' '}
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${paymentStatusConfig[service.paymentServiceStatus]?.color}`}>
+                                    {paymentStatusConfig[service.paymentServiceStatus]?.text}
+                                </span>
+                            </p>
+
+                            <div className="flex items-center space-x-3 mb-3 last:border-0">
+                                <span className="text-gray-700 dark:text-gray-400 font-bold min-w-[180px] flex items-center">
+                                    Phương thức thanh toán dịch vụ:
+                                </span>
+                                <span className={`
+                                    inline-flex items-center gap-2 px-3 py-1.5 
+                                    rounded-full text-sm font-medium 
+                                    transition-all duration-200 
+                                    ${paymentMethodConfig[service.paymentServicesMethod]?.color}
+                                    shadow-sm hover:shadow-md
+                                    transform hover:-translate-y-0.5
+                                `}>
+                                    {service.paymentServicesMethod == '1' ? (
+                                        <>
+                                            <img
+                                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp1v7T287-ikP1m7dEUbs2n1SbbLEqkMd1ZA&s"
+                                                alt="VNPay"
+                                                className="w-4 h-4 object-contain"
+                                            />
+                                            <span>VNPay</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FaMoneyBillWave className="w-4 h-4" />
+                                            <span>Tiền mặt</span>
+                                        </>
+                                    )}
+                                </span>
+                            </div>
+
                         </div>
                     ))}
                 </motion.div>
