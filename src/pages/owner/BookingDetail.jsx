@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import bookingAPI from '../../services/api/bookingAPI';
 import { FaUser, FaCalendar, FaClock, FaChild, FaUsers, FaMoneyBillWave, FaCreditCard, FaInfoCircle } from 'react-icons/fa';
+import { formatPrice, formatDate } from '../../utils/utils';
 
 // Thêm các cấu hình cho các loại trạng thái và phương thức thanh toán
 const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
@@ -112,8 +113,8 @@ export const BookingDetail = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
                             <p className='text-gray-600 dark:text-gray-400'><strong>Mã đặt phòng:</strong> {bookingID}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Ngày đặt:</strong> {new Date(bookingDate).toLocaleString()}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Thời gian hết hạn:</strong> {new Date(expiredTime).toLocaleString()}</p>
+                            <p className='text-gray-600 dark:text-gray-400'><strong>Ngày đặt:</strong> {formatDate(bookingDate)}</p>
+                            <p className='text-gray-600 dark:text-gray-400'><strong>Thời gian hết hạn:</strong> {formatDate(expiredTime)}</p>
                             <p className='text-gray-600 dark:text-gray-400'><strong>Số trẻ em:</strong> {numberOfChildren}</p>
                             <p className='text-gray-600 dark:text-gray-400'><strong>Số người lớn:</strong> {numberOfAdults}</p>
                             {/* <p className='text-gray-600 dark:text-gray-400'><strong>Trạng thái:</strong> {status}</p> */}
@@ -153,13 +154,13 @@ export const BookingDetail = () => {
                         </div>
                         <div className="space-y-3">
                             <div className="p-4 bg-blue-50 dark:bg-gray-800 rounded-lg">
-                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng giá thuê:</strong> {totalRentPrice.toLocaleString()} VND</p>
+                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng giá thuê:</strong> {formatPrice(totalRentPrice)}</p>
                                 {bookingServices.map((service, index) => (
-                                    <p key={index} className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng tiền dịch vụ:</strong> {service.total.toLocaleString()} VND</p>
+                                    <p key={index} className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng tiền dịch vụ:</strong> {formatPrice(service?.total)}</p>
                                 ))}
-                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng cộng:</strong> {total.toLocaleString()} VND</p>
-                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Đặt cọc:</strong> {bookingDeposit.toLocaleString()} VND</p>
-                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Số dư còn lại:</strong> {remainingBalance.toLocaleString()} VND</p>
+                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng cộng:</strong> {formatPrice(total)}</p>
+                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Đặt cọc:</strong> {formatPrice(bookingDeposit)}</p>
+                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Số dư còn lại:</strong> {formatPrice(remainingBalance)}</p>
                             </div>
                         </div>
                     </div>
@@ -196,11 +197,11 @@ export const BookingDetail = () => {
                     {bookingDetails.map((detail, index) => (
                         <div key={index} className="mb-4 p-4 bg-gray-50  dark:bg-gray-800 rounded-lg">
                             <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Mã chi tiết thuê:</strong> {detail.bookingDetailID}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Giá đơn vị:</strong> {detail.unitPrice.toLocaleString()} VND</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Giá thuê:</strong> {detail.rentPrice.toLocaleString()} VND</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày nhận phòng:</strong> {new Date(detail.checkInDate).toLocaleDateString()}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày trả phòng:</strong> {new Date(detail.checkOutDate).toLocaleDateString()}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng số tiền:</strong> {detail.totalAmount.toLocaleString()} VND</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Giá đơn vị:</strong> {formatPrice(detail?.unitPrice)}</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Giá thuê:</strong> {formatPrice(detail?.rentPrice)}</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày nhận phòng:</strong> {formatDate(detail?.checkInDate)}</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày trả phòng:</strong> {formatDate(detail?.checkOutDate)}</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng số tiền:</strong> {formatPrice(detail?.totalAmount)}</p>
                         </div>
                     ))}
                 </motion.div>
@@ -217,10 +218,10 @@ export const BookingDetail = () => {
                     {bookingServices.map((service, index) => (
                         <div key={index} className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Mã dịch vụ:</strong> {service.bookingServicesID}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày dịch vụ:</strong> {new Date(service.bookingServicesDate).toLocaleString()}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng tiền dịch vụ:</strong> {service.total.toLocaleString()} VND</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Đặt cọc dịch vụ:</strong> {service.bookingServiceDeposit.toLocaleString()} VND</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Số dư dịch vụ còn lại:</strong> {service.remainingBalance.toLocaleString()} VND</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày dịch vụ:</strong> {formatDate(service?.bookingServicesDate)}</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng tiền dịch vụ:</strong> {formatPrice(service?.total)}</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Đặt cọc dịch vụ:</strong> {formatPrice(service?.bookingServiceDeposit)}</p>
+                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Số dư dịch vụ còn lại:</strong> {formatPrice(service?.remainingBalance)}</p>
 
                             <p className='text-gray-600 dark:text-gray-400 mb-3'>
                                 <strong>Trạng thái thanh toán dịch vụ:</strong>{' '}
