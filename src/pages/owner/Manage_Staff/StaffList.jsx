@@ -9,7 +9,8 @@ import { IoPersonAddSharp } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
 import { AddStaffAccountModal } from '../../../components/modals/AddStaffAccountModal';
 import { EditStaffAccountModal } from '../../../components/modals/EditStaffAccountModal';
-import staffAPI from '../../../services/api/staffApi';
+import staffAPI from '../../../services/api/staffAPI';
+
 
 const pageVariants = {
     initial: { opacity: 0 },
