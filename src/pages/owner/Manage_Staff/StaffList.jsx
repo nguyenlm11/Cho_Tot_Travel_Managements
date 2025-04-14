@@ -4,12 +4,13 @@ import { FaUserTie, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash,
 import { toast, Toaster } from 'react-hot-toast';
 import { IoClose, IoEye, IoEyeOff } from 'react-icons/io5';
 import { IoPersonAddSharp } from "react-icons/io5";
-import axios from 'axios';
-import staffAPI from '../../../services/api/staffApi';
-import { data } from 'autoprefixer';
+// import axios from 'axios';
+// import { data } from 'autoprefixer';
 import { useNavigate } from 'react-router-dom';
 import { AddStaffAccountModal } from '../../../components/modals/AddStaffAccountModal';
 import { EditStaffAccountModal } from '../../../components/modals/EditStaffAccountModal';
+import staffAPI from '../../../services/api/staffAPI';
+
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -105,7 +106,7 @@ const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
 
 export const StaffList = () => {
     const [staffs, setStaffs] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -132,11 +133,11 @@ export const StaffList = () => {
             // Thay thế bằng API call thực tế của bạn
             const response = await staffAPI.getAllStaffsByOwner(userInfo.AccountID);
             setStaffs(response.data);
-            setLoading(false);
+            // setLoading(false);
         } catch (error) {
             console.error("Error fetching staffs:", error);
             toast.error('Không thể tải danh sách nhân viên: ' + (error.message || 'Có lỗi xảy ra'));
-            setLoading(false);
+            // setLoading(false);
         }
     };
 

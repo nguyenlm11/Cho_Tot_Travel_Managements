@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import staffAPI from '../../services/api/staffApi';
+import staffAPI from '../../services/api/staffAPI';
 import { IoEye, IoEyeOff } from 'react-icons/io5';
 
 
