@@ -5,11 +5,11 @@ import { toast, Toaster } from 'react-hot-toast';
 import { IoClose, IoEye, IoEyeOff } from 'react-icons/io5';
 import { IoPersonAddSharp } from "react-icons/io5";
 // import axios from 'axios';
-import staffAPI from '../../../services/api/staffApi';
 // import { data } from 'autoprefixer';
 import { useNavigate } from 'react-router-dom';
 import { AddStaffAccountModal } from '../../../components/modals/AddStaffAccountModal';
 import { EditStaffAccountModal } from '../../../components/modals/EditStaffAccountModal';
+import staffAPI from '../../../services/api/staffApi';
 
 const pageVariants = {
     initial: { opacity: 0 },
