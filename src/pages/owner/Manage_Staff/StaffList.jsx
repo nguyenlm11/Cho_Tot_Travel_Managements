@@ -154,9 +154,10 @@ export const StaffList = () => {
     };
 
     const filteredStaffs = staffs.filter(staff =>
-        staff.name?.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
-        staff.email?.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
-        staff.phone?.includes(actualSearchTerm)
+        staff?.staffName?.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+        staff?.email?.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+        staff?.address?.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+        staff?.phone?.includes(actualSearchTerm)
     );
 
     const sortedStaffs = [...filteredStaffs].sort((a, b) => {
@@ -290,7 +291,7 @@ export const StaffList = () => {
                     <table className="min-w-full">
                         <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <TableHeader label="Tên nhân viên" sortKey="name" />
+                                <TableHeader label="Tên nhân viên" sortKey="staffName" />
                                 <TableHeader label="Email" sortKey="email" />
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
