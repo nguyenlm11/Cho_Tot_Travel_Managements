@@ -22,10 +22,10 @@ const adminAPI = {
         }
     },
     // Thay đổi trạng thái của homestay
-    changeHomeStayStatus: async (homestayId, status) => {
+    changeHomeStayStatus: async (homestayId, status, commissionRateID) => {
         try {
             console.log("Calling API with:", { homestayId, status });
-            const response = await axiosInstance.put(`/homestay/ChangeHomeStayStatus?homestayId=${homestayId}&status=${status}`);
+            const response = await axiosInstance.put(`/homestay/ChangeHomeStayStatus?homestayId=${homestayId}&status=${status}&commissionRateID=${commissionRateID}`);
             console.log("API Response:", response.data);
             return response.data;
         } catch (error) {

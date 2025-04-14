@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock } from 'react-icons/fa';
+import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock, FaPlus } from 'react-icons/fa';
 import { TbHomePlus } from "react-icons/tb";
 import { IoClose } from 'react-icons/io5';
 import { toast, Toaster } from 'react-hot-toast';
 import adminAPI from '../../services/api/adminAPI';
+import AddCommissionRateModal from '../../components/modals/AddCommissionRateModal';
+import { BsThreeDots } from 'react-icons/bs';
 
 const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
     const searchInputRef = useRef(null);
@@ -88,11 +90,26 @@ export default function PendingHomestay() {
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         type: '', // 'approve' hoặc 'reject'
-        homestayId: null
+        homestayId: null,
+        commissionRateID: '' // Thêm trường này để lưu tỉ lệ ăn chia
     });
+    const [isAddCommissionRateModalOpen, setIsAddCommissionRateModalOpen] = useState(false);
+    const [openDropdownId, setOpenDropdownId] = useState(null);
+    const [homestayIdSelected, setHomestayIdSelected] = useState(null);
 
     useEffect(() => {
         fetchHomeStays();
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.dropdown-menu')) {
+                setOpenDropdownId(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const fetchHomeStays = async () => {
@@ -166,37 +183,53 @@ export default function PendingHomestay() {
     const approvedHomeStays = homeStays.filter(homeStay => homeStay.status === 1).length;
     const pendingHomeStays = homeStays.filter(homeStay => homeStay.status === 0).length;
 
-    const handleApproveClick = (id) => {
+    const handleApproveClick = (id, commissionRateID) => {
         setConfirmModal({
             isOpen: true,
             type: 'approve',
-            homestayId: id
+            homestayId: id,
+            commissionRateID: commissionRateID // Reset giá trị khi mở modal
         });
     };
 
-    const handleRejectClick = (id) => {
+    const handleRejectClick = (id, commissionRateID) => {
         setConfirmModal({
             isOpen: true,
             type: 'reject',
-            homestayId: id
+            homestayId: id,
+            commissionRateID: commissionRateID
         });
     };
 
     const handleConfirm = async () => {
+
         try {
             if (confirmModal.type === 'approve') {
-                const response = await adminAPI.changeHomeStayStatus(confirmModal.homestayId, 1);
+                // Kiểm tra xem đã có commissionRateID chưa
+                if (!confirmModal.commissionRateID) {
+                    toast.error('Vui lòng nhập tỉ lệ ăn chia trước khi phê duyệt');
+                    return;
+                }
+                const response = await adminAPI.changeHomeStayStatus(
+                    confirmModal.homestayId,
+                    1,
+                    confirmModal.commissionRateID
+                );
                 if (response?.status === 200 || response?.data) {
                     toast.success('Phê duyệt homestay thành công');
-                    await fetchHomeStays(); // Cập nhật lại danh sách
+                    await fetchHomeStays();
                 } else {
                     toast.error('Phê duyệt homestay thất bại');
                 }
             } else {
-                const response = await adminAPI.changeHomeStayStatus(confirmModal.homestayId, 2);
+                const response = await adminAPI.changeHomeStayStatus(
+                    confirmModal.homestayId,
+                    2,
+                    confirmModal.commissionRateID
+                );
                 if (response?.status === 200 || response?.data) {
                     toast.success('Từ chối homestay thành công');
-                    await fetchHomeStays(); // Cập nhật lại danh sách
+                    await fetchHomeStays();
                 } else {
                     toast.error('Từ chối homestay thất bại');
                 }
@@ -277,7 +310,7 @@ export default function PendingHomestay() {
                 >
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUserClock  className="w-6 h-6 text-white" />
+                            <FaUserClock className="w-6 h-6 text-white" />
                         </div>
                         <div>
                             <p className="text-white/80 text-sm">Tổng số chờ phê duyệt</p>
@@ -392,21 +425,61 @@ export default function PendingHomestay() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-3">
+                                            <div className="relative">
                                                 <button
-                                                    onClick={() => handleApproveClick(homeStay?.homeStayID)}
-                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                                                    title="Phê duyệt"
+                                                    onClick={() => setOpenDropdownId(openDropdownId === homeStay?.homeStayID ? null : homeStay?.homeStayID)}
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                                                    title="Thao tác"
                                                 >
-                                                    <FaCheck className="w-4 h-4 text-green-500 hover:text-green-600" />
+                                                    <BsThreeDots className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleRejectClick(homeStay?.homeStayID)}
-                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                                                    title="Từ chối"
-                                                >
-                                                    <FaTimes className="w-4 h-4 text-red-500 hover:text-red-600" />
-                                                </button>
+
+                                                {openDropdownId === homeStay?.homeStayID && (
+                                                    <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 dropdown-menu z-50">
+                                                        <div className="py-1">
+                                                            {homeStay?.commissionRateID ? (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            handleApproveClick(homeStay?.homeStayID, homeStay?.commissionRateID);
+                                                                            setOpenDropdownId(null);
+                                                                        }}
+                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                    >
+                                                                        <FaCheck className="w-4 h-4 text-green-500" />
+                                                                        Phê duyệt
+                                                                    </button>
+
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            handleRejectClick(homeStay?.homeStayID, homeStay?.commissionRateID);
+                                                                            setOpenDropdownId(null);
+                                                                        }}
+                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                    >
+                                                                        <FaTimes className="w-4 h-4 text-red-500" />
+                                                                        Từ chối
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setIsAddCommissionRateModalOpen(true)
+                                                                        setHomestayIdSelected(homeStay?.homeStayID)
+
+                                                                    }}
+                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                >
+                                                                    <FaPlus className="w-4 h-4 text-green-500" />
+                                                                    Thêm tỉ lệ ăn chia
+                                                                </button>
+                                                            )}
+
+
+
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </td>
                                     </motion.tr>
@@ -433,48 +506,50 @@ export default function PendingHomestay() {
                 </div>
             </div>
 
-            {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-8">
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        className={`p-2 rounded-lg ${currentPage === 1
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                            }`}
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+            {
+                totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-8">
                         <button
-                            key={number}
-                            onClick={() => setCurrentPage(number)}
-                            className={`w-10 h-10 rounded-lg ${number === currentPage
-                                ? 'bg-blue-500 text-white'
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className={`p-2 rounded-lg ${currentPage === 1
+                                ? 'text-gray-400 cursor-not-allowed'
                                 : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                                 }`}
                         >
-                            {number}
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                            </svg>
                         </button>
-                    ))}
 
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                        className={`p-2 rounded-lg ${currentPage === totalPages
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                            }`}
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                </div>
-            )}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                            <button
+                                key={number}
+                                onClick={() => setCurrentPage(number)}
+                                className={`w-10 h-10 rounded-lg ${number === currentPage
+                                    ? 'bg-blue-500 text-white'
+                                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                                    }`}
+                            >
+                                {number}
+                            </button>
+                        ))}
+
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className={`p-2 rounded-lg ${currentPage === totalPages
+                                ? 'text-gray-400 cursor-not-allowed'
+                                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                                }`}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                )
+            }
 
             <AnimatePresence>
                 {confirmModal.isOpen && (
@@ -514,6 +589,16 @@ export default function PendingHomestay() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+            {
+                isAddCommissionRateModalOpen && (
+                    <AddCommissionRateModal
+                        isOpen={isAddCommissionRateModalOpen}
+                        onClose={() => setIsAddCommissionRateModalOpen(false)}
+                        homeStayID={homestayIdSelected}
+                        fetchHomestays={fetchHomeStays}
+                    />
+                )
+            }
+        </div >
     );
 }
