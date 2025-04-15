@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaBed, FaBath, FaWifi, FaChild, FaUser, FaUsers, FaArrowLeft, FaCloudUploadAlt, FaTrash, FaCheck, FaPlus, FaHome, FaUtensils, FaCalendarAlt, FaMoneyBillWave, FaTag, FaInfoCircle, FaDollarSign } from 'react-icons/fa';
+import { FaTimes, FaBed, FaBath, FaWifi, FaChild, FaUser, FaUsers, FaArrowLeft, FaCloudUploadAlt, FaTrash, FaCheck, FaPlus, FaHome, FaUtensils, FaCalendarAlt, FaMoneyBillWave, FaTag, FaInfoCircle, FaDollarSign, FaPercent } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
 import homestayRentalAPI from '../../services/api/homestayrentalAPI';
 
@@ -189,16 +189,16 @@ const AddHomestayRental = () => {
         });
     };
 
-    const addPricingEntry = () => {
-        setFormData(prev => ({
-            ...prev,
-            pricingEntries: [
-                ...prev.pricingEntries,
-                { unitPrice: 0, rentPrice: 0, startDate: "", endDate: "", isDefault: true, isActive: true, dayType: 0, description: "" }
-            ]
-        }));
-        toast.success('Đã thêm gói giá mới!');
-    };
+    // const addPricingEntry = () => {
+    //     setFormData(prev => ({
+    //         ...prev,
+    //         pricingEntries: [
+    //             ...prev.pricingEntries,
+    //             { unitPrice: 0, rentPrice: 0, startDate: "", endDate: "", isDefault: true, isActive: true, dayType: (prev.pricingEntries.find(pricing => pricing.dayType === 1) ? 2 : 1), description: "" }
+    //         ]
+    //     }));
+    //     toast.success('Đã thêm gói giá mới!');
+    // };
 
     const removePricingEntry = (index) => {
         if (formData.pricingEntries.length === 1) {
@@ -261,6 +261,7 @@ const AddHomestayRental = () => {
                         rentPrice: entry.rentPrice,
                         startDate: entry.startDate || null,
                         endDate: entry.endDate || null,
+                        percentage: entry.dayType !== 0 ? entry.unitPrice : 0,
                         isDefault: entry.isDefault,
                         isActive: entry.isActive,
                         dayType: entry.dayType,
@@ -268,7 +269,6 @@ const AddHomestayRental = () => {
                     }))
                 ) : ""
             };
-
             const response = await homestayRentalAPI.createHomestayRental(rentalData);
             if (response.statusCode === 201) {
                 toast.dismiss(loadingToast);
@@ -707,80 +707,145 @@ const AddHomestayRental = () => {
                                                 <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
                                                     <h3 className="text-base font-medium text-gray-700 dark:text-gray-300">
                                                         <FaTag className="text-primary inline mr-2" />
-                                                        Gói giá {index + 1}
+                                                        Gói giá {entry.dayType === 0 ? "ngày thường" : entry.dayType === 1 ? "ngày cuối tuần" : "ngày đặc biệt"}
                                                     </h3>
-                                                    <button
+                                                    {/* <button
                                                         type="button"
-                                                        onClick={() => removePricingEntry(index)}
+                                                        onClick={() => index === 0 ? null : removePricingEntry(index)}
                                                         className="p-1 text-gray-400 hover:text-red-500"
                                                     >
                                                         <FaTrash className="w-4 h-4" />
-                                                    </button>
+                                                    </button> */}
                                                 </div>
 
                                                 {/* Content with price settings */}
                                                 <div className="p-4">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         {/* Unit Price */}
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                                <FaMoneyBillWave className="inline mr-1 text-gray-400" />
-                                                                Đơn giá <span className="text-red-500">*</span>
-                                                            </label>
-                                                            <div className="relative">
-                                                                <input
-                                                                    type="number"
-                                                                    value={entry.unitPrice}
-                                                                    onChange={(e) => handlePricingChange(index, "unitPrice", e.target.value)}
-                                                                    min="0"
-                                                                    className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                                    placeholder="0"
-                                                                />
-                                                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                                                    <FaDollarSign />
-                                                                </span>
-                                                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                                                    VNĐ
-                                                                </span>
-                                                            </div>
-                                                            {errors[`unitPrice_${index}`] && (
-                                                                <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                                    <FaInfoCircle className="mr-1" /> {errors[`unitPrice_${index}`]}
-                                                                </p>
-                                                            )}
-                                                        </div>
+                                                        {entry.dayType === 0 ? (
+                                                            <>
+                                                                <div>
+                                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                                        <FaMoneyBillWave className="inline mr-1 text-gray-400" />
+                                                                        Đơn giá <span className="text-red-500">*</span>
+                                                                    </label>
+                                                                    <div className="relative">
+                                                                        <input
+                                                                            type="number"
+                                                                            value={entry.unitPrice}
+                                                                            onChange={(e) => handlePricingChange(index, "unitPrice", e.target.value)}
+                                                                            min="0"
+                                                                            className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                                            placeholder="0"
+                                                                        />
+                                                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                                                            <FaDollarSign />
+                                                                        </span>
+                                                                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                                                                            VNĐ
+                                                                        </span>
+                                                                    </div>
+                                                                    {errors[`unitPrice_${index}`] && (
+                                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                            <FaInfoCircle className="mr-1" /> {errors[`unitPrice_${index}`]}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
 
-                                                        {/* Rent Price */}
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                                <FaMoneyBillWave className="inline mr-1 text-gray-400" />
-                                                                Giá thuê <span className="text-red-500">*</span>
-                                                            </label>
-                                                            <div className="relative">
-                                                                <input
-                                                                    type="number"
-                                                                    value={entry.rentPrice}
-                                                                    onChange={(e) => handlePricingChange(index, "rentPrice", e.target.value)}
-                                                                    min="0"
-                                                                    className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                                    placeholder="0"
-                                                                />
-                                                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                                                    <FaDollarSign />
-                                                                </span>
-                                                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                                                    VNĐ
-                                                                </span>
-                                                            </div>
-                                                            {errors[`rentPrice_${index}`] && (
-                                                                <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                                    <FaInfoCircle className="mr-1" /> {errors[`rentPrice_${index}`]}
-                                                                </p>
-                                                            )}
-                                                        </div>
+                                                                <div>
+                                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                                        <FaMoneyBillWave className="inline mr-1 text-gray-400" />
+                                                                        Giá thuê <span className="text-red-500">*</span>
+                                                                    </label>
+                                                                    <div className="relative">
+                                                                        <input
+                                                                            type="number"
+                                                                            value={entry.rentPrice}
+                                                                            onChange={(e) => handlePricingChange(index, "rentPrice", e.target.value)}
+                                                                            min="0"
+                                                                            className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                                            placeholder="0"
+                                                                        />
+                                                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                                                            <FaDollarSign />
+                                                                        </span>
+                                                                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                                                                            VNĐ
+                                                                        </span>
+                                                                    </div>
+                                                                    {errors[`rentPrice_${index}`] && (
+                                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                            <FaInfoCircle className="mr-1" /> {errors[`rentPrice_${index}`]}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+
+
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <div className='col-span-2'>
+                                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                                        <FaMoneyBillWave className="inline mr-1 text-gray-400" />
+                                                                        Chọn phần trăm (%) <span className="text-red-500">*</span>
+                                                                    </label>
+                                                                    <div className="relative">
+                                                                        <select
+                                                                            value={entry.unitPrice}
+                                                                            onChange={(e) => {
+                                                                                handlePricingChange(index, "unitPrice", e.target.value)
+                                                                                handlePricingChange(index, "rentPrice", e.target.value)
+                                                                            }}
+                                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 appearance-none"
+                                                                        >
+                                                                            <option value="">Chọn phần trăm</option>
+                                                                            {[10, 20, 30, 40, 50].map((percent) => (
+                                                                                <option key={`unit-${percent}`} value={percent}>
+                                                                                    {percent}%
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                                                            <FaPercent className="h-4 w-4" />
+                                                                        </div>
+                                                                    </div>
+                                                                    {errors[`unitPrice_${index}`] && (
+                                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                            <FaInfoCircle className="mr-1" /> {errors[`unitPrice_${index}`]}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+
+                                                                {entry.unitPrice ? (
+                                                                    <div className="col-span-2 mt-2">
+                                                                        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                                                                            <div className="flex items-start space-x-2">
+                                                                                <FaInfoCircle className="mt-0.5 text-primary" />
+                                                                                <div className="text-sm text-gray-600 dark:text-gray-300">
+                                                                                    <p className="font-medium mb-1">Tỷ lệ phần trăm tăng so với giá ngày thường đã chọn:</p>
+                                                                                    <ul className="list-disc list-inside space-y-1">
+                                                                                        <li>Đơn giá tăng: {entry.unitPrice}% </li>
+                                                                                        <li>Giá thuê tăng: {entry.rentPrice}% </li>
+                                                                                        {parseInt(entry.unitPrice) > parseInt(entry.rentPrice) && (
+                                                                                            <li className="text-red-500">
+                                                                                                Cảnh báo: Đơn giá không nên cao hơn giá thuê!
+                                                                                            </li>
+                                                                                        )}
+                                                                                    </ul>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : null}
+
+
+
+                                                            </>
+                                                        )}
+
 
                                                         {/* Day Type */}
-                                                        <div className="md:col-span-2">
+                                                        {/* <div className="md:col-span-2">
                                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                                 <FaCalendarAlt className="inline mr-1 text-gray-400" />
                                                                 Áp dụng cho loại ngày <span className="text-red-500">*</span>
@@ -788,18 +853,19 @@ const AddHomestayRental = () => {
                                                             <div className="relative">
                                                                 <select
                                                                     value={entry.dayType}
+                                                                    disabled={index === 0}
                                                                     onChange={(e) => handlePricingChange(index, "dayType", e.target.value)}
                                                                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 appearance-none"
                                                                 >
-                                                                    <option value="0">Ngày thường</option>
-                                                                    <option value="1">Ngày cuối tuần (Thứ 6, Thứ 7, Chủ nhật)</option>
+                                                                    {index === 0 && <option value="0">Ngày thường</option>}
+                                                                    {(!formData.pricingEntries.find(pricing => pricing.dayType === 1) || (entry.dayType === 1)) && <option value="1">Ngày cuối tuần (Thứ 6, Thứ 7, Chủ nhật)</option>}
                                                                     <option value="2">Ngày đặc biệt (ngày lễ, sự kiện)</option>
                                                                 </select>
                                                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                                                                     <FaCalendarAlt className="h-4 w-4" />
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        </div> */}
 
                                                         {/* Special day date range */}
                                                         {parseInt(entry.dayType) === 2 && (
@@ -870,7 +936,7 @@ const AddHomestayRental = () => {
                                         ))}
 
                                         {/* Add new price button */}
-                                        <div className="flex justify-center">
+                                        {/* <div className="flex justify-center">
                                             <button
                                                 type="button"
                                                 onClick={addPricingEntry}
@@ -878,7 +944,7 @@ const AddHomestayRental = () => {
                                             >
                                                 <FaPlus className="mr-2" /> Thêm gói giá mới
                                             </button>
-                                        </div>
+                                        </div> */}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -917,10 +983,10 @@ const AddHomestayRental = () => {
                         </div>
                     </form>
                 </div>
-            </div>
+            </div >
 
             {/* Confirmation Modal */}
-            <AnimatePresence>
+            <AnimatePresence AnimatePresence >
                 {isModalOpen && (
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -1002,7 +1068,7 @@ const AddHomestayRental = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </motion.div>
+        </motion.div >
     );
 };
 
