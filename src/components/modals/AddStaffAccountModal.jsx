@@ -157,7 +157,7 @@ export const AddStaffAccountModal = ({ fetchStaffs, isOpen, onClose }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4 max-h-[70vh] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold mb-4">Thêm nhân viên mới</h2>
               <div className="mb-4">
                 <label className="block text-sm font-medium">Homestay</label>

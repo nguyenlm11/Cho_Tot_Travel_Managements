@@ -2,23 +2,67 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import bookingAPI from '../../services/api/bookingAPI';
-import { FaUser, FaCalendar, FaClock, FaChild, FaUsers, FaMoneyBillWave, FaCreditCard, FaInfoCircle } from 'react-icons/fa';
+import {
+    FaUser,
+    FaCalendar,
+    FaClock,
+    FaChild,
+    FaUsers,
+    FaMoneyBillWave,
+    FaCreditCard,
+    FaInfoCircle,
+    FaHotel,
+    FaBed,
+    FaReceipt,
+    FaAddressBook,
+    FaRegAddressBook,
+    FaRegAddressCard,
+    FaMapMarkerAlt
+} from 'react-icons/fa';
 import { formatPrice, formatDate } from '../../utils/utils';
+import { FaHouse } from 'react-icons/fa6';
 
-// Thêm các cấu hình cho các loại trạng thái và phương thức thanh toán
-const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
+// Status configurations
+const BookingStatus = {
+    Pending: 0,
+    Confirmed: 1,
+    Completed: 2,
+    Cancelled: 3
+};
+
+const PaymentStatus = {
+    Pending: 0,
+    Deposited: 1,
+    FullyPaid: 2,
+    Refunded: 3
+};
+
+const statusConfig = {
+    [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Đang chờ' },
+    [BookingStatus.Confirmed]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đã xác nhận' },
+    [BookingStatus.Completed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Hoàn thành' },
+    [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' }
+};
+
 const paymentStatusConfig = {
     [PaymentStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chưa thanh toán' },
-    [PaymentStatus.Deposited]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đặt cọc' },
-    [PaymentStatus.FullyPaid]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Thanh toán đủ' },
+    [PaymentStatus.Deposited]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã đặt cọc' },
+    [PaymentStatus.FullyPaid]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đã thanh toán' },
     [PaymentStatus.Refunded]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Đã hoàn tiền' }
 };
 
-const paymentMethodConfig = {
-    'VNPay': { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'VNPay' },
-    'Cash': { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Tiền mặt' },
-    // Thêm các phương thức thanh toán khác nếu cần
-};
+// const paymentMethodConfig = {
+//     0: {
+//         icon: FaMoneyBillWave,
+//         color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100',
+//         text: 'Tiền mặt'
+//     },
+//     1: {
+//         icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp1v7T287-ikP1m7dEUbs2n1SbbLEqkMd1ZA&s',
+//         color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100',
+//         text: 'VNPay'
+//     }
+// };
 
 export const BookingDetail = () => {
     const { bookingId } = useParams();
@@ -40,24 +84,6 @@ export const BookingDetail = () => {
     if (!booking) {
         return <div>Loading...</div>;
     }
-
-    const {
-        bookingID,
-        bookingDate,
-        expiredTime,
-        numberOfChildren,
-        numberOfAdults,
-        // status,
-        paymentStatus,
-        totalRentPrice,
-        total,
-        bookingDeposit,
-        remainingBalance,
-        account,
-        paymentMethod,
-        bookingDetails,
-        bookingServices,
-    } = booking;
 
     const containerVariants = {
         hidden: { opacity: 0, y: -20 },
@@ -85,184 +111,207 @@ export const BookingDetail = () => {
         },
     };
 
+    const StatusBadge = ({ status, config }) => (
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${config[status]?.color}`}>
+            {config[status]?.text}
+        </span>
+    );
+
+    const InfoCard = ({ icon: Icon, title, children, className = '' }) => (
+        <motion.div
+            className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 ${className}`}
+            variants={itemVariants}
+        >
+            <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
+                <Icon className="mr-2 text-blue-500" />
+                {title}
+            </h3>
+            {children}
+        </motion.div>
+    );
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
             <motion.div
-                className="max-w-4xl mx-auto space-y-6"
+                className="max-w-5xl mx-auto space-y-6"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
-                {/* Header */}
-                <motion.div
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white"
-                    variants={itemVariants}
-                >
-                    <h2 className="text-3xl font-bold">Chi tiết đặt phòng #{bookingID}</h2>
-                </motion.div>
-
-                {/* Thông tin cơ bản */}
-                <motion.div
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
-                    variants={itemVariants}
-                >
-                    <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
-                        <FaInfoCircle className="mr-2 text-blue-500" />
-                        Thông tin đặt phòng
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Mã đặt phòng:</strong> {bookingID}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Ngày đặt:</strong> {formatDate(bookingDate)}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Thời gian hết hạn:</strong> {formatDate(expiredTime)}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Số trẻ em:</strong> {numberOfChildren}</p>
-                            <p className='text-gray-600 dark:text-gray-400'><strong>Số người lớn:</strong> {numberOfAdults}</p>
-                            {/* <p className='text-gray-600 dark:text-gray-400'><strong>Trạng thái:</strong> {status}</p> */}
-
-                            <div className="flex items-center space-x-3 mb-3">
-                                <span className="text-gray-700 dark:text-gray-400 font-bold min-w-[140px] flex items-center">
-                                    Phương thức thanh toán:
-                                </span>
-                                <span className={`
-                                    inline-flex items-center gap-2 px-3 py-1.5 
-                                    rounded-full text-sm font-medium 
-                                    transition-all duration-200 
-                                    ${paymentMethodConfig[paymentMethod]?.color}
-                                    shadow-sm hover:shadow-md
-                                    transform hover:-translate-y-0.5
-                                `}>
-                                    {paymentMethod == '1' ? (
-                                        <>
-                                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp1v7T287-ikP1m7dEUbs2n1SbbLEqkMd1ZA&s" alt="VNPay" className="w-4 h-4 object-contain" />
-                                            <span>VNPay</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FaMoneyBillWave className="w-4 h-4" />
-                                            <span>Tiền mặt</span>
-                                        </>
-                                    )}
-                                </span>
-                            </div>
-
-                            <p className='text-gray-600 dark:text-gray-400'>
-                                <strong>Trạng thái thanh toán:</strong>{' '}
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${paymentStatusConfig[paymentStatus]?.color}`}>
-                                    {paymentStatusConfig[paymentStatus]?.text}
-                                </span>
-                            </p>
+                {/* Header with Booking Status */}
+                <motion.div className="bg-gradient-to-r from-green-600 to-green-800 rounded-xl shadow-lg p-6 text-white">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h2 className="text-3xl font-bold text-white">Đơn đặt phòng #{booking.bookingID}</h2>
+                            <p className="mt-2 text-blue-100">Ngày đặt: {formatDate(booking.bookingDate)}</p>
                         </div>
-                        <div className="space-y-3">
-                            <div className="p-4 bg-blue-50 dark:bg-gray-800 rounded-lg">
-                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng giá thuê:</strong> {formatPrice(totalRentPrice)}</p>
-                                {bookingServices.map((service, index) => (
-                                    <p key={index} className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng tiền dịch vụ:</strong> {formatPrice(service?.total)}</p>
-                                ))}
-                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Tổng cộng:</strong> {formatPrice(total)}</p>
-                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Đặt cọc:</strong> {formatPrice(bookingDeposit)}</p>
-                                <p className='text-gray-600 dark:text-gray-200 mb-3'><strong>Số dư còn lại:</strong> {formatPrice(remainingBalance)}</p>
-                            </div>
-                        </div>
+                        <StatusBadge status={booking.status} config={statusConfig} />
                     </div>
                 </motion.div>
 
-                {/* Thông tin khách hàng */}
-                <motion.div
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
-                    variants={itemVariants}
-                >
-                    <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
-                        <FaUser className="mr-2 text-blue-500" />
-                        Thông tin khách hàng
-                    </h3>
+                {/* HomeStay Information */}
+                <InfoCard icon={FaHotel} title="Thông tin HomeStay">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tên:</strong> {account.name}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Địa chỉ:</strong> {account.address}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Số điện thoại:</strong> {account.phone}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Email:</strong> {account.email}</p>
-                        </div>
-                    </div>
-                </motion.div>
+                        <div>
+                            <h4 className="font-semibold text-lg mb-2 text-gray-800 dark:text-white flex items-center">
+                                <p>
+                                    <FaHouse className="mr-2" color='green' />
+                                </p>
+                                <p>
+                                    {booking.homeStay.name}
+                                </p>
+                            </h4>
+                            <p className="text-gray-600 dark:text-gray-300">
+                                <div className='flex items-center gap-2'>
+                                    <span>
+                                        <FaMapMarkerAlt color='green' />
+                                    </span>
+                                    <span>
+                                        {booking.homeStay.address}
+                                    </span>
+                                </div>
 
-                {/* Chi tiết thuê phòng */}
-                <motion.div
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
-                    variants={itemVariants}
-                >
-                    <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
-                        <FaMoneyBillWave className="mr-2 text-blue-500" />
-                        Chi tiết thuê phòng
-                    </h3>
-                    {bookingDetails.map((detail, index) => (
-                        <div key={index} className="mb-4 p-4 bg-gray-50  dark:bg-gray-800 rounded-lg">
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Mã chi tiết thuê:</strong> {detail.bookingDetailID}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Giá đơn vị:</strong> {formatPrice(detail?.unitPrice)}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Giá thuê:</strong> {formatPrice(detail?.rentPrice)}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày nhận phòng:</strong> {formatDate(detail?.checkInDate)}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày trả phòng:</strong> {formatDate(detail?.checkOutDate)}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng số tiền:</strong> {formatPrice(detail?.totalAmount)}</p>
-                        </div>
-                    ))}
-                </motion.div>
-
-                {/* Dịch vụ đặt phòng */}
-                <motion.div
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
-                    variants={itemVariants}
-                >
-                    <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
-                        <FaCreditCard className="mr-2 text-blue-500" />
-                        Dịch vụ đặt phòng
-                    </h3>
-                    {bookingServices.map((service, index) => (
-                        <div key={index} className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Mã dịch vụ:</strong> {service.bookingServicesID}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Ngày dịch vụ:</strong> {formatDate(service?.bookingServicesDate)}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Tổng tiền dịch vụ:</strong> {formatPrice(service?.total)}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Đặt cọc dịch vụ:</strong> {formatPrice(service?.bookingServiceDeposit)}</p>
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'><strong>Số dư dịch vụ còn lại:</strong> {formatPrice(service?.remainingBalance)}</p>
-
-                            <p className='text-gray-600 dark:text-gray-400 mb-3'>
-                                <strong>Trạng thái thanh toán dịch vụ:</strong>{' '}
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${paymentStatusConfig[service.paymentServiceStatus]?.color}`}>
-                                    {paymentStatusConfig[service.paymentServiceStatus]?.text}
-                                </span>
                             </p>
+                            <p className="text-gray-600 dark:text-gray-300 mt-2 flex items-center gap-2">
+                                <span>
+                                    <FaInfoCircle color='green' />
+                                </span>
+                                <span>
+                                    {booking.homeStay.description}
+                                </span>
 
-                            <div className="flex items-center space-x-3 mb-3 last:border-0">
-                                <span className="text-gray-700 dark:text-gray-400 font-bold min-w-[180px] flex items-center">
-                                    Phương thức thanh toán dịch vụ:
-                                </span>
-                                <span className={`
-                                    inline-flex items-center gap-2 px-3 py-1.5 
-                                    rounded-full text-sm font-medium 
-                                    transition-all duration-200 
-                                    ${paymentMethodConfig[service.paymentServicesMethod]?.color}
-                                    shadow-sm hover:shadow-md
-                                    transform hover:-translate-y-0.5
-                                `}>
-                                    {service.paymentServicesMethod == '1' ? (
-                                        <>
-                                            <img
-                                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTp1v7T287-ikP1m7dEUbs2n1SbbLEqkMd1ZA&s"
-                                                alt="VNPay"
-                                                className="w-4 h-4 object-contain"
-                                            />
-                                            <span>VNPay</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FaMoneyBillWave className="w-4 h-4" />
-                                            <span>Tiền mặt</span>
-                                        </>
-                                    )}
-                                </span>
+                            </p>
+                        </div>
+                        {booking.homeStay.imageHomeStays?.length > 0 && (
+                            <div className="grid grid-cols-2 gap-2">
+                                {booking.homeStay.imageHomeStays.map((image, index) => (
+                                    <img
+                                        key={index}
+                                        src={image.url}
+                                        alt={`HomeStay ${index + 1}`}
+                                        className="rounded-lg object-cover h-32 w-full"
+                                    />
+                                ))}
                             </div>
+                        )}
+                    </div>
+                </InfoCard>
 
+                {/* Customer Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InfoCard icon={FaUser} title="Thông tin khách hàng">
+                        <div className="space-y-3">
+                            <p className="text-gray-700 dark:text-gray-300">
+                                <span className="font-semibold text-gray-800 dark:text-white">Tên:</span> {booking.account.name}
+                            </p>
+                            <p className="text-gray-700 dark:text-gray-300">
+                                <span className="font-semibold text-gray-800 dark:text-white">Email:</span> {booking.account.email}
+                            </p>
+                            <p className="text-gray-700 dark:text-gray-300">
+                                <span className="font-semibold text-gray-800 dark:text-white">Số điện thoại:</span> {booking.account.phone}
+                            </p>
+                            <p className="text-gray-700 dark:text-gray-300">
+                                <span className="font-semibold text-gray-800 dark:text-white">Địa chỉ:</span> {booking.account.address}
+                            </p>
+                        </div>
+                    </InfoCard>
+
+                    {/* Payment Information */}
+                    <InfoCard icon={FaMoneyBillWave} title="Thông tin thanh toán">
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                <span>Tổng tiền thuê:</span>
+                                <span className="font-semibold text-gray-800 dark:text-white">{formatPrice(booking.totalRentPrice)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                {booking.bookingServices.map((service, index) => (
+                                    <>
+                                        <span key={index}>Tổng tiền dịch vụ:</span>
+                                        <span className="font-semibold text-gray-800 dark:text-white">{formatPrice(service.total)}</span>
+                                    </>
+
+                                ))}
+                            </div>
+                            <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                <span>Tiền đặt cọc:</span>
+                                <span className="font-semibold text-blue-600 dark:text-blue-400">{formatPrice(booking.bookingDeposit)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                <span>Số tiền còn lại:</span>
+                                <span className="font-semibold text-red-600 dark:text-red-400">{formatPrice(booking.remainingBalance)}</span>
+                            </div>
+                            <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex items-center justify-between text-gray-700 dark:text-gray-300">
+                                    <span>Trạng thái thanh toán:</span>
+                                    <StatusBadge status={booking.paymentStatus} config={paymentStatusConfig} />
+                                </div>
+                            </div>
+                        </div>
+                    </InfoCard>
+                </div>
+
+                {/* Room Details */}
+                <InfoCard icon={FaBed} title="Chi tiết phòng">
+                    {booking.bookingDetails.map((detail, index) => (
+                        <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 last:mb-0">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-gray-700 dark:text-gray-300">
+                                        <span className="font-semibold text-gray-800 dark:text-white">Số phòng:</span> {detail.rooms.roomNumber}
+                                    </p>
+                                    <p className="text-gray-700 dark:text-gray-300">
+                                        <span className="font-semibold text-gray-800 dark:text-white">Ngày nhận phòng:</span> {formatDate(detail.checkInDate)}
+                                    </p>
+                                    <p className="text-gray-700 dark:text-gray-300">
+                                        <span className="font-semibold text-gray-800 dark:text-white">Ngày trả phòng:</span> {formatDate(detail.checkOutDate)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-gray-700 dark:text-gray-300">
+                                        <span className="font-semibold text-gray-800 dark:text-white">Giá thuê:</span> {formatPrice(detail.rentPrice)}
+                                    </p>
+                                    <p className="text-gray-700 dark:text-gray-300">
+                                        <span className="font-semibold text-gray-800 dark:text-white">Tổng tiền:</span> {formatPrice(detail.totalAmount)}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     ))}
-                </motion.div>
+                </InfoCard>
+
+                {/* Services */}
+                {booking.bookingServices.length > 0 && (
+                    <InfoCard icon={FaReceipt} title="Dịch vụ đi kèm">
+                        {booking.bookingServices.map((service, index) => (
+                            <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 last:mb-0">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <h4 className="font-semibold text-gray-800 dark:text-white">Dịch vụ #{service.bookingServicesID}</h4>
+                                        <StatusBadge status={service.paymentServiceStatus} config={paymentStatusConfig} />
+                                    </div>
+
+                                    {service.bookingServicesDetails.map((detail, idx) => (
+                                        <div key={idx} className="bg-white dark:bg-gray-700/50 rounded p-3">
+                                            <p className="font-medium text-gray-800 dark:text-white">{detail.services.servicesName}</p>
+                                            <div className="grid grid-cols-2 gap-2 mt-2 text-sm text-gray-600 dark:text-gray-300">
+                                                <p>Số lượng: {detail.quantity}</p>
+                                                <p>Đơn giá: {formatPrice(detail.unitPrice)}</p>
+                                                <p>Tổng tiền: {formatPrice(detail.totalAmount)}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                                        <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                            <span>Tổng tiền dịch vụ:</span>
+                                            <span className="font-semibold text-gray-800 dark:text-white">{formatPrice(service.total)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </InfoCard>
+                )}
             </motion.div>
         </div>
     );
