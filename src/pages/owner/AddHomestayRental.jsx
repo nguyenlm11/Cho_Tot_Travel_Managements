@@ -707,7 +707,7 @@ const AddHomestayRental = () => {
                                                 <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
                                                     <h3 className="text-base font-medium text-gray-700 dark:text-gray-300">
                                                         <FaTag className="text-primary inline mr-2" />
-                                                        Gói giá {entry.dayType === 0 ? "ngày thường" : entry.dayType === 1 ? "ngày cuối tuần" : "ngày đặc biệt"}
+                                                        Gói giá {entry.dayType === 0 ? "ngày thường" : entry.dayType === 1 ? "ngày cuối tuần" : "ngày đặc biệt (lễ, tết)"}
                                                     </h3>
                                                     {/* <button
                                                         type="button"

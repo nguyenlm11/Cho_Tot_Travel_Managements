@@ -8,9 +8,11 @@ import {
 import { Toaster, toast } from 'react-hot-toast';
 import roomTypeAPI from '../../services/api/roomTypeAPI';
 import pricingAPI from '../../services/api/pricingAPI';
-import AddPricingModal from '../../components/modals/AddPricingModal';
-import EditPricingModal from '../../components/modals/EditPricingModal';
+// import AddPricingModal from '../../components/modals/AddPricingModal';
+// import EditPricingModal from '../../components/modals/EditPricingModal';
 import EditRoomTypeModal from '../../components/modals/EditRoomTypeModal';
+import AddPricingRoomTypeModal from '../../components/modals/AddPricingRoomTypeModal';
+import EditPricingRoomTypeModal from '../../components/modals/EditPricingRoomTypeModal';
 
 const RoomTypeDetail = () => {
     const { homestayId, rentalId, roomTypeId } = useParams();
@@ -214,12 +216,12 @@ const RoomTypeDetail = () => {
                     {/* Room Type Info */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Image Gallery */}
-                        <div className="lg:col-span-8 space-y-4">
+                        <div className="lg:col-span-8 space-y-6">
                             <motion.div
                                 variants={contentVariants}
-                                className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md"
+                                className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md "
                             >
-                                <div className="relative h-[400px]">
+                                <div className="relative h-[450px]">
                                     {roomTypeDetailData?.imageRoomTypes && roomTypeDetailData?.imageRoomTypes.length > 0 ? (
                                         <>
                                             <AnimatePresence initial={false} mode="wait">
@@ -429,19 +431,19 @@ const RoomTypeDetail = () => {
                         </div>
 
                         {/* right column */}
-                        <div className="lg:col-span-4 space-y-6 gap-4">
-                            {/* Status card with glassmorphism */}
+                        <div className="lg:col-span-4 space-y-6">
+                            {/* Status card - Phần thông tin trạng thái */}
                             <motion.div
                                 variants={contentVariants}
                                 className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 backdrop-blur-sm
-                  border border-gray-100 dark:border-gray-700"
+                                border border-gray-100 dark:border-gray-700"
                             >
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="text-lg font-bold text-gray-900 dark:text-white">Trạng thái</h2>
                                     <motion.div
                                         whileHover={{ scale: 1.05 }}
                                         className={`px-3 py-1 rounded-full text-sm font-medium
-                      ${roomTypeDetailData?.status
+                                        ${roomTypeDetailData?.status
                                                 ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100'
                                                 : 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100'}`
                                         }
@@ -450,6 +452,7 @@ const RoomTypeDetail = () => {
                                     </motion.div>
                                 </div>
 
+                                {/* Thông tin cơ bản */}
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
                                         <span className="text-gray-600 dark:text-gray-400">Loại thuê:</span>
@@ -491,6 +494,7 @@ const RoomTypeDetail = () => {
 
                                 </div>
 
+                                {/* Các nút chức năng */}
                                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                                     <div className="space-y-4">
                                         <motion.button
@@ -526,89 +530,104 @@ const RoomTypeDetail = () => {
                                 </div>
                             </motion.div>
 
-                            {roomTypeDetailData?.pricings?.map((pricing, index) => (
-                                <motion.div
-                                    key={index}
-                                    variants={contentVariants}
-                                    className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 backdrop-blur-sm
-                  border border-gray-100 dark:border-gray-700"
-                                >
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Gói {pricing?.dayType == 0 ? "ngày thường" : pricing?.dayType == 1 ? "ngày cuối tuần" : "ngày lễ"}</h2>
-                                        <div className="flex items-center justify-center gap-2">
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
-                                  rounded-full transition-colors"
-                                                title="Chỉnh sửa"
-                                                onClick={() => handleEditPricing(pricing)}
+                            {/* Phần danh sách các gói với thanh cuộn */}
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                                {/* <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Danh sách gói thuê</h2>
+                                </div> */}
+
+                                <div className="h-[535px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+                                    <div className="space-y-4 w-full">
+                                        {roomTypeDetailData?.pricings?.map((pricing, index) => (
+                                            <motion.div
+                                                key={index}
+                                                variants={contentVariants}
+                                                className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 backdrop-blur-sm
+                                                border border-gray-100 dark:border-gray-700"
                                             >
-                                                <FaEdit className="w-5 h-5" />
-                                            </motion.button>
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 
-                                  rounded-full transition-colors"
-                                                title="Xóa"
-                                            >
-                                                <FaTrash className="w-5 h-5" />
-                                            </motion.button>
-                                        </div>
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                                                        Gói {pricing?.dayType == 0 ? "ngày thường" : pricing?.dayType == 1 ? "ngày cuối tuần" : "ngày lễ"}
+                                                    </h2>
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.1 }}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
+                                                            rounded-full transition-colors"
+                                                            title="Chỉnh sửa"
+                                                            onClick={() => handleEditPricing(pricing)}
+                                                        >
+                                                            <FaEdit className="w-5 h-5" />
+                                                        </motion.button>
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.1 }}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 
+                                                            rounded-full transition-colors"
+                                                            title="Xóa"
+                                                        >
+                                                            <FaTrash className="w-5 h-5" />
+                                                        </motion.button>
+                                                    </div>
+                                                </div>
+
+                                                <div className='flex flex-col gap-2'>
+                                                    <div className="space-y-4">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-gray-600 dark:text-gray-400">Đơn giá:</span>
+                                                            <motion.span
+                                                                whileHover={{ scale: 1.05 }}
+                                                                className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium text-sm"
+                                                            >
+                                                                {formatPrice(pricing?.unitPrice)}
+                                                            </motion.span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-gray-600 dark:text-gray-400">Giá thuê:</span>
+                                                            <motion.span
+                                                                whileHover={{ scale: 1.05 }}
+                                                                className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium text-sm"
+                                                            >
+                                                                {formatPrice(pricing?.rentPrice)}
+                                                            </motion.span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-gray-600 dark:text-gray-400">Loại ngày:</span>
+                                                            <motion.span
+                                                                whileHover={{ scale: 1.05 }}
+                                                                className="px-3 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100 rounded-full font-medium text-sm"
+                                                            >
+                                                                {pricing?.dayType == 0 ? "Ngày thường" : pricing?.dayType == 1 ? "Ngày cuối tuần" : "Ngày lễ"}
+                                                            </motion.span>
+                                                        </div>
+                                                    </div>
+
+                                                    {!pricing?.isDefault && (
+                                                        <div className="space-y-3">
+                                                            <p className="text-gray-600 dark:text-gray-400">Có giá trị từ ngày:</p>
+                                                            <motion.p
+                                                                whileHover={{ scale: 1.05 }}
+                                                                className='flex items-center justify-between text-gray-300'
+                                                            >
+                                                                <span className='text-gray-600 dark:text-gray-400'>{formatDate(pricing?.startDate)}</span>
+                                                                <span>-</span>
+                                                                <span className='text-gray-600 dark:text-gray-400'>{formatDate(pricing?.endDate)}</span>
+                                                            </motion.p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        ))}
                                     </div>
-
-                                    <div className='flex flex-col gap-2'>
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 dark:text-gray-400">Đơn giá:</span>
-                                                <motion.span
-                                                    whileHover={{ scale: 1.05 }}
-                                                    className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium text-sm"
-                                                >
-                                                    {formatPrice(pricing?.unitPrice)}
-                                                </motion.span>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 dark:text-gray-400">Giá thuê:</span>
-                                                <motion.span
-                                                    whileHover={{ scale: 1.05 }}
-                                                    className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full font-medium text-sm"
-                                                >
-                                                    {formatPrice(pricing?.rentPrice)}
-                                                </motion.span>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 dark:text-gray-400">Loại ngày:</span>
-                                                <motion.span
-                                                    whileHover={{ scale: 1.05 }}
-                                                    className="px-3 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100 rounded-full font-medium text-sm"
-                                                >
-                                                    {pricing?.dayType == 0 ? "Ngày thường" : pricing?.dayType == 1 ? "Ngày cuối tuần" : "Ngày lễ"}
-                                                </motion.span>
-                                            </div>
-                                        </div>
-
-                                        {!pricing?.isDefault && (<div className="space-y-3">
-                                            <p className="text-gray-600 dark:text-gray-400">Có giá trị từ ngày:</p>
-                                            <motion.p
-                                                whileHover={{ scale: 1.05 }}
-                                                className='flex items-center justify-between text-gray-300'
-                                            >
-                                                <span className='text-gray-600 dark:text-gray-400'>{formatDate(pricing?.startDate)}</span>
-                                                <span>-</span>
-                                                <span className='text-gray-600 dark:text-gray-400'>{formatDate(pricing?.endDate)}</span>
-                                            </motion.p>
-                                        </div>)}
-                                    </div>
-                                </motion.div>
-                            ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -617,7 +636,7 @@ const RoomTypeDetail = () => {
             </motion.div>
 
             {isEditPricingModalOpen && (
-                <EditPricingModal
+                <EditPricingRoomTypeModal
                     pricing={selectedPricing}
                     isOpen={isEditPricingModalOpen}
                     onClose={() => {
@@ -625,14 +644,16 @@ const RoomTypeDetail = () => {
                         setSelectedPricing(null);
                     }}
                     onSave={handleUpdatePricing}
+                    roomType={roomTypeDetailData}
                 />
             )}
 
             {isAddPricingModalOpen && (
-                <AddPricingModal
+                <AddPricingRoomTypeModal
                     isOpen={isAddPricingModalOpen}
                     onClose={() => setIsAddPricingModalOpen(false)}
                     onSave={handleAddPricing}
+                    roomType={roomTypeDetailData}
                 />
             )}
 

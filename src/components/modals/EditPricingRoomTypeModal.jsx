@@ -6,7 +6,7 @@ import pricingAPI from '../../services/api/pricingAPI';
 import { FaCalendarAlt, FaDollarSign, FaEdit, FaInfoCircle, FaMoneyBillWave, FaTag, FaPercent } from 'react-icons/fa';
 
 
-const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
+const EditPricingRoomTypeModal = ({ pricing, onClose, onSave, isOpen, roomType }) => {
     const [formData, setFormData] = useState({
         pricingID: null,
         homeStayRentalID: null,
@@ -39,8 +39,9 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
                 isActive: formData.isActive,
                 dayType: formData.dayType,
                 homeStayRentalID: formData.homeStayRentalID,
-                roomTypesID: formData.roomTypesID || null,
+                roomTypesID: formData.roomTypesID,
             };
+
             if (formData.dayType === 0) {
                 updatedData = {
                     ...updatedData,
@@ -54,6 +55,8 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
                 }
             }
 
+            // console.log(updatedData);
+
             onSave(updatedData);
         } catch (error) {
             console.error('Error updating pricing:', error);
@@ -65,10 +68,9 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
     useEffect(() => {
         if (pricing?.pricingID) {
             fechtPricingByID();
-            const regularPricing = rental?.pricing?.find(item => item.dayType === 0);
-            // console.log('regularPricing:', regularPricing); 
+            const regularPricing = roomType?.pricings?.find(item => item.dayType === 0);
             if (regularPricing) {
-                setRegularPrice(regularPricing?.rentPrice);
+                setRegularPrice(regularPricing.rentPrice);
             }
         }
     }, [pricing]);
@@ -276,7 +278,7 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
                                                     <div className="relative">
                                                         <input
                                                             type="number"
-                                                            value={Math.round(formData.rentPrice)}
+                                                            value={formData.rentPrice}
                                                             disabled
                                                             onChange={(e) => handlePricingChange("rentPrice", e.target.value)}
                                                             min="0"
@@ -435,4 +437,4 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
     );
 };
 
-export default EditPricingModal;
+export default EditPricingRoomTypeModal;

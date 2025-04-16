@@ -95,7 +95,12 @@ const AddHomestay = () => {
     }
   };
   const handleInputChangeStep2 = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    if (name === 'RentWhole') {
+      value = value === "true" ? true : false;
+    }
+
     setRentalData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
@@ -136,7 +141,7 @@ const AddHomestay = () => {
       setErrors(prev => ({ ...prev, images: null }));
     }
     setRentalData(prev => ({ ...prev, Images: [...prev.Images, ...files] }));
-    
+
     const newPreviews = [];
     files.forEach(file => {
       const reader = new FileReader();
@@ -206,14 +211,15 @@ const AddHomestay = () => {
         toast.error('Vui lòng điền đầy đủ thông tin và không để trống');
         return;
       }
-      setIsModalOpen(true);
+      // setIsModalOpen(true);
+      setStep(2);
     } else if (step === 2) {
       if (!validateRentalForm()) { // Thêm hàm validate cho form rental
         toast.error('Vui lòng điền đầy đủ thông tin phòng');
         return;
       }
       // Nếu chọn thuê nguyên căn thì chuyển sang step 3, nếu không thì submit luôn
-      if (formData.RentWhole) {
+      if (rentalData.RentWhole) {
         setStep(3);
       } else {
         setIsModalOpen(true);
@@ -251,48 +257,61 @@ const AddHomestay = () => {
 
   const confirmSubmit = async () => {
     setLoading(true);
-    let homestayId = null;
+
+    const handleFormatData = () => {
+      return {
+        ...rentalData,
+        Name: formData.name.trim(),
+        Description: formData.description.trim(),
+        Address: formData.address.trim(),
+        Images: formData.images,
+        AccountID: formData.accountId,
+        Longitude: formData.longitude,
+        Latitude: formData.latitude,
+        RentalType: formData.rentalType,
+        Area: formData.area,
+        RentalName: rentalData.Name,
+        RentalDescription: rentalData.Description,
+        RentalImages: rentalData.Images,
+        ...(rentalData.RentWhole && {
+          Pricing: rentalData.pricingEntries[0],
+          PricingJson: rentalData.RentWhole ? JSON.stringify(
+            rentalData.pricingEntries.map(entry => ({
+              unitPrice: entry.unitPrice,
+              rentPrice: entry.rentPrice,
+              isDefault: entry.isDefault,
+              isActive: entry.isActive,
+              dayType: entry.dayType,
+              description: entry.description || ""
+            }))
+          ) : ""
+        }
+        )
+      }
+    }
     try {
       if (step === 1) {
-        // Tạo homestay
-        const sanitizedData = {
-          ...formData,
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          address: formData.address.trim(),
-        };
-        console.log(sanitizedData);
         setStep(2);
-        // const response = await homestayAPI.createHomestay(sanitizedData);
-        // if (response.statusCode === 201) {
-        //   setHomestayId(response.data.id); // Lưu homestayId để dùng cho step tiếp theo
-        // homestayId = response.data.id;
-        //   toast.success('Tạo homestay thành công!');
-        //   setStep(2);
-        // }
       } else if (step === 2) {
-        setStep(3);
-        // const response = await homestayRentalAPI.createHomestayRental(rentalPayload);
-        // if (response.statusCode === 201) {
-        //   setRentalId(response.data.id);
-        //   toast.success('Tạo thông tin phòng thành công!');
-        //   if (rentalData.RentWhole) {
-        //     setStep(3);
-        //   } else {
-        //     navigate('/owner/homestays');
-        //   }
-        // }
+        if (rentalData.RentWhole) {
+          setStep(3);
+        } else {
+          const formatData = handleFormatData();
+          // console.log(formatData);
+          const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
+          if (response.statusCode === 201) {
+            toast.success('Tạo homestay thành công!');
+            navigate('/owner/homestays');
+          }
+        }
       } else if (step === 3) {
-        // Xử lý cập nhật gói thuê
-        const pricingPayload = {
-          rentalId: rentalId,
-          pricingEntries: rentalData.pricingEntries,
-        };
-        console.log(pricingPayload);
-
-        // await homestayRentalAPI.updatePricing(pricingPayload);
-        // toast.success('Cập nhật gói thuê thành công!');
-        // navigate('/owner/homestays');
+        const formatData = handleFormatData();
+        // console.log(formatData);
+        const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
+        if (response.statusCode === 201) {
+          toast.success('Tạo homestay thành công!');
+          navigate('/owner/homestays');
+        }
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
@@ -513,7 +532,7 @@ const AddHomestay = () => {
                     <div className="relative">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                         <FaMapMarkerAlt className="mr-1 text-gray-400" />
-                        Địa chỉ <span className="text-red-500">*</span>
+                        Địa chỉ <span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
                         type="text"
@@ -722,7 +741,7 @@ const AddHomestay = () => {
                       type="radio"
                       id="rentWhole"
                       name="RentWhole"
-                      value="true"
+                      value={true}
                       checked={rentalData.RentWhole === true}
                       onChange={handleInputChangeStep2}
                       className="mr-2"
@@ -737,7 +756,7 @@ const AddHomestay = () => {
                       type="radio"
                       id="rentRoom"
                       name="RentWhole"
-                      value="false"
+                      value={false}
                       checked={rentalData.RentWhole === false}
                       onChange={handleInputChangeStep2}
                       className="mr-2"
@@ -1008,15 +1027,15 @@ const AddHomestay = () => {
                 <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-base font-medium text-gray-700 dark:text-gray-300">
                     <FaTag className="text-primary inline mr-2" />
-                    Gói giá {index + 1}
+                    Gói giá {entry.dayType === 0 ? "ngày thường" : entry.dayType === 1 ? "ngày lễ" : "ngày cuối tuần"}
                   </h3>
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => removePricingEntry(index)}
                     className="p-1 text-gray-400 hover:text-red-500"
                   >
                     <FaTrash className="w-4 h-4" />
-                  </button>
+                  </button> */}
                 </div>
 
                 {/* Content with price settings */}
@@ -1081,7 +1100,7 @@ const AddHomestay = () => {
                     </div>
 
                     {/* Day Type */}
-                    <div className="md:col-span-2">
+                    {/* <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         <FaCalendarAlt className="inline mr-1 text-gray-400" />
                         Áp dụng cho loại ngày <span className="text-red-500">*</span>
@@ -1100,7 +1119,7 @@ const AddHomestay = () => {
                           <FaCalendarAlt className="h-4 w-4" />
                         </div>
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Special day date range */}
                     {parseInt(entry.dayType) === 2 && (
@@ -1171,7 +1190,7 @@ const AddHomestay = () => {
             ))}
 
             {/* Add new price button */}
-            <div className="flex justify-center">
+            {/* <div className="flex justify-center">
               <button
                 type="button"
                 onClick={addPricingEntry}
@@ -1179,7 +1198,7 @@ const AddHomestay = () => {
               >
                 <FaPlus className="mr-2" /> Thêm gói giá mới
               </button>
-            </div>
+            </div> */}
           </motion.div>
         )}
 

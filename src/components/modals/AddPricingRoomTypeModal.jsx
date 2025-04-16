@@ -6,7 +6,7 @@ import { IoClose } from 'react-icons/io5';
 import { FaCalendarAlt, FaDollarSign, FaEdit, FaInfoCircle, FaMoneyBillWave, FaPercent, FaTag } from 'react-icons/fa';
 
 
-const AddPricingModal = ({ onClose, onSave, isOpen, rental }) => {
+const AddPricingRoomTypeModal = ({ onClose, onSave, isOpen, roomType }) => {
     const [formData, setFormData] = useState({
         homeStayRentalID: null,
         roomTypesID: null,
@@ -49,6 +49,7 @@ const AddPricingModal = ({ onClose, onSave, isOpen, rental }) => {
         }
     };
 
+console.log(roomType);
 
     // const handlePricingChange = (field, value) => {
     //     const determineDayType = () => {
@@ -70,9 +71,9 @@ const AddPricingModal = ({ onClose, onSave, isOpen, rental }) => {
     useEffect(() => {
         if (isOpen) {
             const determineDayType = () => {
-                if (!rental?.pricing?.find(item => item.dayType === 0)) {
+                if (!roomType?.pricings?.find(item => item.dayType === 0)) {
                     return 0; // Nếu chưa có gói ngày thường
-                } else if (!rental?.pricing?.find(item => item.dayType === 1)) {
+                } else if (!roomType?.pricings?.find(item => item.dayType === 1)) {
                     return 1; // Nếu đã có gói ngày thường nhưng chưa có gói cuối tuần
                 } else {
                     return 2; // Nếu đã có cả gói ngày thường và cuối tuần
@@ -84,7 +85,7 @@ const AddPricingModal = ({ onClose, onSave, isOpen, rental }) => {
                 dayType: determineDayType()
             }));
         }
-    }, [isOpen, rental]);
+    }, [isOpen, roomType]);
 
     const handlePricingChange = (field, value) => {
         setFormData(prev => {
@@ -164,9 +165,9 @@ const AddPricingModal = ({ onClose, onSave, isOpen, rental }) => {
                                     <h3 className="text-base font-medium text-gray-700 dark:text-gray-300">
                                         <FaTag className="text-primary inline mr-2" />
                                         Gói giá {
-                                            !rental?.pricing?.find(item => item.dayType === 0)
+                                            !roomType?.pricings?.find(item => item.dayType === 0)
                                                 ? "ngày thường"
-                                                : !rental?.pricing?.find(item => item.dayType === 1)
+                                                : !roomType?.pricings?.find(item => item.dayType === 1)
                                                     ? "ngày cuối tuần"
                                                     : "ngày đặc biệt (lễ, tết)"
                                         }
@@ -174,7 +175,7 @@ const AddPricingModal = ({ onClose, onSave, isOpen, rental }) => {
                                 </div>
 
 
-                                {/* Header with pricing name and delete button */}
+                                {/* Header with pricings name and delete button */}
 
 
                                 {/* Content with price settings */}
@@ -248,10 +249,10 @@ const AddPricingModal = ({ onClose, onSave, isOpen, rental }) => {
                                                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 appearance-none"
                                                 >
                                                     {/* Chỉ hiển thị các option dựa vào các gói giá hiện có */}
-                                                    {!rental?.pricing?.find(item => item.dayType === 0) && (
+                                                    {!roomType?.pricings?.find(item => item.dayType === 0) && (
                                                         <option value="0">Ngày thường</option>
                                                     )}
-                                                    {!rental?.pricing?.find(item => item.dayType === 1) && (
+                                                    {!roomType?.pricings?.find(item => item.dayType === 1) && (
                                                         <option value="1">Ngày cuối tuần (Thứ 6, Thứ 7, Chủ nhật)</option>
                                                     )}
                                                     <option value="2">Ngày đặc biệt (ngày lễ, sự kiện)</option>
@@ -351,4 +352,4 @@ const AddPricingModal = ({ onClose, onSave, isOpen, rental }) => {
     );
 };
 
-export default AddPricingModal;
+export default AddPricingRoomTypeModal;

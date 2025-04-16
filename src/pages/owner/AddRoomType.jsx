@@ -194,16 +194,16 @@ const AddRoomType = () => {
         });
     };
 
-    const addPricingEntry = () => {
-        setFormData(prev => ({
-            ...prev,
-            pricingEntries: [
-                ...prev.pricingEntries,
-                { unitPrice: 0, rentPrice: 0, startDate: "", endDate: "", isDefault: true, isActive: true, dayType: 0, description: "" }
-            ]
-        }));
-        toast.success('Đã thêm gói giá mới!');
-    };
+    // const addPricingEntry = () => {
+    //     setFormData(prev => ({
+    //         ...prev,
+    //         pricingEntries: [
+    //             ...prev.pricingEntries,
+    //             { unitPrice: 0, rentPrice: 0, startDate: "", endDate: "", isDefault: true, isActive: true, dayType: 0, description: "" }
+    //         ]
+    //     }));
+    //     toast.success('Đã thêm gói giá mới!');
+    // };
 
     const removePricingEntry = (index) => {
         if (formData.pricingEntries.length === 1) {
@@ -649,21 +649,23 @@ const AddRoomType = () => {
                                                 {/* Header with pricing name and delete button */}
                                                 <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
                                                     <h3 className="text-base font-medium text-gray-700 dark:text-gray-300">
-                                                        Gói giá {index + 1}
+                                                        Gói giá {entry.dayType === 0 ? "ngày thường" : entry.dayType === 1 ? "ngày cuối tuần" : "ngày đặc biệt (lễ, tết)"}
                                                     </h3>
-                                                    <button
+                                                    {/* <button
                                                         type="button"
                                                         onClick={() => removePricingEntry(index)}
                                                         className="p-1 text-gray-400 hover:text-red-500"
                                                     >
                                                         <FaTrash className="w-4 h-4" />
-                                                    </button>
+                                                    </button> */}
                                                 </div>
 
                                                 {/* Content with price settings */}
                                                 <div className="p-4">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         {/* Unit Price */}
+
+
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                                 Đơn giá <span className="text-red-500">*</span>
@@ -689,7 +691,8 @@ const AddRoomType = () => {
                                                             )}
                                                         </div>
 
-                                                        {/* Rent Price */}
+
+
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                                 Giá thuê <span className="text-red-500">*</span>
@@ -715,8 +718,14 @@ const AddRoomType = () => {
                                                             )}
                                                         </div>
 
+
+
+
+
+
+
                                                         {/* Day Type */}
-                                                        <div className="md:col-span-2">
+                                                        {/* <div className="md:col-span-2">
                                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                                 Loại ngày <span className="text-red-500">*</span>
                                                             </label>
@@ -732,7 +741,7 @@ const AddRoomType = () => {
                                                             {errors[`dayType_${index}`] && (
                                                                 <p className="mt-1 text-sm text-red-500">{errors[`dayType_${index}`]}</p>
                                                             )}
-                                                        </div>
+                                                        </div> */}
 
                                                         {/* Start Date and End Date for Special Day */}
                                                         {parseInt(entry.dayType) === 2 && (
@@ -790,7 +799,7 @@ const AddRoomType = () => {
                                         ))}
 
                                         {/* Add new price button */}
-                                        <div className="flex justify-center">
+                                        {/* <div className="flex justify-center">
                                             <button
                                                 type="button"
                                                 onClick={addPricingEntry}
@@ -798,7 +807,7 @@ const AddRoomType = () => {
                                             >
                                                 <FaPlus className="mr-2" /> Thêm gói giá mới
                                             </button>
-                                        </div>
+                                        </div> */}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
