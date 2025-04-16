@@ -76,6 +76,62 @@ const homestayAPI = {
             throw error;
         }
     },
+    createHomestayWithRentalAndPricing: async (homestayData) => {
+
+        try {
+            const formData = new FormData();
+            formData.append('Name', homestayData.Name);
+            formData.append('Description', homestayData.Description);
+            formData.append('Address', homestayData.Address);
+            formData.append('Longtitude', homestayData.Longitude);
+            formData.append('Latitude', homestayData.Latitude);
+            formData.append('RentalType', homestayData.RentalType);
+            formData.append('Area', homestayData.Area);
+            formData.append('AccountID', homestayData.AccountID);
+
+            formData.append('MaxAdults', homestayData.MaxAdults);
+            formData.append('MaxChildren', homestayData.MaxChildren);
+            formData.append('MaxPeople', homestayData.MaxPeople);
+            formData.append('RentWhole', homestayData.RentWhole);
+            formData.append('RentalName', homestayData.RentalName);
+            formData.append('RentalDescription', homestayData.RentalDescription);
+            formData.append('numberBedRoom', homestayData.numberBedRoom);
+            formData.append('numberBathRoom', homestayData.numberBathRoom);
+            formData.append('numberKitchen', homestayData.numberKitchen);
+            formData.append('numberWifi', homestayData.numberWifi);
+            formData.append('Status', homestayData.Status);
+
+            if (homestayData.RentWhole) {
+                formData.append('Pricing', homestayData.Pricing);
+                formData.append('PricingJson', homestayData.PricingJson);
+            }
+
+            if (homestayData.Images && homestayData.Images.length > 0) {
+                homestayData.Images.forEach(image => {
+                    formData.append('Images', image);
+                });
+            }
+
+            if (homestayData.RentalImages && homestayData.RentalImages.length > 0) {
+                homestayData.RentalImages.forEach(image => {
+                    formData.append('RentalImages', image);
+                });
+            }
+
+            console.log(formData);
+
+
+            const respone = await axiosInstance.post('/homestay/CreateWithRentalsAndPricing', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return respone.data;
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
 };
 
 
