@@ -11,6 +11,8 @@ const serviceAPI = {
             formData.append('servicesPrice', serviceData.servicesPrice);
             formData.append('status', true);
             formData.append('homeStayID', serviceData.homeStayID);
+            formData.append('ServiceType', serviceData.serviceType);
+            formData.append('Quantity', serviceData.quantity);
 
             // Thêm các files hình ảnh
             if (serviceData.images && serviceData.images.length > 0) {
@@ -27,6 +29,7 @@ const serviceAPI = {
 
             return response.data;
         } catch (error) {
+            console.log(error);
             throw error;
         }
     },
@@ -36,10 +39,13 @@ const serviceAPI = {
             const formData = new FormData();
 
             formData.append('servicesName', serviceData.servicesName);
-            formData.append('description', serviceData.description);
-            formData.append('unitPrice', serviceData.unitPrice);
+            formData.append('Description', serviceData.description);
+            formData.append('UnitPrice', serviceData.unitPrice);
             formData.append('servicesPrice', serviceData.servicesPrice);
-            formData.append('status', serviceData.status);
+            formData.append('Status', serviceData.status);
+            formData.append('ServiceType', serviceData.serviceType);
+            formData.append('Quantity', serviceData.quantity);
+            formData.append('HomeStayID', serviceData.homeStayID);
 
             const response = await axiosInstance.put(`/Service/UpdateService/${serviceId}`, formData, {
                 headers: {
@@ -48,6 +54,7 @@ const serviceAPI = {
             });
             return response.data;
         } catch (error) {
+            console.log(error);
             throw error;
         }
     },
@@ -57,6 +64,7 @@ const serviceAPI = {
             const response = await axiosInstance.get(`/Service/GetAllServices/${homestayId}`);
             return response.data;
         } catch (error) {
+            console.log(error);
             throw error;
         }
     }

@@ -11,6 +11,8 @@ const ServiceAddModal = ({ isOpen, onClose, selectedHomestay, onSuccess }) => {
         unitPrice: '',
         servicesPrice: '',
         homeStayID: selectedHomestay,
+        serviceType: '',
+        quantity: 0,
         images: []
     });
     const [loading, setLoading] = useState(false);
@@ -25,6 +27,16 @@ const ServiceAddModal = ({ isOpen, onClose, selectedHomestay, onSuccess }) => {
         if (!formData.description.trim()) newErrors.description = 'Mô tả là bắt buộc';
         if (!formData.unitPrice || formData.unitPrice <= 0) newErrors.unitPrice = 'Đơn giá phải lớn hơn 0';
         if (!formData.servicesPrice || formData.servicesPrice <= 0) newErrors.servicesPrice = 'Giá dịch vụ phải lớn hơn 0';
+        if (!formData.serviceType) {
+            newErrors.serviceType = 'Vui lòng chọn loại dịch vụ';
+        } else if (formData.serviceType == 2) {
+            if (!formData.quantity) {
+                newErrors.quantity = 'Số lượng là bắt buộc';
+            } else if (formData.quantity <= 0) {
+                newErrors.quantity = 'Số lượng phải lớn hơn 0';
+            }
+        }
+
         return newErrors;
     };
 
@@ -52,15 +64,24 @@ const ServiceAddModal = ({ isOpen, onClose, selectedHomestay, onSuccess }) => {
     const handleSubmit = (e) => {
         if (e) e.preventDefault();
         const newErrors = validateStep2();
+
         if (Object.keys(newErrors).length === 0) {
             setIsConfirmModalOpen(true);
         } else {
             setErrors(newErrors);
+            // Scroll to the first error if any
+            const firstErrorElement = document.querySelector('.text-red-500');
+            if (firstErrorElement) {
+                firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            // Hiển thị thông báo lỗi
+            toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
         }
     };
 
     const confirmSubmit = async () => {
         setLoading(true);
+        // console.log(formData);
         try {
             await serviceAPI.createService(formData);
             toast.success('Thêm dịch vụ thành công!');
@@ -133,6 +154,8 @@ const ServiceAddModal = ({ isOpen, onClose, selectedHomestay, onSuccess }) => {
             unitPrice: '',
             servicesPrice: '',
             homeStayID: selectedHomestay,
+            serviceType: '',
+            quantity: 0,
             images: []
         });
         setPreviewImages([]);
@@ -284,6 +307,77 @@ const ServiceAddModal = ({ isOpen, onClose, selectedHomestay, onSuccess }) => {
                                                         </p>
                                                     )}
                                                 </div>
+                                                <div className='mb-4'>
+                                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                                        Loại dịch vụ <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        value={formData.serviceType}
+                                                        onChange={(e) => {
+                                                            setFormData({ ...formData, serviceType: e.target.value });
+                                                            if (e.target.value) {
+                                                                setErrors(prev => ({
+                                                                    ...prev,
+                                                                    serviceType: null
+                                                                }));
+                                                            }
+                                                        }}
+                                                        className={`mt-1 block w-full border ${errors.serviceType ? 'border-red-500' : 'border-gray-300'
+                                                            } rounded-md p-2 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary`}
+                                                    >
+                                                        <option value="">Chọn loại dịch vụ</option>
+                                                        <option value="0">Thuê theo số lượng</option>
+                                                        <option value="2">Thuê theo ngày</option>
+                                                    </select>
+                                                    {errors.serviceType && (
+                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                            <FaInfoCircle className="mr-1.5 flex-shrink-0" />
+                                                            {errors.serviceType}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                {formData.serviceType === "2" && (
+                                                    <div className='mb-4'>
+                                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                                            Số lượng <span className="text-red-500">*</span>
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={formData.quantity}
+                                                            onChange={(e) => {
+                                                                const value = parseInt(e.target.value);
+                                                                if (value > 0 || e.target.value === '') {
+                                                                    setFormData({ ...formData, quantity: +e.target.value });
+                                                                }
+                                                            }}
+                                                            onBlur={(e) => {
+                                                                const value = e.target.value;
+                                                                if (value === '' || parseInt(value) <= 0) {
+                                                                    setErrors(prev => ({
+                                                                        ...prev,
+                                                                        quantity: 'Số lượng phải lớn hơn 0'
+                                                                    }));
+                                                                } else {
+                                                                    setErrors(prev => ({
+                                                                        ...prev,
+                                                                        quantity: null
+                                                                    }));
+                                                                }
+                                                            }}
+                                                            className={`mt-1 block w-full border ${errors.quantity ? 'border-red-500' : 'border-gray-300'
+                                                                } rounded-md p-2 dark:bg-gray-700 dark:text-white`}
+                                                            min="1"
+                                                            placeholder="Nhập số lượng..."
+                                                        />
+                                                        {errors.quantity && (
+                                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                <FaInfoCircle className="mr-1.5 flex-shrink-0" />
+                                                                {errors.quantity}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </motion.div>
                                     )}
@@ -372,6 +466,8 @@ const ServiceAddModal = ({ isOpen, onClose, selectedHomestay, onSuccess }) => {
                                                     </div>
                                                 </div>
                                             )}
+
+
                                         </motion.div>
                                     )}
                                 </AnimatePresence>

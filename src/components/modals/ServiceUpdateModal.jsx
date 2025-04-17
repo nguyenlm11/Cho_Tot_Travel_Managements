@@ -10,7 +10,10 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
         description: '',
         unitPrice: '',
         servicesPrice: '',
+        serviceType: '',
+        quantity: 0,
         status: true,
+        // homeStayID: service.homeStayID,
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -24,8 +27,13 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                 unitPrice: service.unitPrice,
                 servicesPrice: service.price,
                 status: service.status === 'active',
+                serviceType: service.serviceType,
+                quantity: service.quantity,
+                homeStayID: service.homeStayID,
             });
         }
+        // console.log(service);
+
     }, [service]);
 
     const validateForm = () => {
@@ -34,6 +42,13 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
         if (!formData.description.trim()) newErrors.description = 'Mô tả là bắt buộc';
         if (!formData.unitPrice || formData.unitPrice <= 0) newErrors.unitPrice = 'Đơn giá phải lớn hơn 0';
         if (!formData.servicesPrice || formData.servicesPrice <= 0) newErrors.servicesPrice = 'Giá dịch vụ phải lớn hơn 0';
+        if (formData.serviceType === "0") {
+            if (!formData.quantity) {
+                newErrors.quantity = 'Số lượng là bắt buộc';
+            } else if (formData.quantity <= 0) {
+                newErrors.quantity = 'Số lượng phải lớn hơn 0';
+            }
+        }
         return newErrors;
     };
 
@@ -49,6 +64,8 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
 
     const confirmSubmit = async () => {
         setLoading(true);
+        // console.log(formData);
+
         try {
             await serviceAPI.updateService(service.id, formData);
             toast.success('Cập nhật dịch vụ thành công!');
@@ -102,7 +119,7 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 20 }}
                         className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-xl 
-                            overflow-hidden border border-gray-200 dark:border-gray-700"
+                            overflow-hidden border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
                     >
                         {/* Header */}
                         <div className="p-5 border-b border-gray-200 dark:border-gray-700 bg-primary/5 dark:bg-primary/10">
@@ -123,7 +140,7 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                         <div className="p-5 space-y-4">
                             <form onSubmit={handleSubmit}>
                                 {/* Tên dịch vụ */}
-                                <div className="mb-4">
+                                <div className="mb-4 ">
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                                         Tên dịch vụ <span className="text-red-500">*</span>
                                     </label>
@@ -237,6 +254,81 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                                         </span>
                                     </label>
                                 </div>
+
+                                <div className='mb-4'>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                        Loại dịch vụ <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={formData.serviceType}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, serviceType: e.target.value });
+                                            if (e.target.value) {
+                                                setErrors(prev => ({
+                                                    ...prev,
+                                                    serviceType: null
+                                                }));
+                                            }
+                                        }}
+                                        className={`mt-1 block w-full border ${errors.serviceType ? 'border-red-500' : 'border-gray-300'
+                                            } rounded-md p-2 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary`}
+                                    >
+                                        {/* <option value="">Chọn loại dịch vụ</option> */}
+                                        <option value="0">Thuê theo số lượng</option>
+                                        <option value="2">Thuê theo ngày</option>
+                                    </select>
+                                    {errors.serviceType && (
+                                        <p className="mt-1 text-sm text-red-500 flex items-center">
+                                            <FaInfoCircle className="mr-1.5 flex-shrink-0" />
+                                            {errors.serviceType}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {formData.serviceType == 2 && (
+                                    <div className='mb-4'>
+                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                            Số lượng <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={formData.quantity}
+                                            onChange={(e) => {
+                                                const value = parseInt(e.target.value);
+                                                if (value > 0 || e.target.value === '') {
+                                                    setFormData({ ...formData, quantity: +e.target.value });
+                                                }
+                                            }}
+                                            onBlur={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '' || parseInt(value) <= 0) {
+                                                    setErrors(prev => ({
+                                                        ...prev,
+                                                        quantity: 'Số lượng phải lớn hơn 0'
+                                                    }));
+                                                } else {
+                                                    setErrors(prev => ({
+                                                        ...prev,
+                                                        quantity: null
+                                                    }));
+                                                }
+                                            }}
+                                            className={`mt-1 block w-full border ${errors.quantity ? 'border-red-500' : 'border-gray-300'
+                                                } rounded-md p-2 dark:bg-gray-700 dark:text-white`}
+                                            min="1"
+                                            placeholder="Nhập số lượng..."
+                                        />
+                                        {errors.quantity && (
+                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                <FaInfoCircle className="mr-1.5 flex-shrink-0" />
+                                                {errors.quantity}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
+
+
                             </form>
                         </div>
 
