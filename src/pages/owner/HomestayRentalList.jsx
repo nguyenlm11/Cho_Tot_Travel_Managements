@@ -172,7 +172,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 const HomestayRentalCard = ({ rental, onEdit, onDelete }) => {
     const navigate = useNavigate();
     const { id: homestayId } = useParams();
-
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('vi-VN', {
             day: '2-digit',
@@ -325,26 +325,32 @@ const HomestayRentalCard = ({ rental, onEdit, onDelete }) => {
                             >
                                 <FaEye className="w-5 h-5" />
                             </motion.button>
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => onEdit && onEdit(rental)}
-                                className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
+                            {user?.role === "Owner" && (
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => onEdit && onEdit(rental)}
+                                    className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
                                   rounded-full transition-colors"
-                                title="Chỉnh sửa"
-                            >
-                                <FaEdit className="w-5 h-5" />
-                            </motion.button>
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => onDelete && onDelete(rental)}
-                                className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 
+                                    title="Chỉnh sửa"
+                                >
+                                    <FaEdit className="w-5 h-5" />
+                                </motion.button>
+                            )}
+
+                            {user?.role === "Owner" && (
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => onDelete && onDelete(rental)}
+                                    className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 
                                   rounded-full transition-colors"
-                                title="Xóa"
-                            >
-                                <FaTrash className="w-5 h-5" />
-                            </motion.button>
+                                    title="Xóa"
+                                >
+                                    <FaTrash className="w-5 h-5" />
+                                </motion.button>
+                            )}
+
                         </div>
                     </div>
                 </div>
@@ -365,6 +371,7 @@ const HomestayRentalList = () => {
     const [rentalToDelete, setRentalToDelete] = useState(null);
     const navigate = useNavigate();
     const itemsPerPage = 6;
+    const user = JSON.parse(localStorage.getItem('userInfo'));
 
     // Sửa hàm fetchRentals để sử dụng homestayRentalAPI
     const fetchRentals = async () => {
@@ -492,17 +499,19 @@ const HomestayRentalList = () => {
                                 Quản lý tất cả các căn thuê của bạn tại đây
                             </p>
                         </div>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => navigate(`/owner/homestays/${homestayId}/create-homestay-rental`)}
-                            className="bg-primary hover:bg-primary-dark text-white font-semibold 
+                        {user?.role === "Owner" && (
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => navigate(`/owner/homestays/${homestayId}/create-homestay-rental`)}
+                                className="bg-primary hover:bg-primary-dark text-white font-semibold 
               px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 
               transform hover:scale-105 shadow-lg hover:shadow-primary/20"
-                        >
-                            <FaPlus className="w-5 h-5" />
-                            Thêm căn thuê mới
-                        </motion.button>
+                            >
+                                <FaPlus className="w-5 h-5" />
+                                Thêm căn thuê mới
+                            </motion.button>
+                        )}
                     </div>
 
                     {/* Stats Summary */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaChartLine, FaHome, FaPlus, FaInfoCircle, FaBed, FaCalendarAlt, FaUsers, FaTicketAlt, FaArrowLeft, FaTag, FaStar, FaChevronDown, FaChalkboardTeacher, FaComment } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -9,7 +9,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
   const navigate = useNavigate();
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [userHomestays, setUserHomestays] = useState([]);
-
+  const user = JSON.parse(localStorage.getItem('userInfo'));
   useEffect(() => {
     const checkHomestayAccess = async () => {
       try {
@@ -19,27 +19,33 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
           return;
         }
 
-        const response = await homestayAPI.getHomestaysByOwner(userInfo.AccountID);
-        if (response.statusCode === 200) {
-          const ownerHomestays = response.data.map(h => h.homeStayID.toString());
-          setUserHomestays(ownerHomestays);
+        if (userInfo?.role === 'Staff') {
+          setUserHomestays([userInfo?.homeStayID]);
+        }
 
-          const isManagingHomestay = location.pathname.match(/^\/owner\/homestays\/[^/]+(?!\/add)/);
-          const isManagingRental = location.pathname.includes('/rentals/');
-          const isManagingRoomType = location.pathname.includes('/room-types/');
-          const isAddingHomestay = location.pathname.endsWith('/add');
+        if (userInfo?.role === 'Owner') {
+          const response = await homestayAPI.getHomestaysByOwner(userInfo.AccountID);
+          if (response.statusCode === 200) {
+            const ownerHomestays = response.data.map(h => h.homeStayID.toString());
+            setUserHomestays(ownerHomestays);
 
-          if (selectedHomestay && !ownerHomestays.includes(selectedHomestay)) {
-            if (!isAddingHomestay) {
-              navigate('/owner/homestays');
+            const isManagingHomestay = location.pathname.match(/^\/owner\/homestays\/[^/]+(?!\/add)/);
+            const isManagingRental = location.pathname.includes('/rentals/');
+            const isManagingRoomType = location.pathname.includes('/room-types/');
+            const isAddingHomestay = location.pathname.endsWith('/add');
+
+            if (selectedHomestay && !ownerHomestays.includes(selectedHomestay)) {
+              if (!isAddingHomestay) {
+                navigate('/owner/homestays');
+              }
+            } else if (isManagingHomestay || isManagingRental || isManagingRoomType) {
+              if (!selectedHomestay || !ownerHomestays.includes(selectedHomestay)) {
+                navigate('/owner/homestays');
+              }
             }
-          } else if (isManagingHomestay || isManagingRental || isManagingRoomType) {
-            if (!selectedHomestay || !ownerHomestays.includes(selectedHomestay)) {
-              navigate('/owner/homestays');
-            }
+          } else {
+            navigate('/owner/homestays');
           }
-        } else {
-          navigate('/owner/homestays');
         }
       } catch (error) {
         console.error('Error checking homestay access:', error);
@@ -67,7 +73,8 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
       icon: <FaBed />,
       submenu: [
         { title: 'Tất cả căn', path: `/owner/homestays/${selectedHomestay}/homestay-rental` },
-        { title: 'Thêm căn', path: `/owner/homestays/${selectedHomestay}/create-homestay-rental` },
+        // { title: 'Thêm căn', path: `/owner/homestays/${selectedHomestay}/create-homestay-rental` },
+        ...(user?.role !== 'Staff' ? [{ title: 'Thêm căn', path: `/owner/homestays/${selectedHomestay}/create-homestay-rental` }] : []),
       ],
     },
     { title: 'Dịch vụ', path: `/owner/homestays/${selectedHomestay}/services`, icon: <FaTag /> },
@@ -80,12 +87,15 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
     { title: 'Quay lại danh sách', path: '/owner/homestays', icon: <FaArrowLeft />, className: 'mt-8 pt-4 border-t border-white/10 dark:border-gray-700' },
   ];
 
-  const isManagingHomestay =
-    location.pathname.match(/^\/(owner)\/homestays\/[^/]+(?!\/add)/) &&
-    !location.pathname.includes('/add') &&
-    userHomestays.includes(selectedHomestay);
+  const isManagingHomestay = useMemo(() => {
+    return location.pathname.match(/^\/(owner)\/homestays\/[^/]+(?!\/add)/) &&
+      !location.pathname.includes('/add') &&
+      userHomestays.includes(selectedHomestay);
+  }, [location.pathname, selectedHomestay, userHomestays]);
 
-  const menuItems = isManagingHomestay ? homestayMenuItems : defaultMenuItems;
+  const menuItems = useMemo(() => {
+    return isManagingHomestay ? homestayMenuItems : defaultMenuItems;
+  }, [isManagingHomestay]);
 
   const isActive = (path) => {
     if (!path) return false;

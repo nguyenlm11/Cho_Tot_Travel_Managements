@@ -77,6 +77,8 @@ const Login = () => {
 
             if (user.role.includes('Admin')) {
                 navigate('/admin/dashboard', { replace: true });
+            } else if (user.role.includes('Staff')) {
+                navigate(`/owner/homestays/${user?.homeStayID}/dashboard`, { replace: true });
             } else {
                 navigate('/owner/homestays', { replace: true });
             }

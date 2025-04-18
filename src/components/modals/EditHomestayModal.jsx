@@ -7,7 +7,7 @@ import homestayAPI from "../../services/api/homestayAPI";
 import axiosInstance from "../../services/config";
 
 // hàm cập nhật thay đổi
-export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetchHomestays }) => {
+export const EditHomestayModal = ({ isOpen, onClose, homestay, fetchHomestays }) => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -54,7 +54,10 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
             // Lưu trữ tọa độ ban đầu
             setOriginalCoords({ longitude, latitude });
 
+            console.log({ homestay });
+
             setFormData({
+                homeStayID: homestay.homeStayID,
                 name: homestay.name || '',
                 description: homestay.description || '',
                 address: homestay.address || '',
@@ -229,7 +232,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
     const handleEditSubmit = async (formData) => {
         if (!homestay) return;
 
-        await handleUpdateHomestay(homestay.id, formData);
+        await handleUpdateHomestay(formData.homeStayID, formData);
         onClose();
     };
 
@@ -249,7 +252,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                 return toast.error('Mô tả không được để trống hoặc chỉ chứa khoảng trắng.');
             }
 
-            setLoading(true);
+            // setLoading(true);
             const loadingToast = toast.loading('Đang cập nhật thông tin...');
 
             // Kiểm tra xem địa chỉ có thay đổi không
@@ -309,7 +312,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, setLoading, fetch
                 duration: 4000
             });
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 

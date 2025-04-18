@@ -37,7 +37,7 @@ export const routes = [
   {
     path: '/owner/*',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute role={["Owner", "Staff"]}>
         <Layout>
           <Routes>
             {ownerRoutes.map((route) => (
@@ -51,7 +51,7 @@ export const routes = [
   {
     path: '/admin/*',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute role={["Admin"]}>
         <Layout>
           <Routes>
             {adminRoutes.map((route) => (

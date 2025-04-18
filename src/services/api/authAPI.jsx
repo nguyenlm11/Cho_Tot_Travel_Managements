@@ -30,14 +30,16 @@ const authService = {
                     email,
                     role,
                     tokenExp: exp,
-                    tokenIat: iat
+                    tokenIat: iat,
+                    homeStayID: response.data.homeStayID
                 }));
                 localStorage.setItem('isAuthenticated', 'true');
 
                 return {
                     token,
                     refreshToken,
-                    user: decodedToken
+                    // Sửa chỗ này
+                    user: { ...decodedToken, homeStayID: response.data.homeStayID }
                 };
             }
         } catch (error) {

@@ -42,12 +42,8 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
         if (!formData.description.trim()) newErrors.description = 'Mô tả là bắt buộc';
         if (!formData.unitPrice || formData.unitPrice <= 0) newErrors.unitPrice = 'Đơn giá phải lớn hơn 0';
         if (!formData.servicesPrice || formData.servicesPrice <= 0) newErrors.servicesPrice = 'Giá dịch vụ phải lớn hơn 0';
-        if (formData.serviceType === "0") {
-            if (!formData.quantity) {
-                newErrors.quantity = 'Số lượng là bắt buộc';
-            } else if (formData.quantity <= 0) {
-                newErrors.quantity = 'Số lượng phải lớn hơn 0';
-            }
+        if (!formData.quantity || formData.quantity <= 0) {
+            newErrors.quantity = 'Số lượng phải lớn hơn 0';
         }
         return newErrors;
     };
@@ -274,7 +270,7 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                                             } rounded-md p-2 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary`}
                                     >
                                         {/* <option value="">Chọn loại dịch vụ</option> */}
-                                        <option value="0">Thuê theo số lượng</option>
+                                        <option value="0">Thuê theo số lần</option>
                                         <option value="2">Thuê theo ngày</option>
                                     </select>
                                     {errors.serviceType && (
@@ -285,47 +281,47 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                                     )}
                                 </div>
 
-                                {formData.serviceType == 2 && (
-                                    <div className='mb-4'>
-                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                                            Số lượng <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={formData.quantity}
-                                            onChange={(e) => {
-                                                const value = parseInt(e.target.value);
-                                                if (value > 0 || e.target.value === '') {
-                                                    setFormData({ ...formData, quantity: +e.target.value });
-                                                }
-                                            }}
-                                            onBlur={(e) => {
-                                                const value = e.target.value;
-                                                if (value === '' || parseInt(value) <= 0) {
-                                                    setErrors(prev => ({
-                                                        ...prev,
-                                                        quantity: 'Số lượng phải lớn hơn 0'
-                                                    }));
-                                                } else {
-                                                    setErrors(prev => ({
-                                                        ...prev,
-                                                        quantity: null
-                                                    }));
-                                                }
-                                            }}
-                                            className={`mt-1 block w-full border ${errors.quantity ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-md p-2 dark:bg-gray-700 dark:text-white`}
-                                            min="1"
-                                            placeholder="Nhập số lượng..."
-                                        />
-                                        {errors.quantity && (
-                                            <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                <FaInfoCircle className="mr-1.5 flex-shrink-0" />
-                                                {errors.quantity}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
+
+                                <div className='mb-4'>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                        Số lượng <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={formData.quantity}
+                                        onChange={(e) => {
+                                            const value = parseInt(e.target.value);
+                                            if (value > 0 || e.target.value === '') {
+                                                setFormData({ ...formData, quantity: +e.target.value });
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '' || parseInt(value) <= 0) {
+                                                setErrors(prev => ({
+                                                    ...prev,
+                                                    quantity: 'Số lượng phải lớn hơn 0'
+                                                }));
+                                            } else {
+                                                setErrors(prev => ({
+                                                    ...prev,
+                                                    quantity: null
+                                                }));
+                                            }
+                                        }}
+                                        className={`mt-1 block w-full border ${errors.quantity ? 'border-red-500' : 'border-gray-300'
+                                            } rounded-md p-2 dark:bg-gray-700 dark:text-white`}
+                                        min="1"
+                                        placeholder="Nhập số lượng..."
+                                    />
+                                    {errors.quantity && (
+                                        <p className="mt-1 text-sm text-red-500 flex items-center">
+                                            <FaInfoCircle className="mr-1.5 flex-shrink-0" />
+                                            {errors.quantity}
+                                        </p>
+                                    )}
+                                </div>
+
 
 
 

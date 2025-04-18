@@ -192,7 +192,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
 const ServiceCard = ({ service, handleEditService }) => {
     const [isHovered, setIsHovered] = useState(false);
-
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('vi-VN', {
             day: '2-digit',
@@ -274,7 +274,17 @@ const ServiceCard = ({ service, handleEditService }) => {
                     <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 text-sm">
                         <span className="line-clamp-2">{service.description}</span>
                     </p>
-                    {service?.serviceType == 2 ? (
+                    {service?.serviceType == 0 ? (
+                        <div className="flex items-center justify-between">
+                            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 text-sm mt-2">
+                                Loại thuê: theo số lượt
+                            </p>
+                            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 text-sm mt-2">
+                                Số lượng: {service?.quantity}
+                            </p>
+                        </div>
+
+                    ) : service?.serviceType == 2 ? (
                         <div className="flex items-center justify-between">
                             <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 text-sm mt-2">
                                 Loại thuê: theo ngày
@@ -283,11 +293,6 @@ const ServiceCard = ({ service, handleEditService }) => {
                                 Số lượng: {service?.quantity}
                             </p>
                         </div>
-
-                    ) : service?.serviceType == 0 ? (
-                        <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 text-sm mt-2">
-                            Loại thuê: theo số lượng
-                        </p>
                     ) : (
                         <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2 text-sm mt-2">
                             Loại thuê: chưa xác định
@@ -323,6 +328,7 @@ const ServiceList = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedService, setSelectedService] = useState(null);
     const itemsPerPage = 6;
+    const user = JSON.parse(localStorage.getItem('userInfo'));
 
     const getStatusText = (status) => {
         return status ? 'active' : 'inactive';
@@ -435,17 +441,19 @@ const ServiceList = () => {
                                 Quản lý tất cả các dịch vụ của bạn tại đây
                             </p>
                         </div>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={handleAddService}
-                            className="bg-primary hover:bg-primary-dark text-white font-semibold 
+                        {user?.role === "Owner" && (
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleAddService}
+                                className="bg-primary hover:bg-primary-dark text-white font-semibold 
               px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 
               transform hover:scale-105 shadow-lg hover:shadow-primary/20"
-                        >
-                            <FaPlus className="w-5 h-5" />
-                            Thêm dịch vụ mới
-                        </motion.button>
+                            >
+                                <FaPlus className="w-5 h-5" />
+                                Thêm dịch vụ mới
+                            </motion.button>
+                        )}
                     </div>
 
                     {/* Stats Summary */}
@@ -551,12 +559,12 @@ const ServiceList = () => {
                                             ? "Bắt đầu bằng cách thêm dịch vụ đầu tiên của bạn"
                                             : "Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc"}
                                     </p>
-                                    {services.length === 0 && (
+                                    {services.length === 0 && user?.role === "Owner" && (
                                         <button
                                             onClick={handleAddService}
                                             className="inline-flex items-center px-6 py-3 bg-primary text-white 
-                      font-semibold rounded-xl hover:bg-primary-dark transition-all 
-                      duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
+        font-semibold rounded-xl hover:bg-primary-dark transition-all 
+        duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary/20"
                                         >
                                             <FaPlus className="w-5 h-5 mr-2" />
                                             Thêm dịch vụ
