@@ -188,7 +188,7 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
         }
     };
     const [isHovered, setIsHovered] = useState(false);
-
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     return (
         <motion.div
             layout
@@ -241,15 +241,17 @@ const RoomTypeCard = ({ roomType, onView, onEdit, onDelete }) => {
                                 >
                                     <FaEye className="w-5 h-5 text-primary" />
                                 </motion.button>
-                                <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => onEdit(roomType)}
-                                    className="p-2 bg-white/90 rounded-full hover:bg-white
+                                {user?.role === "Owner" && (
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => onEdit(roomType)}
+                                        className="p-2 bg-white/90 rounded-full hover:bg-white
                                         transform hover:scale-110 transition-all duration-200"
-                                >
-                                    <FaEdit className="w-5 h-5 text-primary" />
-                                </motion.button>
+                                    >
+                                        <FaEdit className="w-5 h-5 text-primary" />
+                                    </motion.button>
+                                )}
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
@@ -305,7 +307,7 @@ const RoomTypeList = () => {
     const [isLoading, setIsLoading] = useState(false);
     const itemsPerPage = 6;
     const navigate = useNavigate();
-
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     // Updated mock data
     const [roomTypes] = useState([
         {

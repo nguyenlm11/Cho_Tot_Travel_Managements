@@ -752,15 +752,17 @@ const HomestayRentalDetail = () => {
 
 
                                                                             <div className="mt-4 flex justify-between items-center">
-                                                                                <div
-                                                                                    onClick={() => {
-                                                                                        setSelectedRoomType(roomType)
-                                                                                        setIsEditRoomTypeModalOpen(true)
-                                                                                    }}
-                                                                                    className="text-blue-500 hover:text-blue-700 transition-colors flex items-center cursor-pointer"
-                                                                                >
-                                                                                    <FaEdit className="inline mr-1" /> Chỉnh sửa
-                                                                                </div>
+                                                                                {user?.role === "Owner" && (
+                                                                                    <div
+                                                                                        onClick={() => {
+                                                                                            setSelectedRoomType(roomType)
+                                                                                            setIsEditRoomTypeModalOpen(true)
+                                                                                        }}
+                                                                                        className="text-blue-500 hover:text-blue-700 transition-colors flex items-center cursor-pointer"
+                                                                                    >
+                                                                                        <FaEdit className="inline mr-1" /> Chỉnh sửa
+                                                                                    </div>
+                                                                                )}
                                                                                 <Link
                                                                                     to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/infor`}
                                                                                     className="text-blue-500 hover:text-blue-700 transition-colors flex items-center"
