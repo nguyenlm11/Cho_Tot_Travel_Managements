@@ -19,6 +19,7 @@ const AddpolicyModal = ({ onClose, isOpen, homeStayID, fetchHomestay }) => {
         e.preventDefault();
 
         const formatData = { ...formData, refundPercentage: formData.refundPercentage / 100 }
+        // console.log({ formatData });
 
         if (!validateForm()) {
             return;
@@ -128,7 +129,7 @@ const AddpolicyModal = ({ onClose, isOpen, homeStayID, fetchHomestay }) => {
                                                     className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                 >
                                                     <option value="">Chọn phần trăm</option>
-                                                    {[10, 20, 30, 40, 50].map((percent) => (
+                                                    {[80, 90, 100].map((percent) => (
                                                         <option key={percent} value={percent}>
                                                             {percent}%
                                                         </option>

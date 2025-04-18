@@ -1,26 +1,24 @@
-import HomestayList from '../pages/owner/HomestayList';
 import AddHomestay from '../pages/owner/AddHomestay';
-import HomestayDetail from '../pages/owner/HomestayDetail';
-import ServiceList from '../pages/owner/ServiceList';
-import CustomerList from '../pages/owner/CustomerList';
-import RatingList from '../pages/owner/RatingList';
-import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
-import Dashboard from '../pages/owner/Dashboard';
 import CreateHomeStayForm from '../pages/owner/AddHomestayRental';
-import HomestayRentalList from '../pages/owner/HomestayRentalList';
-import HomestayRentalDetail from '../pages/owner/HomestayRentalDetail';
-import RoomList from '../pages/owner/RoomList';
 import AddRoomType from '../pages/owner/AddRoomType';
-import { path } from 'framer-motion/client';
-import { elements } from 'chart.js';
+import { BookingDetail } from '../pages/owner/BookingDetail';
 import BookingList from '../pages/owner/BookingList';
 import ChatHomestay from '../pages/owner/ChatHomestay';
-import EditHomestayRental from '../pages/owner/EditHomestayRental';
+import CustomerList from '../pages/owner/CustomerList';
+import Dashboard from '../pages/owner/Dashboard';
 import EditHomestay from '../pages/owner/EditHomestay';
+import EditHomestayRental from '../pages/owner/EditHomestayRental';
 import EditRoomType from '../pages/owner/EditRoomType';
+import HomestayDetail from '../pages/owner/HomestayDetail';
+import HomestayList from '../pages/owner/HomestayList';
+import HomestayRentalDetail from '../pages/owner/HomestayRentalDetail';
+import HomestayRentalList from '../pages/owner/HomestayRentalList';
 import { StaffList } from '../pages/owner/Manage_Staff/StaffList';
-import { BookingDetail } from '../pages/owner/BookingDetail';
+import RatingList from '../pages/owner/RatingList';
 import ReportHomestay from '../pages/owner/ReportHomestay';
+import RoomList from '../pages/owner/RoomList';
+import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
+import ServiceList from '../pages/owner/ServiceList';
 
 export const ownerRoutes = [
   {

@@ -4,6 +4,7 @@ import { FaSearch, FaMoneyBillWave, FaFileInvoiceDollar, FaSort, FaArrowDown, Fa
 import { IoClose } from 'react-icons/io5';
 import reportHomestayApi from '../../services/api/reportHomestayAPI';
 import { toast } from 'react-hot-toast';
+import { useParams } from 'react-router-dom';
 
 // Mock data dựa trên cấu trúc bạn cung cấp
 // const mockData = Array.from({ length: 20 }, (_, index) => ({
@@ -96,6 +97,7 @@ const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
 };
 
 const ReportHomestay = () => {
+    const { id } = useParams();
     const [transactions, setTransactions] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -112,9 +114,7 @@ const ReportHomestay = () => {
         try {
             setLoading(true);
             // Giả sử homestayId được lấy từ localStorage hoặc context
-            const homestayId = localStorage.getItem('homeStayID'); // Hoặc lấy từ context của bạn
-            console.log(homestayId);
-            const response = await reportHomestayApi.getReportHomestayByHomestayId(homestayId);
+            const response = await reportHomestayApi.getReportHomestayByHomestayId(id);
             if (response.statusCode === 200) {
                 setTransactions(response.data);
             } else {
@@ -362,7 +362,7 @@ const ReportHomestay = () => {
                                                 {transaction.orderInfo}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                                {formatCurrency(transaction.amount)}
+                                                {formatCurrency(transaction.amount / 100)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                 {getTransactionTypeText(transaction.transactionType)}

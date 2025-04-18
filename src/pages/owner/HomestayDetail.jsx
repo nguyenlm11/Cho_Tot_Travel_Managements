@@ -27,6 +27,7 @@ const HomestayDetail = () => {
     // const [loading, setLoading] = useState(false);
     const [isAddPolicyModalOpen, setIsAddPolicyModalOpen] = useState(false);
     const [isEditPolicyModalOpen, setIsEditPolicyModalOpen] = useState(false);
+    const user = JSON.parse(localStorage.getItem('userInfo'));
 
     useEffect(() => {
         if (id) fectchHomestayDetail();
@@ -141,7 +142,7 @@ const HomestayDetail = () => {
         navigate(`/owner/homestays/${homestayData?.homeStayID}/ratings`);
     }
     const handleViewDashboard = () => {
-        navigate(`/owner/homestays/${homestayData?.homeStayID}/dashboard`);
+        navigate(`/owner/homestays/${homestayData?.homeStayID}/reports`);
     }
 
     if (!homestay) {
@@ -181,16 +182,18 @@ const HomestayDetail = () => {
                             </div>
                         </div>
                         <div className="flex gap-3">
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => openEditModal(homestayData)}
-                                className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2
+                            {user?.role === "Owner" && (
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => openEditModal(homestayData)}
+                                    className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2
                                     hover:bg-primary-dark transition-colors"
-                            >
-                                <FaEdit />
-                                Chỉnh sửa
-                            </motion.button>
+                                >
+                                    <FaEdit />
+                                    Chỉnh sửa
+                                </motion.button>
+                            )}
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
@@ -393,13 +396,15 @@ const HomestayDetail = () => {
                                     <FaTag />
                                     Xem dịch vụ
                                 </button>
-                                <button
-                                    onClick={() => homestayData?.cancelPolicy ? setIsEditPolicyModalOpen(true) : setIsAddPolicyModalOpen(true)}
-                                    className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
+                                {user?.role === "Owner" && (
+                                    <button
+                                        onClick={() => homestayData?.cancelPolicy ? setIsEditPolicyModalOpen(true) : setIsAddPolicyModalOpen(true)}
+                                        className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
                                     font-medium hover:bg-primary/20 transition-colors flex items-center gap-2">
-                                    <HiOutlineReceiptRefund />
-                                    {homestayData?.cancelPolicy ? "Cập nhật chính sách hoàn trả" : "Thêm chính sách hoàn trả"}
-                                </button>
+                                        <HiOutlineReceiptRefund />
+                                        {homestayData?.cancelPolicy ? "Cập nhật chính sách hoàn trả" : "Thêm chính sách hoàn trả"}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </motion.div>
