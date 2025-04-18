@@ -221,17 +221,14 @@ export const BookingDetail = () => {
                         <div className="space-y-3">
                             <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
                                 <span>Tổng tiền thuê:</span>
-                                <span className="font-semibold text-gray-800 dark:text-white">{formatPrice(booking.totalRentPrice)}</span>
+                                <span className="font-semibold text-gray-800 dark:text-white">{formatPrice(booking.total)}</span>
                             </div>
-                            <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
-                                {booking.bookingServices.map((service, index) => (
-                                    <>
-                                        <span key={index}>Tổng tiền dịch vụ:</span>
-                                        <span className="font-semibold text-gray-800 dark:text-white">{formatPrice(service.total)}</span>
-                                    </>
-
-                                ))}
-                            </div>
+                            {/* <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                <span>Tổng tiền dịch vụ:</span>
+                                <span className="font-semibold text-gray-800 dark:text-white">
+                                    {formatPrice(booking.bookingServices.reduce((acc, service) => acc + service.total, 0))}
+                                </span>
+                            </div> */}
                             <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
                                 <span>Tiền đặt cọc:</span>
                                 <span className="font-semibold text-blue-600 dark:text-blue-400">{formatPrice(booking.bookingDeposit)}</span>
