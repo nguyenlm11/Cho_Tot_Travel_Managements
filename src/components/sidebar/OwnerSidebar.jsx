@@ -72,6 +72,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
     },
     { title: 'Dịch vụ', path: `/owner/homestays/${selectedHomestay}/services`, icon: <FaTag /> },
     { title: 'Đặt phòng', path: `/owner/homestays/${selectedHomestay}/bookings`, icon: <FaCalendarAlt /> },
+    { title: 'Báo cáo doanh thu', path: `/owner/homestays/${selectedHomestay}/reports`, icon: <FaChartLine /> },
     { title: 'Khách hàng', path: `/owner/homestays/${selectedHomestay}/customers`, icon: <FaUsers /> },
     { title: 'Mã giảm giá', path: `/owner/homestays/${selectedHomestay}/vouchers`, icon: <FaTicketAlt /> },
     { title: 'Trò chuyện', path: `/owner/homestays/${selectedHomestay}/chat`, icon: <FaComment /> },
