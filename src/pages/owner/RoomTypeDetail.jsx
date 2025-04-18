@@ -24,6 +24,7 @@ const RoomTypeDetail = () => {
     const [isEditPricingModalOpen, setIsEditPricingModalOpen] = useState(false);
     const [isAddPricingModalOpen, setIsAddPricingModalOpen] = useState(false);
     const [isEditRoomTypeModalOpen, setIsEditRoomTypeModalOpen] = useState(false);
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     const featureVariants = {
         initial: { opacity: 0, scale: 0.8 },
         animate: {
@@ -497,41 +498,45 @@ const RoomTypeDetail = () => {
                                 {/* Các nút chức năng */}
                                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                                     <div className="space-y-4">
-                                        <motion.button
-                                            variants={buttonVariants}
-                                            whileHover="hover"
-                                            onClick={() => setIsEditRoomTypeModalOpen(true)}
-                                            whileTap="tap"
-                                            className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center"
-                                        >
-                                            <FaEdit className="mr-2" /> Chỉnh sửa loại phòng
-                                        </motion.button>
+                                        {user?.role === "Owner" && (
+                                            <>
+                                                <motion.button
+                                                    variants={buttonVariants}
+                                                    whileHover="hover"
+                                                    onClick={() => setIsEditRoomTypeModalOpen(true)}
+                                                    whileTap="tap"
+                                                    className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center"
+                                                >
+                                                    <FaEdit className="mr-2" /> Chỉnh sửa loại phòng
+                                                </motion.button>
 
-                                        <motion.button
-                                            variants={buttonVariants}
-                                            whileHover="hover"
-                                            whileTap="tap"
-                                            onClick={() => setIsAddPricingModalOpen(true)}
-                                            className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center"
-                                        >
-                                            <FaPlus className="mr-2" /> Thêm gói
-                                        </motion.button>
+                                                <motion.button
+                                                    variants={buttonVariants}
+                                                    whileHover="hover"
+                                                    whileTap="tap"
+                                                    onClick={() => setIsAddPricingModalOpen(true)}
+                                                    className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center"
+                                                >
+                                                    <FaPlus className="mr-2" /> Thêm gói
+                                                </motion.button>
 
-                                        <motion.button
-                                            variants={buttonVariants}
-                                            whileHover="hover"
-                                            whileTap="tap"
-                                            onClick={() => setShowDeleteModal(true)}
-                                            className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center"
-                                        >
-                                            <FaTrash className="mr-2" /> Xóa loại phòng
-                                        </motion.button>
+                                                <motion.button
+                                                    variants={buttonVariants}
+                                                    whileHover="hover"
+                                                    whileTap="tap"
+                                                    onClick={() => setShowDeleteModal(true)}
+                                                    className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center"
+                                                >
+                                                    <FaTrash className="mr-2" /> Xóa loại phòng
+                                                </motion.button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>
 
                             {/* Phần danh sách các gói với thanh cuộn */}
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl">
                                 {/* <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                                     <h2 className="text-lg font-bold text-gray-900 dark:text-white">Danh sách gói thuê</h2>
                                 </div> */}
@@ -550,25 +555,29 @@ const RoomTypeDetail = () => {
                                                         Gói {pricing?.dayType == 0 ? "ngày thường" : pricing?.dayType == 1 ? "ngày cuối tuần" : "ngày lễ"}
                                                     </h2>
                                                     <div className="flex items-center justify-center gap-2">
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.1 }}
-                                                            whileTap={{ scale: 0.9 }}
-                                                            className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
+                                                        {user?.role === "Owner" && (
+                                                            <>
+                                                                <motion.button
+                                                                    whileHover={{ scale: 1.1 }}
+                                                                    whileTap={{ scale: 0.9 }}
+                                                                    className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
                                                             rounded-full transition-colors"
-                                                            title="Chỉnh sửa"
-                                                            onClick={() => handleEditPricing(pricing)}
-                                                        >
-                                                            <FaEdit className="w-5 h-5" />
-                                                        </motion.button>
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.1 }}
-                                                            whileTap={{ scale: 0.9 }}
-                                                            className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 
+                                                                    title="Chỉnh sửa"
+                                                                    onClick={() => handleEditPricing(pricing)}
+                                                                >
+                                                                    <FaEdit className="w-5 h-5" />
+                                                                </motion.button>
+                                                                <motion.button
+                                                                    whileHover={{ scale: 1.1 }}
+                                                                    whileTap={{ scale: 0.9 }}
+                                                                    className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 
                                                             rounded-full transition-colors"
-                                                            title="Xóa"
-                                                        >
-                                                            <FaTrash className="w-5 h-5" />
-                                                        </motion.button>
+                                                                    title="Xóa"
+                                                                >
+                                                                    <FaTrash className="w-5 h-5" />
+                                                                </motion.button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
 
