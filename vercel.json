@@ -1,8 +1,16 @@
 {
     "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        }
+      {
+        "source": "/api/(.*)",
+        "destination": "https://hungnv.iselab.cloud:7221/api/$1"
+      },
+      {
+        "source": "/chat/(.*)",
+        "destination": "https://hungnv.iselab.cloud:7221/api/$1"
+      },
+      {
+        "source": "/chatHub/(.*)",
+        "destination": "https://hungnv.iselab.cloud:7221/api/$1"
+      }
     ]
-}
+  }
