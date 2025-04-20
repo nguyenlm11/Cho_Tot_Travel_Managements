@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaQrcode, FaCheck, FaMoneyBillWave, FaCopy, FaExternalLinkAlt, FaInfoCircle, FaSync, FaEllipsisV, FaEye } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaCheck, FaMoneyBillWave, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaTag } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
-import QRScannerModal from '../../components/modals/QRScannerModal';
 import CountUp from 'react-countup';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import bookingAPI from '../../services/api/bookingAPI';
 
 const pageVariants = {
@@ -34,27 +34,35 @@ const cardVariants = {
     }
 };
 
-const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, NoShow: 5, Refund: 6 };
-const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
-const bookingStatusConfig = {
-    [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chờ xác nhận' },
-    [BookingStatus.Confirmed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã xác nhận' },
-    [BookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang phục vụ' },
-    [BookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã trả phòng' },
-    [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
-    [BookingStatus.NoShow]: { color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-100', text: 'Không đến' },
-    [BookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' }
+// Trạng thái đặt dịch vụ
+const ServiceBookingStatus = {
+    Pending: 0,
+    Confirmed: 1,
+    InProgress: 2,
+    Completed: 3,
+    Cancelled: 4,
+    Refund: 5
 };
-const paymentStatusConfig = {
-    [PaymentStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chưa thanh toán' },
-    [PaymentStatus.Deposited]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đặt cọc' },
-    [PaymentStatus.FullyPaid]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Thanh toán đủ' },
-    [PaymentStatus.Refunded]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Đã hoàn tiền' }
+
+const serviceBookingStatusConfig = {
+    [ServiceBookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chờ xác nhận' },
+    [ServiceBookingStatus.Confirmed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã xác nhận' },
+    [ServiceBookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang phục vụ' },
+    [ServiceBookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã hoàn thành' },
+    [ServiceBookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
+    [ServiceBookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' }
 };
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(amount);
 };
 
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
@@ -63,10 +71,10 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
         { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
         { value: '0', label: 'Chờ xác nhận', icon: <div className="w-2 h-2 rounded-full bg-yellow-500" /> },
         { value: '1', label: 'Đã xác nhận', icon: <div className="w-2 h-2 rounded-full bg-blue-500" /> },
-        { value: '2', label: 'Đang ở', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
-        { value: '3', label: 'Đã trả phòng', icon: <div className="w-2 h-2 rounded-full bg-indigo-500" /> },
+        { value: '2', label: 'Đang phục vụ', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '3', label: 'Đã hoàn thành', icon: <div className="w-2 h-2 rounded-full bg-indigo-500" /> },
         { value: '4', label: 'Đã hủy', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> },
-        { value: '5', label: 'Không đến', icon: <div className="w-2 h-2 rounded-full bg-gray-500" /> }
+        { value: '5', label: 'Yêu cầu hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-purple-500" /> }
     ];
 
     const handleSearchChange = (e) => {
@@ -189,29 +197,39 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
     );
 };
 
-const BookingList = () => {
-    const { id: homestayId } = useParams();
-    const [bookings, setBookings] = useState([]);
+const ServiceBookingList = () => {
+    const { homestayId } = useParams();
+    const [serviceBookings, setServiceBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
-    const [sortConfig, setSortConfig] = useState({ key: 'bookingDate', direction: 'desc' });
+    const [sortConfig, setSortConfig] = useState({ key: 'bookingServicesDate', direction: 'desc' });
     const itemsPerPage = 10;
+    const navigate = useNavigate();
 
     useEffect(() => {
-        fetchBookings();
+        if (homestayId) {
+            fetchServiceBookings();
+        } else {
+            toast.error('Không tìm thấy thông tin homestay');
+            navigate('/owner/homestays');
+        }
     }, [homestayId]);
 
-    const fetchBookings = async () => {
+    const fetchServiceBookings = async () => {
         try {
             setIsLoading(true);
-            const response = await bookingAPI.getBookingsByHomeStay(homestayId);
-            setBookings(response.data || []);
+            const response = await axios.get(`https://localhost:7221/api/bookingservices/GetBookingServicesByHomeStayID/${homestayId}`);
+            if (response.data.statusCode === 200) {
+                setServiceBookings(response.data.data || []);
+            } else {
+                toast.error('Không thể tải danh sách đặt dịch vụ');
+            }
         } catch (error) {
-            toast.error('Không thể tải danh sách đặt phòng');
+            console.error('Error fetching service bookings:', error);
+            toast.error('Không thể tải danh sách đặt dịch vụ');
         } finally {
             setTimeout(() => setIsLoading(false), 1500);
         }
@@ -221,7 +239,6 @@ const BookingList = () => {
         setActualSearchTerm(searchTerm);
         setCurrentPage(1);
     };
-    // console.log(bookings);
 
     const handleSort = (key) => {
         setSortConfig(current => ({
@@ -230,8 +247,8 @@ const BookingList = () => {
         }));
     };
 
-    const filteredBookings = useMemo(() => {
-        let filtered = [...bookings];
+    const filteredServiceBookings = useMemo(() => {
+        let filtered = [...serviceBookings];
 
         if (actualSearchTerm) {
             const searchLower = actualSearchTerm.toLowerCase();
@@ -252,33 +269,35 @@ const BookingList = () => {
                     if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
                     return 0;
                 }
-                if (sortConfig.key === 'homestayName') {
-                    const valA = a.bookingDetails[0]?.homeStayRentals?.name || '';
-                    const valB = b.bookingDetails[0]?.homeStayRentals?.name || '';
+                if (sortConfig.key === 'serviceName') {
+                    const valA = a.bookingServicesDetails[0]?.services?.servicesName || '';
+                    const valB = b.bookingServicesDetails[0]?.services?.servicesName || '';
                     if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
                     if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
                     return 0;
                 }
-                if (sortConfig.key === 'checkInDate') {
-                    const valA = new Date(a.bookingDetails[0]?.checkInDate || 0);
-                    const valB = new Date(b.bookingDetails[0]?.checkOutDate || 0);
+                if (sortConfig.key === 'bookingServicesDate') {
+                    const valA = new Date(a.bookingServicesDate);
+                    const valB = new Date(b.bookingServicesDate);
                     if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
                     if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
                     return 0;
                 }
-
-                const valA = new Date(a.bookingDate);
-                const valB = new Date(b.bookingDate);
-                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                if (sortConfig.key === 'total') {
+                    const valA = a.total;
+                    const valB = b.total;
+                    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                    return 0;
+                }
                 return 0;
             });
         }
         return filtered;
-    }, [bookings, actualSearchTerm, selectedStatus, sortConfig]);
+    }, [serviceBookings, actualSearchTerm, selectedStatus, sortConfig]);
 
-    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-    const paginatedBookings = filteredBookings.slice(
+    const totalPages = Math.ceil(filteredServiceBookings.length / itemsPerPage);
+    const paginatedServiceBookings = filteredServiceBookings.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -287,70 +306,19 @@ const BookingList = () => {
         setCurrentPage(1);
     }, [actualSearchTerm, selectedStatus]);
 
-    const handleScanResult = async (bookingId) => {
-        try {
-            const parsedBookingId = parseInt(bookingId, 10);
-            if (isNaN(parsedBookingId)) {
-                throw new Error('bookingId không hợp lệ');
-            }
-            const currentBooking = bookings.find(booking => booking.bookingID === parsedBookingId);
-            if (!currentBooking) {
-                throw new Error('Không tìm thấy booking với ID này');
-            }
-            const bookingData = {
-                bookingId: parsedBookingId,
-                status: BookingStatus.InProgress,
-                paymentStatus: currentBooking.paymentStatus
-            };
-            const response = await bookingAPI.updateBookingStatus(
-                bookingData.bookingId,
-                bookingData.status,
-                bookingData.paymentStatus
-            );
-            toast.success('Check-in thành công!', {
-                id: 'check-in-success',
-                style: {
-                    borderRadius: '10px',
-                    background: '#ECFDF5',
-                    color: '#065F46',
-                    border: '1px solid #6EE7B7'
-                },
-            });
-            setBookings(prevBookings =>
-                prevBookings.map(booking =>
-                    booking.bookingID === parsedBookingId
-                        ? { ...booking, status: BookingStatus.InProgress }
-                        : booking
-                )
-            );
-            setIsScannerOpen(false);
-        } catch (error) {
-            console.error('Error updating booking:', error);
-            toast.error('Có lỗi xảy ra khi check-in', {
-                id: 'check-in-error',
-                style: {
-                    borderRadius: '10px',
-                    background: '#FEE2E2',
-                    color: '#991B1B',
-                    border: '1px solid #FCA5A5'
-                },
-            });
-        }
-    };
-    const navigate = useNavigate();
-    const handleViewBooking = async (bookingId) => {
-        navigate(`/owner/homestays/${homestayId}/bookings/${bookingId}`);
-
+    const handleViewServiceBooking = (bookingId) => {
+        navigate(`/owner/homestays/${homestayId}/service-bookings/${bookingId}`);
     };
 
-    const handleRefund = async (bookingId) => {
+    const handleRefund = async (bookingServiceId) => {
         try {
             setIsLoading(true);
             localStorage.setItem('currentBookingInfo', JSON.stringify({
-                bookingId,
-                homestayId
+                bookingServiceId,
+                homestayId,
+                timestamp: new Date().getTime()
             }));
-            const response = await bookingAPI.processVnPayRefund(bookingId, homestayId);
+            const response = await bookingAPI.processServiceRefund(bookingServiceId);
             console.log('Response từ API VNPay:', response);
             if (response) {
                 window.location.href = response;
@@ -363,8 +331,8 @@ const BookingList = () => {
     };
 
     const handleRefresh = () => {
-        fetchBookings();
-        toast.success('Đã làm mới danh sách đặt phòng', {
+        fetchServiceBookings();
+        toast.success('Đã làm mới danh sách đặt dịch vụ', {
             id: 'refresh-success',
             style: {
                 borderRadius: '10px',
@@ -400,11 +368,11 @@ const BookingList = () => {
     };
 
     const statsData = useMemo(() => [
-        { label: 'Tổng số đặt phòng', value: bookings.length, color: 'bg-blue-500', icon: <FaCalendarAlt className="w-6 h-6" /> },
-        { label: 'Đang ở', value: bookings.filter(b => b.status === BookingStatus.InProgress).length, color: 'bg-green-500', icon: <FaUser className="w-6 h-6" /> },
-        { label: 'Đã xác nhận', value: bookings.filter(b => b.status === BookingStatus.Confirmed).length, color: 'bg-indigo-500', icon: <FaCheck className="w-6 h-6" /> },
-        { label: 'Chờ xác nhận', value: bookings.filter(b => b.status === BookingStatus.Pending).length, color: 'bg-yellow-500', icon: <FaCalendarAlt className="w-6 h-6" /> }
-    ], [bookings]);
+        { label: 'Tổng số đặt dịch vụ', value: serviceBookings.length, color: 'bg-blue-500', icon: <FaTag className="w-6 h-6" /> },
+        { label: 'Đang phục vụ', value: serviceBookings.filter(b => b.status === ServiceBookingStatus.InProgress).length, color: 'bg-green-500', icon: <FaCheck className="w-6 h-6" /> },
+        { label: 'Đã xác nhận', value: serviceBookings.filter(b => b.status === ServiceBookingStatus.Confirmed).length, color: 'bg-indigo-500', icon: <FaCheck className="w-6 h-6" /> },
+        { label: 'Chờ xác nhận', value: serviceBookings.filter(b => b.status === ServiceBookingStatus.Pending).length, color: 'bg-yellow-500', icon: <FaCalendarAlt className="w-6 h-6" /> }
+    ], [serviceBookings]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -438,10 +406,10 @@ const BookingList = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Quản lý đặt phòng
+                            Quản lý đặt dịch vụ
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
-                            Quản lý tất cả các đặt phòng của khách hàng
+                            Quản lý tất cả các đặt dịch vụ của khách hàng
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -451,13 +419,6 @@ const BookingList = () => {
                             font-medium rounded-lg transition-colors shadow-sm hover:shadow-lg"
                         >
                             <FaSync className="w-4 h-4" /> Làm mới
-                        </button>
-                        <button
-                            onClick={() => setIsScannerOpen(true)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white 
-                            font-medium rounded-lg transition-colors shadow-sm hover:shadow-lg hover:shadow-primary/20"
-                        >
-                            <FaQrcode className="w-4 h-4" /> Quét QR Check-in
                         </button>
                     </div>
                 </div>
@@ -535,13 +496,12 @@ const BookingList = () => {
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900/50">
                                 <tr>
-                                    <TableHeader label="Ngày đặt" sortKey="bookingDate" />
+                                    <TableHeader label="Ngày đặt" sortKey="bookingServicesDate" />
                                     <TableHeader label="Khách hàng" sortKey="customerName" />
-                                    <TableHeader label="Căn thuê" sortKey="homestayName" />
-                                    <TableHeader label="Ngày nhận phòng" sortKey="checkInDate" />
-                                    <TableHeader label="Ngày trả phòng" sortKey="checkOutDate" />
+                                    <TableHeader label="Dịch vụ" sortKey="serviceName" />
+                                    <TableHeader label="Số lượng" sortKey="quantity" />
+                                    <TableHeader label="Tổng tiền" sortKey="total" />
                                     <TableHeader label="Trạng thái" sortKey="status" />
-                                    <TableHeader label="Thanh toán" sortKey="paymentStatus" />
                                     <th className="px-6 py-3 text-left">
                                         <span className="font-semibold text-gray-700 dark:text-gray-300">
                                             Hành động
@@ -550,17 +510,14 @@ const BookingList = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {paginatedBookings.map((booking) => {
-                                    const bookingDetail = booking.bookingDetails[0] || {};
-                                    const bookingStatusInfo = bookingStatusConfig[booking.status];
-                                    const paymentStatusInfo = paymentStatusConfig[booking.paymentStatus];
-
-                                    const canRefund = booking.status === BookingStatus.Refund;
-                                    const isRefunded = booking.status === BookingStatus.Refunded;
+                                {paginatedServiceBookings.map((booking) => {
+                                    const serviceDetail = booking.bookingServicesDetails[0] || {};
+                                    const service = serviceDetail.services || {};
+                                    const serviceBookingStatusInfo = serviceBookingStatusConfig[booking.status];
 
                                     return (
                                         <motion.tr
-                                            key={booking.bookingID}
+                                            key={booking.bookingServicesID}
                                             variants={cardVariants}
                                             initial="initial"
                                             animate="animate"
@@ -569,7 +526,7 @@ const BookingList = () => {
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="text-gray-600 dark:text-gray-400">
-                                                    {formatDate(booking.bookingDate)}
+                                                    {formatDate(booking.bookingServicesDate)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -584,31 +541,22 @@ const BookingList = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="text-gray-600 dark:text-gray-400">
-                                                    {bookingDetail.homeStayRentals?.name || 'N/A'}
+                                                    {service.servicesName || 'N/A'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                {bookingDetail.checkInDate && (
-                                                    <span className="text-gray-600 dark:text-gray-400">
-                                                        {formatDate(bookingDetail.checkInDate)}
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {bookingDetail.checkOutDate && (
-                                                    <span className="text-gray-600 dark:text-gray-400">
-                                                        {formatDate(bookingDetail.checkOutDate)}
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${bookingStatusInfo.color}`}>
-                                                    {bookingStatusInfo.text}
+                                                <span className="text-gray-600 dark:text-gray-400">
+                                                    {serviceDetail.quantity || 0}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${paymentStatusInfo.color}`}>
-                                                    {paymentStatusInfo.text}
+                                                <span className="font-medium text-gray-900 dark:text-white">
+                                                    {formatCurrency(booking.total)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${serviceBookingStatusInfo.color}`}>
+                                                    {serviceBookingStatusInfo.text}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -624,41 +572,9 @@ const BookingList = () => {
 
                                                     <div className="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                                         <div className="py-1">
-                                                            {/* Chỉ hiện nút Hoàn tiền khi trạng thái là Refund và chưa bị hủy */}
-                                                            {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        handleRefund(booking.bookingID);
-                                                                        e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                                    }}
-                                                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                                >
-                                                                    <FaMoneyBillWave className="mr-3 w-4 h-4" />
-                                                                    Hoàn tiền
-                                                                </button>
-                                                            )}
-
-                                                            {/* Chỉ hiện nút Check-in khi trạng thái không phải là Đã hủy, Đang phục vụ hoặc Đã hoàn thành */}
-                                                            {booking.status !== BookingStatus.Cancelled &&
-                                                                booking.status !== BookingStatus.NoShow &&
-                                                                booking.status !== BookingStatus.InProgress &&
-                                                                booking.status !== BookingStatus.Completed && (
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            handleScanResult(booking.bookingID);
-                                                                            e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                                        }}
-                                                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                                    >
-                                                                        <FaQrcode className="mr-3 w-4 h-4" />
-                                                                        Check-in
-                                                                    </button>
-                                                                )}
-
-                                                            {/* Nút Xem chi tiết luôn hiển thị */}
                                                             <button
                                                                 onClick={(e) => {
-                                                                    handleViewBooking(booking.bookingID);
+                                                                    handleViewServiceBooking(booking.bookingServicesID);
                                                                     e.currentTarget.parentElement.parentElement.classList.add('hidden');
                                                                 }}
                                                                 className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -666,6 +582,18 @@ const BookingList = () => {
                                                                 <FaEye className="mr-3 w-4 h-4" />
                                                                 Xem chi tiết
                                                             </button>
+                                                            {booking.status === ServiceBookingStatus.Refund && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        handleRefund(booking.bookingServicesID);
+                                                                        e.currentTarget.parentElement.parentElement.classList.add('hidden');
+                                                                    }}
+                                                                    className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                                >
+                                                                    <FaMoneyBillWave className="mr-3 w-4 h-4" />
+                                                                    Hoàn tiền
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -678,7 +606,7 @@ const BookingList = () => {
 
                         {/* Empty State */}
                         <AnimatePresence>
-                            {filteredBookings.length === 0 && (
+                            {filteredServiceBookings.length === 0 && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -689,12 +617,12 @@ const BookingList = () => {
                                         <FaSearch className="mx-auto w-16 h-16" />
                                     </div>
                                     <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                                        Không tìm thấy đặt phòng
+                                        Không tìm thấy đặt dịch vụ
                                     </h3>
                                     <p className="text-gray-500 dark:text-gray-400 mb-6">
                                         {actualSearchTerm || selectedStatus !== 'all'
-                                            ? 'Không có đặt phòng nào phù hợp với bộ lọc của bạn'
-                                            : 'Chưa có đặt phòng nào được tạo cho homestay này'}
+                                            ? 'Không có đặt dịch vụ nào phù hợp với bộ lọc của bạn'
+                                            : 'Chưa có đặt dịch vụ nào được tạo cho homestay này'}
                                     </p>
                                 </motion.div>
                             )}
@@ -740,15 +668,8 @@ const BookingList = () => {
                     </button>
                 </div>
             )}
-
-            {isScannerOpen && (
-                <QRScannerModal
-                    onClose={() => setIsScannerOpen(false)}
-                    onScanSuccess={handleScanResult}
-                />
-            )}
         </motion.div>
     );
 };
 
-export default BookingList;
+export default ServiceBookingList; 

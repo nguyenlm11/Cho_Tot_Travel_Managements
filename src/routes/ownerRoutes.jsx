@@ -18,6 +18,7 @@ import RatingList from '../pages/owner/RatingList';
 import ReportHomestay from '../pages/owner/ReportHomestay';
 import RoomList from '../pages/owner/RoomList';
 import RoomTypeDetail from '../pages/owner/RoomTypeDetail';
+import ServiceBookingList from '../pages/owner/ServiceBookingList';
 import ServiceList from '../pages/owner/ServiceList';
 
 export const ownerRoutes = [
@@ -108,5 +109,9 @@ export const ownerRoutes = [
   {
     path: 'homestays/:homestayId/rentals/:rentalId/room-types/:roomTypeId/infor',
     element: <RoomTypeDetail />
+  },
+  {
+    path: 'homestays/:homestayId/service-bookings',
+    element: <ServiceBookingList />
   }
 ]; 
