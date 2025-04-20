@@ -1,16 +1,29 @@
 {
+    "version": 2,
+    "builds": [
+      {
+        "src": "package.json",
+        "use": "@vercel/static-build",
+        "config": { "distDir": "dist" }
+      }
+    ],
     "rewrites": [
       {
-        "source": "/api/(.*)",
-        "destination": "https://hungnv.iselab.cloud:7221/api/$1"
+        "source": "/api/:path*",
+        "destination": "https://hungnv.iselab.cloud:7221/api/:path*"
       },
       {
-        "source": "/chat/(.*)",
-        "destination": "https://hungnv.iselab.cloud:7221/api/$1"
+        "source": "/chat/:path*",
+        "destination": "https://hungnv.iselab.cloud:7221/api/:path*"
       },
       {
-        "source": "/chatHub/(.*)",
-        "destination": "https://hungnv.iselab.cloud:7221/api/$1"
+        "source": "/chatHub/:path*",
+        "destination": "https://hungnv.iselab.cloud:7221/chatHub/:path*"
+      },
+      {
+        "source": "/:path*",
+        "destination": "/index.html"
       }
     ]
   }
+  
