@@ -1,6 +1,10 @@
 {
     "rewrites": [
       {
+        "source": "/(.*)",
+        "destination": "/index.html"
+      },
+      {
         "source": "/api/(.*)",
         "destination": "https://hungnv.iselab.cloud:7221/api/$1"
       },
