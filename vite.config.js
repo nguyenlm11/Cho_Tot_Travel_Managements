@@ -8,7 +8,7 @@ export default defineConfig({
       '/chatHub': {
         // target: 'https://localhost:7221/api',
         // target: 'http://localhost:7221/api',
-        target: 'http://hungnv.iselab.cloud:7221/api',
+        target: 'https://hungnv.iselab.cloud:7221/api',
         changeOrigin: true,
         secure: false,
         ws: true,
@@ -17,14 +17,14 @@ export default defineConfig({
       '/chat': {
         // target: 'http://localhost:7221/api',
         // target: 'https://localhost:7221/api',
-        target: 'http://hungnv.iselab.cloud:7221/api',
+        target: 'https://hungnv.iselab.cloud:7221/api',
         changeOrigin: true,
         secure: false,
       },
       '/api': {
         // target: 'http://localhost:7221/api',
         // target: 'https://localhost:7221/api',
-        target: 'http://hungnv.iselab.cloud:7221/api',
+        target: 'https://hungnv.iselab.cloud:7221/api',
         changeOrigin: true,
         secure: false
       }
