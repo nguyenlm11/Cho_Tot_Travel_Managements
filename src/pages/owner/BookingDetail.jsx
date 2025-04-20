@@ -2,40 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import bookingAPI from '../../services/api/bookingAPI';
-import {
-    FaUser,
-    FaCalendar,
-    FaClock,
-    FaChild,
-    FaUsers,
-    FaMoneyBillWave,
-    FaCreditCard,
-    FaInfoCircle,
-    FaHotel,
-    FaBed,
-    FaReceipt,
-    FaAddressBook,
-    FaRegAddressBook,
-    FaRegAddressCard,
-    FaMapMarkerAlt
-} from 'react-icons/fa';
+import { FaUser, FaMoneyBillWave, FaInfoCircle, FaHotel, FaBed, FaReceipt, FaMapMarkerAlt } from 'react-icons/fa';
 import { formatPrice, formatDate } from '../../utils/utils';
 import { FaHouse } from 'react-icons/fa6';
 
-// Status configurations
-const BookingStatus = {
-    Pending: 0,
-    Confirmed: 1,
-    Completed: 2,
-    Cancelled: 3
-};
+const BookingStatus = { Pending: 0, Confirmed: 1, Completed: 2, Cancelled: 3 };
 
-const PaymentStatus = {
-    Pending: 0,
-    Deposited: 1,
-    FullyPaid: 2,
-    Refunded: 3
-};
+const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
 
 const statusConfig = {
     [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Đang chờ' },

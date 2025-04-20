@@ -54,7 +54,17 @@ const bookingAPI = {
             console.log('VNPay Refund URL:', response);
             return response.data;
         } catch (error) {
-            console.error('Error processing VNPay refund:', error);
+            throw error;
+        }
+    },
+
+    processServiceRefund: async (bookingServiceId) => {
+        try {
+            const response = await axiosInstance.post(
+                `/booking-checkout/BookingPaymentService-Refund?bookingServiceID=${bookingServiceId}`
+            );
+            return response.data;
+        } catch (error) {
             throw error;
         }
     },
