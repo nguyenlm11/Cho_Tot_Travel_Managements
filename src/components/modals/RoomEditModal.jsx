@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaBed, FaRegTimesCircle, FaPlus } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import roomAPI from '../../services/api/roomAPI';
+import { MdNotificationsActive } from 'react-icons/md';
 
 const RoomEditModal = ({ isOpen, onClose, roomTypeId, onSuccess }) => {
     const [formData, setFormData] = useState({ roomNumber: '' });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const user = JSON.parse(localStorage.getItem('userInfo'));
 
     useEffect(() => {
         const fetchRoomById = async () => {
@@ -118,37 +120,48 @@ const RoomEditModal = ({ isOpen, onClose, roomTypeId, onSuccess }) => {
                         <div className="p-6 space-y-6">
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 {/* Số phòng */}
+
+
+
                                 <motion.div
                                     initial={{ x: -20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
                                     transition={{ delay: 0.1 }}
                                 >
-                                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                                        Số phòng *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="roomNumber"
-                                        value={formData.roomNumber}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 
+                                    {user?.role === "Owner" && (
+                                        <>
+                                            <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                                                Số phòng *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="roomNumber"
+                                                value={formData.roomNumber}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 
                                             dark:border-gray-600 dark:bg-gray-700 focus:ring-2 
                                             focus:ring-primary/50 transition-all duration-200"
-                                        placeholder="Nhập số phòng (vd: 101, A101, ...)"
-                                    />
-                                    {errors.roomNumber && (
-                                        <motion.p
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="mt-1 text-sm text-red-500 flex items-center gap-1"
-                                        >
-                                            <FaRegTimesCircle />
-                                            {errors.roomNumber}
-                                        </motion.p>
+                                                placeholder="Nhập số phòng (vd: 101, A101, ...)"
+                                            />
+                                            {errors.roomNumber && (
+                                                <motion.p
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                                                >
+                                                    <FaRegTimesCircle />
+                                                    {errors.roomNumber}
+                                                </motion.p>
+                                            )}
+                                        </>
                                     )}
 
                                     <div className='flex items-center justify-between'>
-                                        <div className="my-6">
+                                        <div className="my-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                <MdNotificationsActive className="mr-1 text-gray-400" />
+                                                Trạng thái <span className="text-red-500 ml-1">*</span>
+                                            </label>
                                             <label className="flex items-center gap-3 cursor-pointer">
                                                 <div className="relative">
                                                     <input

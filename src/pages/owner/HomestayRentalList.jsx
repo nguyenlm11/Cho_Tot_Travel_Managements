@@ -325,18 +325,18 @@ const HomestayRentalCard = ({ rental, onEdit, onDelete }) => {
                             >
                                 <FaEye className="w-5 h-5" />
                             </motion.button>
-                            {user?.role === "Owner" && (
-                                <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => onEdit && onEdit(rental)}
-                                    className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
+
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => onEdit && onEdit(rental)}
+                                className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 
                                   rounded-full transition-colors"
-                                    title="Chỉnh sửa"
-                                >
-                                    <FaEdit className="w-5 h-5" />
-                                </motion.button>
-                            )}
+                                title="Chỉnh sửa"
+                            >
+                                <FaEdit className="w-5 h-5" />
+                            </motion.button>
+
 
                             {user?.role === "Owner" && (
                                 <motion.button
