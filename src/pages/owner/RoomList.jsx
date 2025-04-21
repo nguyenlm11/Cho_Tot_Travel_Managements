@@ -220,27 +220,30 @@ const RoomCard = ({ room, homestayId, rentalId, roomTypeId, onDelete, setIsEditM
                             <FaEye className="w-4 h-4" />
                         </motion.button>
 
-                        {user?.role === "Owner" && (
-                            <>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => setIsEditModalOpen({ isOpen: true, roomSelect: room?.roomID })}
-                                    className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors"
-                                >
-                                    <FaEdit className="w-4 h-4" />
-                                </motion.button>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => onDelete(room)}
-                                    className="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/40 transition-colors"
-                                >
-                                    <FaTrash className="w-4 h-4" />
-                                </motion.button>
-                            </>
 
+
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setIsEditModalOpen({ isOpen: true, roomSelect: room?.roomID })}
+                            className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors"
+                        >
+                            <FaEdit className="w-4 h-4" />
+                        </motion.button>
+                        {user?.role === "Owner" && (
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => onDelete(room)}
+                                className="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/40 transition-colors"
+                            >
+                                <FaTrash className="w-4 h-4" />
+                            </motion.button>
                         )}
+
+
+
+
 
 
                     </div>

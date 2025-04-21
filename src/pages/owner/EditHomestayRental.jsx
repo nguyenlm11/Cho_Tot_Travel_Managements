@@ -5,6 +5,7 @@ import { FaTimes, FaBed, FaBath, FaWifi, FaChild, FaUser, FaUsers, FaArrowLeft, 
 import { toast, Toaster } from 'react-hot-toast';
 import homestayRentalAPI from '../../services/api/homestayrentalAPI';
 import pricingAPI from '../../services/api/pricingAPI';
+import { MdNotificationsActive } from "react-icons/md";
 
 const pageTransition = {
     initial: { opacity: 0 },
@@ -26,6 +27,7 @@ const EditHomestayRental = () => {
     const [previewImages, setPreviewImages] = useState([]);
     const [step, setStep] = useState(1);
     const [pricingIDEdit, setPricingIDEdit] = useState(null);
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -271,12 +273,13 @@ const EditHomestayRental = () => {
                     numberBathRoom: formData.numberBathRoom,
                     numberKitchen: formData.numberKitchen,
                     numberWifi: formData.numberWifi,
-                    status: true,
+                    status: formData.status,
                     rentWhole: formData.rentWhole,
                     maxAdults: formData.maxAdults,
                     maxChildren: formData.maxChildren,
                     maxPeople: formData.maxPeople,
                 };
+                // console.log(rentalData);
 
                 const response = await homestayRentalAPI.updateHomestayRental(rentalData, rentalId);
                 if (response.statusCode === 200) {
@@ -404,258 +407,270 @@ const EditHomestayRental = () => {
                                         className="space-y-6"
                                     >
                                         {/* Basic Information */}
-                                        <div className="space-y-4">
-                                            <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                                                Thông tin cơ bản
-                                            </h3>
+                                        {user?.role === "Owner" && (
+                                            <div className="space-y-4">
+                                                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                                                    Thông tin cơ bản
+                                                </h3>
 
-                                            {/* name */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                    Tên phòng <span className="text-red-500">*</span>
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="text"
-                                                        name="name"
-                                                        value={formData.name}
+
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                        Tên phòng <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            name="name"
+                                                            value={formData.name}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Nhập tên phòng thuê"
+                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        />
+                                                    </div>
+                                                    {errors.name && (
+                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                            <FaInfoCircle className="mr-1" /> {errors.name}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+
+
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                        Mô tả <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <textarea
+                                                        name="description"
+                                                        value={formData.description}
                                                         onChange={handleInputChange}
-                                                        placeholder="Nhập tên phòng thuê"
-                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        rows="3"
+                                                        placeholder="Mô tả chi tiết về phòng thuê này..."
+                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 resize-none"
                                                     />
+                                                    {errors.description && (
+                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                            <FaInfoCircle className="mr-1" /> {errors.description}
+                                                        </p>
+                                                    )}
                                                 </div>
-                                                {errors.name && (
-                                                    <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                        <FaInfoCircle className="mr-1" /> {errors.name}
-                                                    </p>
-                                                )}
-                                            </div>
 
-                                            {/* description */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                    Mô tả <span className="text-red-500">*</span>
-                                                </label>
-                                                <textarea
-                                                    name="description"
-                                                    value={formData.description}
-                                                    onChange={handleInputChange}
-                                                    rows="3"
-                                                    placeholder="Mô tả chi tiết về phòng thuê này..."
-                                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 resize-none"
-                                                />
-                                                {errors.description && (
-                                                    <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                        <FaInfoCircle className="mr-1" /> {errors.description}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {/* rentWhole Option */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                    Loại thuê <span className="text-red-500">*</span>
-                                                </label>
-                                                <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
-                                                    <div className={`flex items-center p-3 rounded-lg border ${formData.rentWhole ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-gray-300 dark:border-gray-600'}`}>
-                                                        <input
-                                                            type="radio"
-                                                            id="rentWhole"
-                                                            name="rentWhole"
-                                                            value="true"
-                                                            checked={formData.rentWhole === true}
-                                                            onChange={handleInputChange}
-                                                            className="mr-2"
-                                                        />
-                                                        <label htmlFor="rentWhole" className="cursor-pointer">
-                                                            <span className="font-medium">Thuê nguyên căn</span>
-                                                            <p className="text-xs text-gray-500 dark:text-gray-400">Khách thuê toàn bộ không gian</p>
-                                                        </label>
-                                                    </div>
-                                                    <div className={`flex items-center p-3 rounded-lg border ${!formData.rentWhole ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-gray-300 dark:border-gray-600'}`}>
-                                                        <input
-                                                            type="radio"
-                                                            id="rentRoom"
-                                                            name="rentWhole"
-                                                            value="false"
-                                                            checked={formData.rentWhole === false}
-                                                            onChange={handleInputChange}
-                                                            className="mr-2"
-                                                        />
-                                                        <label htmlFor="rentRoom" className="cursor-pointer">
-                                                            <span className="font-medium">Thuê từng phòng</span>
-                                                            <p className="text-xs text-gray-500 dark:text-gray-400">Khách thuê từng phòng riêng biệt</p>
-                                                        </label>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                        Loại thuê <span className="text-red-500 ">*</span>
+                                                    </label>
+                                                    <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
+                                                        <div className={`flex items-center p-3 rounded-lg border ${formData.rentWhole ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-gray-300 dark:border-gray-600'}`}>
+                                                            <input
+                                                                type="radio"
+                                                                id="rentWhole"
+                                                                name="rentWhole"
+                                                                value="true"
+                                                                checked={formData.rentWhole === true}
+                                                                onChange={handleInputChange}
+                                                                className="mr-2"
+                                                            />
+                                                            <label htmlFor="rentWhole" className="cursor-pointer">
+                                                                <span className="font-medium">Thuê nguyên căn</span>
+                                                                <p className="text-xs text-gray-500 dark:text-gray-400">Khách thuê toàn bộ không gian</p>
+                                                            </label>
+                                                        </div>
+                                                        <div className={`flex items-center p-3 rounded-lg border ${!formData.rentWhole ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-gray-300 dark:border-gray-600'}`}>
+                                                            <input
+                                                                type="radio"
+                                                                id="rentRoom"
+                                                                name="rentWhole"
+                                                                value="false"
+                                                                checked={formData.rentWhole === false}
+                                                                onChange={handleInputChange}
+                                                                className="mr-2"
+                                                            />
+                                                            <label htmlFor="rentRoom" className="cursor-pointer">
+                                                                <span className="font-medium">Thuê từng phòng</span>
+                                                                <p className="text-xs text-gray-500 dark:text-gray-400">Khách thuê từng phòng riêng biệt</p>
+                                                            </label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        )}
+
+
 
                                         {/* Room Facilities */}
-                                        <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                                            <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                                                Tiện nghi riêng của căn
-                                            </h3>
+                                        {user?.role === "Owner" && (
+                                            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                                                    Tiện nghi riêng của căn
+                                                </h3>
 
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                                                        <FaBed className="mr-1 text-gray-400" />
-                                                        Phòng ngủ <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        name="numberBedRoom"
-                                                        value={formData.numberBedRoom}
-                                                        onChange={handleInputChange}
-                                                        min="0"
-                                                        max="10"
-                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                    />
-                                                    {errors.numberBedRoom && (
-                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                            <FaInfoCircle className="mr-1" /> {errors.numberBedRoom}
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                            <FaBed className="mr-1 text-gray-400" />
+                                                            Phòng ngủ <span className="text-red-500 ml-1">*</span>
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            name="numberBedRoom"
+                                                            value={formData.numberBedRoom}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            max="10"
+                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        />
+                                                        {errors.numberBedRoom && (
+                                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                <FaInfoCircle className="mr-1" /> {errors.numberBedRoom}
+                                                            </p>
+                                                        )}
+                                                    </div>
 
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                                                        <FaBath className="mr-1 text-gray-400" />
-                                                        Phòng tắm <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        name="numberBathRoom"
-                                                        value={formData.numberBathRoom}
-                                                        onChange={handleInputChange}
-                                                        min="0"
-                                                        max="10"
-                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                    />
-                                                    {errors.numberBathRoom && (
-                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                            <FaInfoCircle className="mr-1" /> {errors.numberBathRoom}
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                            <FaBath className="mr-1 text-gray-400" />
+                                                            Phòng tắm <span className="text-red-500 ml-1">*</span>
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            name="numberBathRoom"
+                                                            value={formData.numberBathRoom}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            max="10"
+                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        />
+                                                        {errors.numberBathRoom && (
+                                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                <FaInfoCircle className="mr-1" /> {errors.numberBathRoom}
+                                                            </p>
+                                                        )}
+                                                    </div>
 
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                                                        <FaUtensils className="mr-1 text-gray-400" />
-                                                        Phòng bếp <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        name="numberKitchen"
-                                                        value={formData.numberKitchen}
-                                                        onChange={handleInputChange}
-                                                        min="0"
-                                                        max="10"
-                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                    />
-                                                    {errors.numberKitchen && (
-                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                            <FaInfoCircle className="mr-1" /> {errors.numberKitchen}
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                            <FaUtensils className="mr-1 text-gray-400" />
+                                                            Phòng bếp <span className="text-red-500 ml-1">*</span>
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            name="numberKitchen"
+                                                            value={formData.numberKitchen}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            max="10"
+                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        />
+                                                        {errors.numberKitchen && (
+                                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                <FaInfoCircle className="mr-1" /> {errors.numberKitchen}
+                                                            </p>
+                                                        )}
+                                                    </div>
 
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                                                        <FaWifi className="mr-1 text-gray-400" />
-                                                        Wifi <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        name="numberWifi"
-                                                        value={formData.numberWifi}
-                                                        onChange={handleInputChange}
-                                                        min="0"
-                                                        max="5"
-                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                    />
-                                                    {errors.numberWifi && (
-                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                            <FaInfoCircle className="mr-1" /> {errors.numberWifi}
-                                                        </p>
-                                                    )}
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                            <FaWifi className="mr-1 text-gray-400" />
+                                                            Wifi <span className="text-red-500 ml-1">*</span>
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            name="numberWifi"
+                                                            value={formData.numberWifi}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            max="5"
+                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        />
+                                                        {errors.numberWifi && (
+                                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                <FaInfoCircle className="mr-1" /> {errors.numberWifi}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        )}
+
 
                                         {/* Guest Capacity */}
-                                        <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                                            <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                                                Sức chứa
-                                            </h3>
+                                        {user?.role === "Owner" && (
+                                            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                                                    Sức chứa
+                                                </h3>
 
-                                            <div className="grid grid-cols-3 gap-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                                                        <FaUser className="mr-1 text-gray-400" />
-                                                        Người lớn <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        name="maxAdults"
-                                                        value={formData.maxAdults}
-                                                        onChange={handleInputChange}
-                                                        min="1"
-                                                        max="10"
-                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                    />
-                                                    {errors.maxAdults && (
-                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                            <FaInfoCircle className="mr-1" /> {errors.maxAdults}
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                <div className="grid grid-cols-3 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                            <FaUser className="mr-1 text-gray-400" />
+                                                            Người lớn <span className="text-red-500 ml-1">*</span>
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            name="maxAdults"
+                                                            value={formData.maxAdults}
+                                                            onChange={handleInputChange}
+                                                            min="1"
+                                                            max="10"
+                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        />
+                                                        {errors.maxAdults && (
+                                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                <FaInfoCircle className="mr-1" /> {errors.maxAdults}
+                                                            </p>
+                                                        )}
+                                                    </div>
 
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                                                        <FaChild className="mr-1 text-gray-400" />
-                                                        Trẻ em <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        name="maxChildren"
-                                                        value={formData.maxChildren}
-                                                        onChange={handleInputChange}
-                                                        min="0"
-                                                        max="10"
-                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                    />
-                                                    {errors.maxChildren && (
-                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                            <FaInfoCircle className="mr-1" /> {errors.maxChildren}
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                            <FaChild className="mr-1 text-gray-400" />
+                                                            Trẻ em <span className="text-red-500 ml-1">*</span>
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            name="maxChildren"
+                                                            value={formData.maxChildren}
+                                                            onChange={handleInputChange}
+                                                            min="0"
+                                                            max="10"
+                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        />
+                                                        {errors.maxChildren && (
+                                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                <FaInfoCircle className="mr-1" /> {errors.maxChildren}
+                                                            </p>
+                                                        )}
+                                                    </div>
 
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                                                        <FaUsers className="mr-1 text-gray-400" />
-                                                        Tổng <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        name="maxPeople"
-                                                        value={formData.maxPeople}
-                                                        onChange={handleInputChange}
-                                                        readOnly
-                                                        min="1"
-                                                        max="20"
-                                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                                                    />
-                                                    {errors.maxPeople && (
-                                                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                            <FaInfoCircle className="mr-1" /> {errors.maxPeople}
-                                                        </p>
-                                                    )}
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                            <FaUsers className="mr-1 text-gray-400" />
+                                                            Tổng <span className="text-red-500 ml-1">*</span>
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            name="maxPeople"
+                                                            value={formData.maxPeople}
+                                                            onChange={handleInputChange}
+                                                            readOnly
+                                                            min="1"
+                                                            max="20"
+                                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+                                                        />
+                                                        {errors.maxPeople && (
+                                                            <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                                <FaInfoCircle className="mr-1" /> {errors.maxPeople}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        )}
+
+
+
 
                                         {/* Images */}
                                         {/* <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
@@ -728,6 +743,39 @@ const EditHomestayRental = () => {
                                                 </div>
                                             )}
                                         </div> */}
+
+
+
+                                        <div className='flex items-center justify-between'>
+                                            <div className="mb-3">
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                    <MdNotificationsActive className="mr-1 text-gray-400" />
+                                                    Trạng thái <span className="text-red-500 ml-1">*</span>
+                                                </label>
+                                                <label className="flex items-center gap-3 cursor-pointer">
+                                                    <div className="relative">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.status}
+                                                            onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.checked }))}
+                                                            className="sr-only"
+                                                        />
+                                                        <div className={`w-12 h-6 rounded-full transition-colors duration-200 
+                                                    ${formData.status ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                                                            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full 
+                                                        transition-transform duration-200 shadow
+                                                        ${formData.status ? 'translate-x-6' : 'translate-x-0'}`}>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                        {formData.status ? 'Đang hoạt động' : 'Tạm ngưng'}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+
                                     </motion.div>
                                 ) : (
                                     // Step 2 - Pricing setup with simplified styling
@@ -964,10 +1012,10 @@ const EditHomestayRental = () => {
                         </div>}
                     </form>
                 </div>
-            </div>
+            </div >
 
             {/* Confirmation Modal */}
-            <AnimatePresence>
+            <AnimatePresence AnimatePresence >
                 {isModalOpen && (
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -1048,8 +1096,8 @@ const EditHomestayRental = () => {
                         </motion.div>
                     </motion.div>
                 )}
-            </AnimatePresence>
-        </motion.div>
+            </AnimatePresence >
+        </motion.div >
     );
 };
 
