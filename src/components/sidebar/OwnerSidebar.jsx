@@ -78,9 +78,9 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
       ],
     },
     { title: 'Dịch vụ', path: `/owner/homestays/${selectedHomestay}/services`, icon: <FaTag /> },
-    { 
-      title: 'Đặt phòng', 
-      path: `/owner/homestays/${selectedHomestay}/bookings`, 
+    {
+      title: 'Đặt phòng',
+      path: `/owner/homestays/${selectedHomestay}/bookings`,
       icon: <FaCalendarAlt />,
       submenu: [
         { title: 'Đặt phòng nghỉ', path: `/owner/homestays/${selectedHomestay}/bookings` },
@@ -92,7 +92,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
     { title: 'Mã giảm giá', path: `/owner/homestays/${selectedHomestay}/vouchers`, icon: <FaTicketAlt /> },
     { title: 'Trò chuyện', path: `/owner/homestays/${selectedHomestay}/chat`, icon: <FaComment /> },
     { title: 'Đánh giá', path: `/owner/homestays/${selectedHomestay}/ratings`, icon: <FaStar /> },
-    { title: 'Quay lại danh sách', path: '/owner/homestays', icon: <FaArrowLeft />, className: 'mt-8 pt-4 border-t border-white/10 dark:border-gray-700' },
+    ...(user?.role !== "Staff" ? [{ title: 'Quay lại danh sách', path: '/owner/homestays', icon: <FaArrowLeft />, className: 'mt-8 pt-4 border-t border-white/10 dark:border-gray-700' }] : []),
   ];
 
   const isManagingHomestay = useMemo(() => {
