@@ -5,8 +5,8 @@ export const API_CONFIG = {
     // BASE_URL: 'http://localhost:7221/api',
 
     //Chạy trên server deploy link này
-    // BASE_URL: '/api',
-    BASE_URL:'https://capstone-bookinghomestay.onrender.com/api',
+    BASE_URL: '/api',
+    
     TOAST_CONFIG: {
         SUCCESS: {
             style: {
