@@ -28,7 +28,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, fetchHomestays })
 
     const API_KEY = "MdlDIjhDKvUnozmB9NJjiW4L5Pu5ogxX";
     const BASE_URL = "https://mapapis.openmap.vn/v1/autocomplete";
-
+    const PLACE_DETAIL_URL = "https://mapapis.openmap.vn/v1/place";
     useEffect(() => {
         if (homestay) {
             console.log("Loading homestay with coordinates:", {
@@ -139,25 +139,41 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, fetchHomestays })
             setErrors(prev => ({ ...prev, [name]: null }));
         }
     };
-    const handleSelectAddress = (result) => {
-        const { label } = result.properties;
-        const [lng, lat] = result.geometry.coordinates;
+    const handleSelectAddress = async (result) => {
+        const { id } = result.properties;
+        try {
+            const detailResponse = await axiosInstance.get(PLACE_DETAIL_URL, {
+                params: {
+                    format: 'osm',
+                    ids: id,
+                    apikey: API_KEY
+                }
+            });
+            const detail = detailResponse.data?.features?.[0];
+            if (!detail) {
+                console.error('No detail found for selected address.');
+                return;
+            }
+            const label = detail.properties.label;
+            const [lng, lat] = detail.geometry.coordinates;
+            setFormData(prev => ({
+                ...prev,
+                address: label,
+                longitude: lng,
+                latitude: lat,
+            }));
+            setAddressSelectedFromSuggestion(true); // Đánh dấu đã chọn từ gợi ý
+            setShowSuggestions(false);
 
-        setFormData(prev => ({
-            ...prev,
-            address: label,
-            longitude: lng,
-            latitude: lat,
-        }));
-        setAddressSelectedFromSuggestion(true); // Đánh dấu đã chọn từ gợi ý
-        setShowSuggestions(false);
+            // Xóa lỗi địa chỉ nếu có
+            if (errors.address) {
+                setErrors(prev => ({ ...prev, address: null }));
+            }
 
-        // Xóa lỗi địa chỉ nếu có
-        if (errors.address) {
-            setErrors(prev => ({ ...prev, address: null }));
+            console.log("Selected new coordinates:", { longitude: lng, latitude: lat });
+        } catch (error) {
+            console.error("Lỗi khi lấy chi tiết thông tin địa chỉ:", error);
         }
-
-        console.log("Selected new coordinates:", { longitude: lng, latitude: lat });
     };
 
     const searchAddress = async (query) => {
@@ -293,7 +309,7 @@ export const EditHomestayModal = ({ isOpen, onClose, homestay, fetchHomestays })
                 rentalType: 1
             };
 
-            console.log("Sending data:", dataToSend);
+            // console.log("Sending data:", dataToSend);
 
             const response = await homestayAPI.updateHomestay(homestayId, dataToSend);
 

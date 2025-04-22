@@ -5,15 +5,17 @@ import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import homestayAPI from '../../services/api/homestayAPI';
-import homestayRentalAPI from '../../services/api/homestayrentalAPI';
+// import homestayRentalAPI from '../../services/api/homestayrentalAPI';
 import { FaWifi } from 'react-icons/fa6';
+import axiosInstance from '../../services/config';
 
 const API_KEY = "MdlDIjhDKvUnozmB9NJjiW4L5Pu5ogxX";
 const BASE_URL = "https://mapapis.openmap.vn/v1/autocomplete";
+const PLACE_DETAIL_URL = "https://mapapis.openmap.vn/v1/place";
 
 const AddHomestay = () => {
-  const [homestayId, setHomestayId] = useState(null);
-  const [rentalId, setRentalId] = useState(null);
+  // const [homestayId, setHomestayId] = useState(null);
+  // const [rentalId, setRentalId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
   const [previewImagesStep2, setPreviewImagesStep2] = useState([]);
@@ -346,20 +348,36 @@ const AddHomestay = () => {
     }, 300);
   };
 
-  const handleSelectAddress = (result) => {
-    const { label } = result.properties;
-    const { region } = result.properties;
-    const [lng, lat] = result.geometry.coordinates;
-    setFormData(prev => ({
-      ...prev,
-      address: label,
-      area: region,
-      longitude: lng,
-      latitude: lat,
-    }));
-    setShowSuggestions(false);
-    if (errors.address) {
-      setErrors(prev => ({ ...prev, address: null }));
+  const handleSelectAddress = async (result) => {
+    const { id } = result.properties;
+    try {
+      const detailResponse = await axiosInstance.get(PLACE_DETAIL_URL, {
+        params: {
+          format: 'osm',
+          ids: id,
+          apikey: API_KEY,
+        }
+      });
+      const detail = detailResponse.data?.features?.[0];
+      if (!detail) {
+        console.error("Không tìm thấy thông tin chi tiết cho địa chỉ đã chọn.");
+        return;
+      }
+      const { label, region } = detail.properties;
+      const [lng, lat] = detail.geometry.coordinates;
+      setFormData(prev => ({
+        ...prev,
+        address: label,
+        area: region,
+        longitude: lng,
+        latitude: lat,
+      }));
+      setShowSuggestions(false);
+      if (errors.address) {
+        setErrors(prev => ({ ...prev, address: null }));
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy chi tiết địa chỉ:", error);
     }
   };
 
