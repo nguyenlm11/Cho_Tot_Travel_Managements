@@ -7,7 +7,8 @@ export default defineConfig({
     proxy: {
       '/chatHub': {
         //Chạy sever deploy link này
-        target: 'https://hungnv.iselab.cloud:7221/api',
+        // target: 'https://hungnv.iselab.cloud:7221/api',
+        target: 'https://capstone-bookinghomestay.onrender.com/api',
 
         // target: 'http://localhost:7221/api',
         changeOrigin: true,
@@ -16,14 +17,16 @@ export default defineConfig({
       },
       '/chat': {
         //Chạy sever deploy link này
-        target: 'https://hungnv.iselab.cloud:7221/api',
+        // target: 'https://hungnv.iselab.cloud:7221/api',
+        target: 'https://capstone-bookinghomestay.onrender.com/api',
 
         // target: 'http://localhost:7221/api',
         changeOrigin: true,
       },
       '/api': {
         //Chạy sever deploy link này
-        target: 'https://hungnv.iselab.cloud:7221/api',
+        // target: 'https://hungnv.iselab.cloud:7221/api',
+        target: 'https://capstone-bookinghomestay.onrender.com/api',
         
         // target: 'http://localhost:7221/api',
         changeOrigin: true,
