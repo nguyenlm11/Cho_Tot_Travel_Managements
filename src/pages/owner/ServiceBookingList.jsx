@@ -221,7 +221,7 @@ const ServiceBookingList = () => {
     const fetchServiceBookings = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get(`https://localhost:7221/api/bookingservices/GetBookingServicesByHomeStayID/${homestayId}`);
+            const response = await axios.get(`https://capstone-bookinghomestay.onrender.com/api/bookingservices/GetBookingServicesByHomeStayID/${homestayId}`);
             if (response.data.statusCode === 200) {
                 setServiceBookings(response.data.data || []);
             } else {
