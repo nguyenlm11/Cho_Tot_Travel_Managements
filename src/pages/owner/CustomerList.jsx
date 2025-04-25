@@ -39,7 +39,6 @@ const cardVariants = {
     }
 };
 
-// FilterBar Component
 const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
     const searchInputRef = useRef(null);
 
@@ -126,19 +125,17 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
 };
 
 const CustomerList = () => {
-    const { homestayId } = useParams();
+    const { id: homestayId } = useParams();
     const [customers, setCustomers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
-    const itemsPerPage = 6; // Match HomestayList pagination
+    const itemsPerPage = 10; // Match HomestayList pagination
 
     useEffect(() => {
-        if (homestayId) {
-            fetchCustomers();
-        }
+        fetchCustomers();
     }, [homestayId]);
 
     const fetchCustomers = async () => {
@@ -212,7 +209,7 @@ const CustomerList = () => {
         },
         {
             label: 'Tổng lượt đặt phòng',
-            value: customers.reduce((acc, curr) => acc + curr.totalBookings, 0),
+            value: customers.reduce((acc, curr) => acc + (curr.totalBooking || 0), 0),
             color: 'bg-green-500',
             icon: <FaCalendarAlt className="w-6 h-6" />
         }
@@ -346,14 +343,14 @@ const CustomerList = () => {
                                 <TableHeader label="Email" sortKey="email" />
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
-                                <TableHeader label="Lượt đặt" sortKey="totalBookings" />
+                                <TableHeader label="Lượt đặt" sortKey="totalBooking" />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             <AnimatePresence>
-                                {paginatedCustomers.map((customer, index) => (
+                                {paginatedCustomers.map((customer) => (
                                     <motion.tr
-                                        key={customer.id}
+                                        key={customer.accountID}
                                         variants={cardVariants}
                                         initial="initial"
                                         animate="animate"
@@ -362,11 +359,6 @@ const CustomerList = () => {
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
-                                                <img
-                                                    src={customer.avatar}
-                                                    alt={customer.name}
-                                                    className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
-                                                />
                                                 <div className="font-medium text-gray-900 dark:text-white">
                                                     {customer.name}
                                                 </div>
@@ -387,8 +379,8 @@ const CustomerList = () => {
                                                 <span className="text-gray-600 dark:text-gray-400 truncate max-w-xs">{customer.address}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                                            <span className="text-gray-600 dark:text-gray-400">{customer.totalBookings}</span>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-gray-600 dark:text-gray-400">{customer.totalBooking}</span>
                                         </td>
                                     </motion.tr>
                                 ))}
