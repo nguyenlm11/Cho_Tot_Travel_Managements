@@ -5,7 +5,6 @@ import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, Fa
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
 import bookingAPI from '../../services/api/bookingAPI';
 
 const pageVariants = {
@@ -221,9 +220,9 @@ const ServiceBookingList = () => {
     const fetchServiceBookings = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get(`https://capstone-bookinghomestay.onrender.com/api/bookingservices/GetBookingServicesByHomeStayID/${homestayId}`);
-            if (response.data.statusCode === 200) {
-                setServiceBookings(response.data.data || []);
+            const response = await bookingAPI.getBookingServicesByHomeStayID(homestayId);
+            if (response.statusCode === 200) {
+                setServiceBookings(response.data || []);
             } else {
                 toast.error('Không thể tải danh sách đặt dịch vụ');
             }
