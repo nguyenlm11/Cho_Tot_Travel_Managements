@@ -131,6 +131,15 @@ const homestayAPI = {
             console.log(error);
 
         }
+    },
+    getCustomersByHomeStay: async (homeStayId) => {
+        try {
+            const response = await axiosInstance.get(`/booking-bookingservices/adminDashBoard/GetCustomersByHomeStay?homeStayId=${homeStayId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching customers:', error);
+            throw error;
+        }
     }
 };
 

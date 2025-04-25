@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
+import { useParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import homestayAPI from '../../services/api/homestayAPI';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -123,33 +126,37 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
 };
 
 const CustomerList = () => {
+    const { homestayId } = useParams();
+    const [customers, setCustomers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
     const itemsPerPage = 6; // Match HomestayList pagination
 
-    // Mock data (replace with your API call if needed)
-    const [customers] = useState([
-        {
-            id: 1,
-            name: "Nguyễn Văn A",
-            email: "nguyenvana@example.com",
-            phone: "0123456789",
-            address: "123 Đường ABC, Quận 1, TP.HCM",
-            totalBookings: 5,
-            avatar: "https://ui-avatars.com/api/?name=Nguyen+Van+A&background=random"
-        },
-        {
-            id: 2,
-            name: "Trần Thị B",
-            email: "tranthib@example.com",
-            phone: "0987654321",
-            address: "456 Đường XYZ, Quận 2, TP.HCM",
-            totalBookings: 3,
-            avatar: "https://ui-avatars.com/api/?name=Tran+Thi+B&background=random"
+    useEffect(() => {
+        if (homestayId) {
+            fetchCustomers();
         }
-    ]);
+    }, [homestayId]);
+
+    const fetchCustomers = async () => {
+        try {
+            setIsLoading(true);
+            const response = await homestayAPI.getCustomersByHomeStay(homestayId);
+            if (response.statusCode === 200) {
+                setCustomers(response.data || []);
+            } else {
+                toast.error('Không thể tải danh sách khách hàng');
+            }
+        } catch (error) {
+            console.error('Error fetching customers:', error);
+            toast.error('Không thể tải danh sách khách hàng');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleSearch = () => {
         setActualSearchTerm(searchTerm);
@@ -234,6 +241,14 @@ const CustomerList = () => {
             </th>
         );
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     return (
         <motion.div
