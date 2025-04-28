@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { IoClose } from 'react-icons/io5';
 // import pricingAPI from '../../services/api/pricingAPI';
-import { FaCalendarAlt, FaDollarSign, FaEdit, FaInfoCircle, FaMoneyBillWave, FaTag, FaPercentage } from 'react-icons/fa';
+import { FaCalendarAlt, FaDollarSign, FaEdit, FaInfoCircle, FaMoneyBillWave, FaTag, FaPercentage, FaPercent } from 'react-icons/fa';
 import cancelPolicyAPI from '../../services/api/cancelPolicyAPI';
 
 
@@ -122,20 +122,22 @@ const EditPolicyModal = ({ onClose, isOpen, cancelPolicy, fetchHomestay }) => {
                                                 Tỉ lệ hoàn trả (%) <span className="text-red-500">*</span>
                                             </label>
                                             <div className="relative">
-                                                <select
+                                                <input
+                                                    type='number'
+                                                    min={0}
                                                     value={formData.refundPercentage}
-                                                    onChange={(e) => setFormData({ ...formData, refundPercentage: e.target.value })}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        if (value >= 0) {
+                                                            setFormData({ ...formData, refundPercentage: value });
+                                                        }
+                                                    }}
                                                     className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                 >
-                                                    <option value="">Chọn phần trăm</option>
-                                                    {[80, 90, 100].map((percent) => (
-                                                        <option key={percent} value={percent}>
-                                                            {percent}%
-                                                        </option>
-                                                    ))}
-                                                </select>
+
+                                                </input>
                                                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                                    <FaPercentage />
+                                                    <FaPercent />
                                                 </span>
                                             </div>
                                             {errors[`refundPercentage`] && (

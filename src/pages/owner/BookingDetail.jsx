@@ -226,9 +226,23 @@ export const BookingDetail = () => {
                         <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 last:mb-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                        <span className="font-semibold text-gray-800 dark:text-white">Số phòng:</span> {detail.rooms.roomNumber}
-                                    </p>
+                                    {!detail?.rooms?.roomNumber ? (
+                                        <>
+                                            <p className="text-gray-700 dark:text-gray-300">
+                                                <span className="font-semibold text-gray-800 dark:text-white">Loại thuê: nguyên căn</span>
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-gray-700 dark:text-gray-300">
+                                                <span className="font-semibold text-gray-800 dark:text-white">Loại thuê: theo phòng</span> 
+                                            </p>
+                                            <p className="text-gray-700 dark:text-gray-300">
+                                                <span className="font-semibold text-gray-800 dark:text-white">Số phòng:</span> {detail?.rooms?.roomNumber}
+                                            </p>
+                                        </>
+                                    )}
+
                                     <p className="text-gray-700 dark:text-gray-300">
                                         <span className="font-semibold text-gray-800 dark:text-white">Ngày nhận phòng:</span> {formatDate(detail.checkInDate)}
                                     </p>

@@ -242,7 +242,8 @@ const EditPricingRoomTypeModal = ({ pricing, onClose, onSave, isOpen, roomType }
                                                         Chọn phần trăm (%) <span className="text-red-500">*</span>
                                                     </label>
                                                     <div className="relative">
-                                                        <select
+                                                        <input
+                                                            type='number'
                                                             value={formData.percentage}
                                                             onChange={(e) => {
                                                                 const selectedPercentage = Number(e.target.value);
@@ -252,14 +253,9 @@ const EditPricingRoomTypeModal = ({ pricing, onClose, onSave, isOpen, roomType }
                                                             }}
                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 appearance-none"
                                                         >
-                                                            <option value="">Chọn phần trăm</option>
-                                                            {[10, 20, 30, 40, 50].map((percent) => (
-                                                                <option key={`unit-${percent}`} value={percent}>
-                                                                    {percent}%
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+
+                                                        </input>
+                                                        <div className="pointer-events-none absolute inset-y-0 right-[455px] flex items-center px-2 text-gray-500">
                                                             <FaPercent className="h-4 w-4" />
                                                         </div>
                                                     </div>
