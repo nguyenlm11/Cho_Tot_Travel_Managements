@@ -295,6 +295,7 @@ const BookingList = () => {
             setBookings(response.data || []);
         } catch (error) {
             toast.error('Không thể tải danh sách đặt phòng');
+            console.log(error);
         } finally {
             setTimeout(() => setIsLoading(false), 1500);
         }
@@ -384,7 +385,10 @@ const BookingList = () => {
                 bookingId: parsedBookingId,
                 status: BookingStatus.InProgress,
                 paymentStatus: currentBooking.paymentStatus
+
             };
+            console.log(bookingData);
+
             const response = await bookingAPI.updateBookingStatus(
                 bookingData.bookingId,
                 bookingData.status,

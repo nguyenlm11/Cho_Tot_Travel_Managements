@@ -49,6 +49,8 @@ const RoomEditModal = ({ isOpen, onClose, roomTypeId, onSuccess }) => {
                 resetForm();
                 onSuccess?.();
                 onClose();
+                // console.log(dataToSubmit);
+                
             } catch (error) {
                 toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật phòng');
             } finally {
