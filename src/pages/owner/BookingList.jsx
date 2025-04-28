@@ -57,6 +57,89 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
+const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanResult }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    const toggleDropdown = () => setIsOpen(!isOpen);
+    const closeDropdown = () => setIsOpen(false);
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                closeDropdown();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleActionClick = (action) => {
+        action();
+        closeDropdown();
+    };
+
+    return (
+        <div className="relative inline-block text-left" ref={dropdownRef}>
+            <button
+                onClick={toggleDropdown}
+                className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                aria-haspopup="true"
+                aria-expanded={isOpen}
+            >
+                <FaEllipsisV className="w-5 h-5" />
+            </button>
+
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.1 }}
+                        className="absolute -left-6 z-50 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        role="menu"
+                        aria-orientation="vertical"
+                        aria-labelledby="options-menu"
+                    >
+                        <div className="py-1" role="none">
+                            {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
+                                <button
+                                    onClick={() => handleActionClick(() => handleRefund(booking.bookingID))}
+                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <FaMoneyBillWave className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                                    Hoàn tiền
+                                </button>
+                            )}
+                            {booking.status !== BookingStatus.Cancelled &&
+                                booking.status !== BookingStatus.NoShow &&
+                                booking.status !== BookingStatus.InProgress &&
+                                booking.status !== BookingStatus.Completed && (
+                                    <button
+                                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID))}
+                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                        role="menuitem"
+                                    >
+                                        <FaQrcode className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                                        Check-in
+                                    </button>
+                                )}
+                            <button
+                                onClick={() => handleActionClick(() => handleViewBooking(booking.bookingID))}
+                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                role="menuitem"
+                            >
+                                <FaEye className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                                Xem chi tiết
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
     const searchInputRef = useRef(null);
     const statusOptions = [
@@ -410,21 +493,6 @@ const BookingList = () => {
         { label: 'Chờ xác nhận', value: bookings.filter(b => b.status === BookingStatus.Pending).length, color: 'bg-yellow-500', icon: <FaCalendarAlt className="w-6 h-6" /> }
     ], [bookings]);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            const dropdowns = document.querySelectorAll('.relative.inline-block.text-left');
-            dropdowns.forEach(dropdown => {
-                if (!dropdown.contains(event.target)) {
-                    const menu = dropdown.querySelector('.absolute');
-                    if (menu) menu.classList.add('hidden');
-                }
-            });
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     return (
         <motion.div
             variants={pageVariants}
@@ -527,7 +595,7 @@ const BookingList = () => {
 
             <motion.div
                 variants={itemVariants}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
             >
                 {isLoading ? (
                     <div className="text-center py-16">
@@ -535,7 +603,7 @@ const BookingList = () => {
                         <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải dữ liệu...</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className="">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900/50">
                                 <tr>
@@ -558,10 +626,6 @@ const BookingList = () => {
                                     const bookingDetail = booking.bookingDetails[0] || {};
                                     const bookingStatusInfo = bookingStatusConfig[booking.status];
                                     const paymentStatusInfo = paymentStatusConfig[booking.paymentStatus];
-
-                                    const canRefund = booking.status === BookingStatus.Refund;
-                                    const isRefunded = booking.status === BookingStatus.Refunded;
-
                                     return (
                                         <motion.tr
                                             key={booking.bookingID}
@@ -616,63 +680,13 @@ const BookingList = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="relative inline-block text-left">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.currentTarget.nextElementSibling.classList.toggle('hidden');
-                                                        }}
-                                                        className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100"
-                                                    >
-                                                        <FaEllipsisV className="w-5 h-5" />
-                                                    </button>
-
-                                                    <div className="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                                        <div className="py-1">
-                                                            {/* Chỉ hiện nút Hoàn tiền khi trạng thái là Refund và chưa bị hủy */}
-                                                            {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        handleRefund(booking.bookingID);
-                                                                        e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                                    }}
-                                                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                                >
-                                                                    <FaMoneyBillWave className="mr-3 w-4 h-4" />
-                                                                    Hoàn tiền
-                                                                </button>
-                                                            )}
-
-                                                            {/* Chỉ hiện nút Check-in khi trạng thái không phải là Đã hủy, Đang phục vụ hoặc Đã hoàn thành */}
-                                                            {booking.status !== BookingStatus.Cancelled &&
-                                                                booking.status !== BookingStatus.NoShow &&
-                                                                booking.status !== BookingStatus.InProgress &&
-                                                                booking.status !== BookingStatus.Completed && (
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            handleScanResult(booking.bookingID);
-                                                                            e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                                        }}
-                                                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                                    >
-                                                                        <FaQrcode className="mr-3 w-4 h-4" />
-                                                                        Check-in
-                                                                    </button>
-                                                                )}
-
-                                                            {/* Nút Xem chi tiết luôn hiển thị */}
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    handleViewBooking(booking.bookingID);
-                                                                    e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                                }}
-                                                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                            >
-                                                                <FaEye className="mr-3 w-4 h-4" />
-                                                                Xem chi tiết
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <ActionDropdown
+                                                    booking={booking}
+                                                    homestayId={homestayId}
+                                                    handleViewBooking={handleViewBooking}
+                                                    handleRefund={handleRefund}
+                                                    handleScanResult={handleScanResult}
+                                                />
                                             </td>
                                         </motion.tr>
                                     );

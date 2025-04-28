@@ -331,7 +331,6 @@ const ReportHomestay = () => {
                                     </th>
                                     <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Mã giao dịch</th>
                                     <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Người thanh toán</th>
-                                    <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Chi tiết đơn</th>
                                     <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Số tiền</th>
                                     <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Phương thức</th>
                                     <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white">Trạng thái</th>
@@ -357,9 +356,6 @@ const ReportHomestay = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                 {transaction.account?.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                {transaction.orderInfo}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                                 {formatCurrency(transaction.amount / 100)}

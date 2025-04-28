@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
+import { useParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import homestayAPI from '../../services/api/homestayAPI';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -36,7 +39,6 @@ const cardVariants = {
     }
 };
 
-// FilterBar Component
 const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
     const searchInputRef = useRef(null);
 
@@ -123,33 +125,35 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
 };
 
 const CustomerList = () => {
+    const { id: homestayId } = useParams();
+    const [customers, setCustomers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
-    const itemsPerPage = 6; // Match HomestayList pagination
+    const itemsPerPage = 10; // Match HomestayList pagination
 
-    // Mock data (replace with your API call if needed)
-    const [customers] = useState([
-        {
-            id: 1,
-            name: "Nguyễn Văn A",
-            email: "nguyenvana@example.com",
-            phone: "0123456789",
-            address: "123 Đường ABC, Quận 1, TP.HCM",
-            totalBookings: 5,
-            avatar: "https://ui-avatars.com/api/?name=Nguyen+Van+A&background=random"
-        },
-        {
-            id: 2,
-            name: "Trần Thị B",
-            email: "tranthib@example.com",
-            phone: "0987654321",
-            address: "456 Đường XYZ, Quận 2, TP.HCM",
-            totalBookings: 3,
-            avatar: "https://ui-avatars.com/api/?name=Tran+Thi+B&background=random"
+    useEffect(() => {
+        fetchCustomers();
+    }, [homestayId]);
+
+    const fetchCustomers = async () => {
+        try {
+            setIsLoading(true);
+            const response = await homestayAPI.getCustomersByHomeStay(homestayId);
+            if (response.statusCode === 200) {
+                setCustomers(response.data || []);
+            } else {
+                toast.error('Không thể tải danh sách khách hàng');
+            }
+        } catch (error) {
+            console.error('Error fetching customers:', error);
+            toast.error('Không thể tải danh sách khách hàng');
+        } finally {
+            setIsLoading(false);
         }
-    ]);
+    };
 
     const handleSearch = () => {
         setActualSearchTerm(searchTerm);
@@ -205,7 +209,7 @@ const CustomerList = () => {
         },
         {
             label: 'Tổng lượt đặt phòng',
-            value: customers.reduce((acc, curr) => acc + curr.totalBookings, 0),
+            value: customers.reduce((acc, curr) => acc + (curr.totalBooking || 0), 0),
             color: 'bg-green-500',
             icon: <FaCalendarAlt className="w-6 h-6" />
         }
@@ -234,6 +238,14 @@ const CustomerList = () => {
             </th>
         );
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     return (
         <motion.div
@@ -331,14 +343,14 @@ const CustomerList = () => {
                                 <TableHeader label="Email" sortKey="email" />
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
-                                <TableHeader label="Lượt đặt" sortKey="totalBookings" />
+                                <TableHeader label="Lượt đặt" sortKey="totalBooking" />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             <AnimatePresence>
-                                {paginatedCustomers.map((customer, index) => (
+                                {paginatedCustomers.map((customer) => (
                                     <motion.tr
-                                        key={customer.id}
+                                        key={customer.accountID}
                                         variants={cardVariants}
                                         initial="initial"
                                         animate="animate"
@@ -347,11 +359,6 @@ const CustomerList = () => {
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
-                                                <img
-                                                    src={customer.avatar}
-                                                    alt={customer.name}
-                                                    className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
-                                                />
                                                 <div className="font-medium text-gray-900 dark:text-white">
                                                     {customer.name}
                                                 </div>
@@ -372,8 +379,8 @@ const CustomerList = () => {
                                                 <span className="text-gray-600 dark:text-gray-400 truncate max-w-xs">{customer.address}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                                            <span className="text-gray-600 dark:text-gray-400">{customer.totalBookings}</span>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-gray-600 dark:text-gray-400">{customer.totalBooking}</span>
                                         </td>
                                     </motion.tr>
                                 ))}
