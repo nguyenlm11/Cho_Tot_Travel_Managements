@@ -7,6 +7,9 @@ import QRScannerModal from '../../components/modals/QRScannerModal';
 import CountUp from 'react-countup';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import bookingAPI from '../../services/api/bookingAPI';
+import changeRoomAPI from '../../services/api/changeRoomAPI';
+import { FaExchangeAlt } from "react-icons/fa";
+import { ChangeRoomModal } from '../../components/modals/ChangeRoomModal';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -62,10 +65,12 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
     const dropdownRef = useRef(null);
     const toggleDropdown = () => setIsOpen(!isOpen);
     const closeDropdown = () => setIsOpen(false);
+    const [isChangeRoomModal, setIsChangeRoomModal] = useState(false);
+    const [selectBooking, setSelectBooking] = useState(null);
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                closeDropdown();
+                closeDropdown(); 2
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -114,9 +119,11 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                             {booking.status !== BookingStatus.Cancelled &&
                                 booking.status !== BookingStatus.NoShow &&
                                 booking.status !== BookingStatus.InProgress &&
-                                booking.status !== BookingStatus.Completed && (
+                                booking.status !== BookingStatus.Completed &&
+                                booking.paymentStatus !== 0 &&
+                                (
                                     <button
-                                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID))}
+                                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
                                         className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                         role="menuitem"
                                     >
@@ -124,6 +131,35 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                                         Check-in
                                     </button>
                                 )}
+                            {booking.status == BookingStatus.InProgress && (
+                                <button
+                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
+                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <FaQrcode className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                                    Check-out
+                                </button>
+                            )}
+                            {booking.status !== BookingStatus.Cancelled &&
+                                booking.status !== BookingStatus.NoShow &&
+                                booking.status === BookingStatus.InProgress &&
+                                booking.status !== BookingStatus.Completed &&
+                                booking.paymentStatus !== 0 && (
+                                    <button
+                                        onClick={() => handleActionClick(() => { setIsChangeRoomModal(true); setSelectBooking(booking) })}
+                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                        role="menuitem"
+                                    >
+                                        <span>
+                                            <FaExchangeAlt className="w-3 h-4 mr-3 text-gray-400" aria-hidden="false" />
+                                        </span>
+                                        <span>
+                                            Change room
+                                        </span>
+                                    </button>
+                                )}
+
                             <button
                                 onClick={() => handleActionClick(() => handleViewBooking(booking.bookingID))}
                                 className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -136,6 +172,12 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                     </motion.div>
                 )}
             </AnimatePresence>
+            <ChangeRoomModal
+                isOpen={isChangeRoomModal}
+                onClose={() => setIsChangeRoomModal(false)}
+                booking={selectBooking}
+
+            />
         </div>
     );
 };
@@ -371,7 +413,9 @@ const BookingList = () => {
         setCurrentPage(1);
     }, [actualSearchTerm, selectedStatus]);
 
-    const handleScanResult = async (bookingId) => {
+    const handleScanResult = async (bookingId, booking = null) => {
+        console.log(booking);
+
         try {
             const parsedBookingId = parseInt(bookingId, 10);
             if (isNaN(parsedBookingId)) {
@@ -381,9 +425,15 @@ const BookingList = () => {
             if (!currentBooking) {
                 throw new Error('Không tìm thấy booking với ID này');
             }
+            let statusBooking = 0;
+            if (booking?.status === 0) {
+                statusBooking = BookingStatus.InProgress;
+            } else if (booking?.status === 2) {
+                statusBooking = BookingStatus.Completed;
+            }
             const bookingData = {
                 bookingId: parsedBookingId,
-                status: BookingStatus.InProgress,
+                status: statusBooking,
                 paymentStatus: currentBooking.paymentStatus
 
             };
@@ -394,7 +444,8 @@ const BookingList = () => {
                 bookingData.status,
                 bookingData.paymentStatus
             );
-            toast.success('Check-in thành công!', {
+            console.log(response);
+            toast.success(`Check-${bookingData.status == 3 ? 'out' : 'in'} thành công!`, {
                 id: 'check-in-success',
                 style: {
                     borderRadius: '10px',
@@ -406,7 +457,7 @@ const BookingList = () => {
             setBookings(prevBookings =>
                 prevBookings.map(booking =>
                     booking.bookingID === parsedBookingId
-                        ? { ...booking, status: BookingStatus.InProgress }
+                        ? { ...booking, status: response?.data?.status === 2 ? BookingStatus.InProgress : BookingStatus.Completed }
                         : booking
                 )
             );

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaStar, FaFilter, FaReply, FaTrash, FaChevronLeft, FaChevronRight, FaExclamationTriangle, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
+import ratingAPI from '../../services/api/ratingAPI';
 
 // Animation variants
 const pageVariants = {
@@ -336,6 +337,7 @@ const RatingList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const itemsPerPage = 5;
+    const [ratingApi, setRatingApi] = useState([]);
 
     // Mock data
     const [ratings] = useState([
@@ -363,6 +365,17 @@ const RatingList = () => {
             reply: null
         },
     ]);
+
+    const fetchRatingAPI = async () =>{
+        try {
+            const response = await ratingAPI.getRatingByHomestay(homestayId); 
+            if(response.statusCode === 200){
+                setRatingApi(response.data)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     const handleSearch = () => {
         setActualSearchTerm(searchTerm);
