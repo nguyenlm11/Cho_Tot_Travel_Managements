@@ -207,7 +207,7 @@ const RoomCard = ({ room, homestayId, rentalId, roomTypeId, onDelete, setIsEditM
 
                 <div className="border-t border-gray-100 dark:border-gray-700 mt-4 pt-4 flex justify-between items-center">
                     <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                        <FaRegClock className="mr-1" /> Cập nhật gần đây
+                        <FaRegClock className="mr-1" />{room?.isUsed ? "Đang sử dụng" : "Đang trống"}
                     </div>
 
                     <div className="flex gap-2">

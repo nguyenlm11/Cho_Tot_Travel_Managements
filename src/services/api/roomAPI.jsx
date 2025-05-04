@@ -28,6 +28,15 @@ const roomAPI = {
             throw error;
         }
     },
+    getRoomsByHomestayID: async (homeStayID, startDate = null, endDate = null) => {
+        try {
+            const response = await axiosInstance.get(`/rooms/FilterAllRoomsByHomeStayID?homeStayID=${homeStayID}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate} ` : ''}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },
     updateRoomsByRoomId: async (roomId, data) => {
         try {
             const response = await axiosInstance.put(`rooms/UpdateRoom?roomID=${roomId}`, data);

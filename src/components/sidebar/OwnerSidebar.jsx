@@ -84,7 +84,8 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
       icon: <FaCalendarAlt />,
       submenu: [
         { title: 'Đặt phòng nghỉ', path: `/owner/homestays/${selectedHomestay}/bookings` },
-        { title: 'Đặt dịch vụ bổ sung', path: `/owner/homestays/${selectedHomestay}/service-bookings` }
+        { title: 'Đặt dịch vụ bổ sung', path: `/owner/homestays/${selectedHomestay}/service-bookings` },
+        { title: 'Danh sách phòng thuê', path: `/owner/homestays/${selectedHomestay}/room-bookings` }
       ]
     },
     { title: 'Báo cáo doanh thu', path: `/owner/homestays/${selectedHomestay}/reports`, icon: <FaChartLine /> },

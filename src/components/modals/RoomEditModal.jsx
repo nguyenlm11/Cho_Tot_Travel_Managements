@@ -50,7 +50,7 @@ const RoomEditModal = ({ isOpen, onClose, roomTypeId, onSuccess }) => {
                 onSuccess?.();
                 onClose();
                 // console.log(dataToSubmit);
-                
+
             } catch (error) {
                 toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật phòng');
             } finally {
@@ -169,7 +169,13 @@ const RoomEditModal = ({ isOpen, onClose, roomTypeId, onSuccess }) => {
                                                     <input
                                                         type="checkbox"
                                                         checked={formData.isActive}
-                                                        onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                                                        onChange={(e) => {
+                                                            if (formData.isActive && formData.isUsed) {
+                                                                toast.error("Đang có người sử dụng không thể tạm dừng phòng này. Cần chuyển phòng trước khi tạm dừng!")
+                                                                return
+                                                            }
+                                                            setFormData(prev => ({ ...prev, isActive: e.target.checked }));
+                                                        }}
                                                         className="sr-only"
                                                     />
                                                     <div className={`w-12 h-6 rounded-full transition-colors duration-200 
