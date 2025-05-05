@@ -6,15 +6,18 @@ import { FaUser, FaMoneyBillWave, FaInfoCircle, FaHotel, FaBed, FaReceipt, FaMap
 import { formatPrice, formatDate } from '../../utils/utils';
 import { FaHouse } from 'react-icons/fa6';
 
-const BookingStatus = { Pending: 0, Confirmed: 1, Completed: 2, Cancelled: 3 };
+const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, NoShow: 5, Refund: 6 };
 
 const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
 
 const statusConfig = {
-    [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Đang chờ' },
-    [BookingStatus.Confirmed]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đã xác nhận' },
-    [BookingStatus.Completed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Hoàn thành' },
-    [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' }
+    [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chờ xác nhận' },
+    [BookingStatus.Confirmed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã xác nhận' },
+    [BookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang phục vụ' },
+    [BookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã trả phòng' },
+    [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
+    [BookingStatus.NoShow]: { color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-100', text: 'Không đến' },
+    [BookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' }
 };
 
 const paymentStatusConfig = {
@@ -235,7 +238,7 @@ export const BookingDetail = () => {
                                     ) : (
                                         <>
                                             <p className="text-gray-700 dark:text-gray-300">
-                                                <span className="font-semibold text-gray-800 dark:text-white">Loại thuê: theo phòng</span> 
+                                                <span className="font-semibold text-gray-800 dark:text-white">Loại thuê: theo phòng</span>
                                             </p>
                                             <p className="text-gray-700 dark:text-gray-300">
                                                 <span className="font-semibold text-gray-800 dark:text-white">Số phòng:</span> {detail?.rooms?.roomNumber}

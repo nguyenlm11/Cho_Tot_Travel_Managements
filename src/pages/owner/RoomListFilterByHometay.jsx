@@ -7,6 +7,7 @@ import CountUp from 'react-countup';
 import { useNavigate, useParams } from 'react-router-dom';
 import bookingAPI from '../../services/api/bookingAPI';
 import roomAPI from '../../services/api/roomAPI';
+import FilterRoomStartAndEndDate from '../../components/modals/FilterRoomStartAndEndDate';
 
 const pageVariants = {
   initial: { opacity: 0 },
@@ -58,24 +59,9 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(amount);
-};
 
-const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
+const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm, fetchRoomByHomestayID }) => {
   const searchInputRef = useRef(null);
-  const statusOptions = [
-    { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
-    { value: '0', label: 'Chờ xác nhận', icon: <div className="w-2 h-2 rounded-full bg-yellow-500" /> },
-    { value: '1', label: 'Đã xác nhận', icon: <div className="w-2 h-2 rounded-full bg-blue-500" /> },
-    { value: '2', label: 'Đang phục vụ', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
-    { value: '3', label: 'Đã hoàn thành', icon: <div className="w-2 h-2 rounded-full bg-indigo-500" /> },
-    { value: '4', label: 'Đã hủy', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> },
-    { value: '5', label: 'Yêu cầu hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-purple-500" /> }
-  ];
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -90,10 +76,33 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') { handleSearch() }
   };
+  const [isFilterRoomOpen, setIsFilterRoomOpen] = useState(false)
+  const buttonVariants = {
+    initial: { opacity: 0, scale: 0.9 },
+    animate: {
+      opacity: 1,
+      scale: 1,
+      transition: { type: "spring", stiffness: 200, damping: 15 }
+    },
+    hover: {
+      scale: 1.05,
+      boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.1)",
+      transition: { type: "spring", stiffness: 300, damping: 15 }
+    },
+    tap: { scale: 0.95 }
+  };
+
+  const handleClickFilter = (data) => {
+    // log 2 ngày start và end đã format
+    // console.log(data);
+    
+    fetchRoomByHomestayID(data.startDate, data.endDate);
+
+  }
 
   return (
     <div className="mb-8 space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-10">
         <div className="flex-1 relative group flex">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
@@ -133,66 +142,30 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
             Tìm kiếm
           </button>
         </div>
+
         <div className="relative min-w-[220px]">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <FaFilter className="text-gray-400" />
-          </div>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 
-              dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 
-              dark:text-gray-300 focus:ring-2 focus:ring-primary/20 
-              focus:border-primary transition-all duration-200
-              hover:border-primary/50 hover:shadow-md appearance-none cursor-pointer"
+
+          <motion.button
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            onClick={() => setIsFilterRoomOpen(true)}
+            className="w-full py-3  bg-primary hover:bg-primary-dark text-white rounded-lg flex items-center justify-center font-medium"
           >
-            {statusOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-            <FaChevronDown className="w-4 h-4 text-gray-400" />
-          </div>
+            <FaFilter className='mr-2' /> Filter room
+          </motion.button>
+
         </div>
       </div>
-      {(actualSearchTerm || selectedStatus !== 'all') && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap gap-2"
-        >
-          {actualSearchTerm && (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
-              bg-primary/10 text-primary text-sm font-medium"
-            >
-              <FaSearch className="w-3 h-3" />
-              {actualSearchTerm}
-              <button
-                onClick={handleSearchClear}
-                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full
-                  transition-colors duration-200"
-              >
-                <IoClose className="w-3.5 h-3.5" />
-              </button>
-            </span>
-          )}
-          {selectedStatus !== 'all' && (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
-              bg-primary/10 text-primary text-sm font-medium"
-            >
-              {statusOptions.find(opt => opt.value === selectedStatus)?.icon}
-              {statusOptions.find(opt => opt.value === selectedStatus)?.label}
-              <button
-                onClick={() => setSelectedStatus('all')}
-                className="ml-1 p-0.5 hover:bg-primary/20 rounded-full transition-colors duration-200">
-                <IoClose className="w-3.5 h-3.5" />
-              </button>
-            </span>
-          )}
-        </motion.div>
+
+      {isFilterRoomOpen && (
+        <FilterRoomStartAndEndDate
+          isOpen={isFilterRoomOpen}
+          onClose={() => setIsFilterRoomOpen(false)}
+          onSave={handleClickFilter}
+        />
       )}
+
     </div>
   );
 };
@@ -219,27 +192,24 @@ const RoomListFilterByHomestay = () => {
     }
   }, [homestayId]);
 
-  const handleClickFilter = () => {
-    // log 2 ngày start và end đã format
-    let startDate = null;
-    let endDate = null;
-    fetchRoomByHomestayID(startDate, endDate);
-  }
+
 
   const fetchRoomByHomestayID = async (startDate = null, endDate = null) => {
     try {
       setIsLoading(true);
       const response = await roomAPI.getRoomsByHomestayID(homestayId, startDate, endDate);
-      console.log(response);
+      // console.log(response);
 
       if (response.statusCode === 200) {
         setRooms(response.data || []);
+        // console.log(rooms);
+        toast.success(`Đã tìm thấy: ${response.data.length} phòng`)
       } else {
-        toast.error('Không thể tải danh sách đặt dịch vụ');
+        toast.error('Không thể tải danh sách phòng thuê');
       }
     } catch (error) {
-      console.error('Error fetching service bookings:', error);
-      toast.error('Không thể tải danh sách đặt dịch vụ');
+      console.error('Error fetching room bookings:', error);
+      toast.error('Không thể tải danh sách phòng thuê');
     } finally {
       setTimeout(() => setIsLoading(false), 1500);
     }
@@ -490,6 +460,7 @@ const RoomListFilterByHomestay = () => {
         handleSearch={handleSearch}
         setActualSearchTerm={setActualSearchTerm}
         actualSearchTerm={actualSearchTerm}
+        fetchRoomByHomestayID={fetchRoomByHomestayID}
       />
 
       <motion.div
@@ -506,11 +477,9 @@ const RoomListFilterByHomestay = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-900/50">
                 <tr>
-                  <TableHeader label="Khách hàng" sortKey="customerName" />
-                  <TableHeader label="Ngày đặt" sortKey="bookingServicesDate" />
-                  <TableHeader label="Ngày kết thúc" sortKey="serviceName" />
+                  <TableHeader label="Số phòng" sortKey="customerName" />
                   <TableHeader label="Loại thuê" sortKey="quantity" />
-                  <TableHeader label="Giá thuê" sortKey="total" />
+                  <TableHeader label="Hiện trạng phòng" sortKey="total" />
                   <TableHeader label="Trạng thái" sortKey="status" />
                   <th className="px-6 py-3 text-left">
                     <span className="font-semibold text-gray-700 dark:text-gray-300">
@@ -520,11 +489,7 @@ const RoomListFilterByHomestay = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {paginatedServiceBookings.map((booking) => {
-                  const serviceDetail = booking?.bookingServicesDetails?.[0] || {};
-                  const service = serviceDetail.services || {};
-                  const serviceBookingStatusInfo = serviceBookingStatusConfig[booking.status];
-
+                {rooms.map((booking) => {
                   return (
                     <motion.tr
                       key={booking.bookingServicesID}
@@ -535,40 +500,38 @@ const RoomListFilterByHomestay = () => {
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {formatDate(booking.bookingServicesDate)}
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {booking?.roomNumber}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <span className="font-medium text-gray-900 dark:text-white">
-                            {/* {booking.account.name} */}
-                            Nguyễn Gia Huy
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            {/* {booking.account.email} */}
+                            {!booking?.roomTypesID ? ' Nguyên căn ' : ' Theo phòng'}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-gray-600 dark:text-gray-400">
-                          {/* {service.servicesName || 'N/A'} */}
+                          <div className={`px-2.5 py-1.5 rounded-full text-xs font-medium w-20
+                                        ${booking?.isUsed
+                              ? 'bg-green-100 dark:bg-green-900/70 text-green-800 dark:text-green-100'
+                              : 'bg-red-100 dark:bg-red-900/70 text-red-800 dark:text-red-100'}`
+                          }>
+                            {booking?.isUsed ? 'Đang thuê' : 'Đang trống'}
+                          </div>
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {/* {serviceDetail.quantity || 0} */}
+                        <span className="text-gray-600 dark:text-gray-400 ">
+                          <div className={`px-3 py-1.5 rounded-full text-xs font-medium w-20
+                                        ${booking?.isActive
+                              ? 'bg-green-100 dark:bg-green-900/70 text-green-800 dark:text-green-100'
+                              : 'bg-red-100 dark:bg-red-900/70 text-red-800 dark:text-red-100'}`
+                          }>
+                            {booking?.isActive ? 'Hoạt động' : 'Tạm ngưng'}
+                          </div>
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {/* {formatCurrency(booking.total)} */}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {/* <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${serviceBookingStatusInfo.color}`}> */}
-                          {/* {serviceBookingStatusInfo.text} */}
-                        {/* </span> */}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative inline-block text-left">
