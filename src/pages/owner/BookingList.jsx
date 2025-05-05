@@ -10,6 +10,7 @@ import bookingAPI from '../../services/api/bookingAPI';
 import changeRoomAPI from '../../services/api/changeRoomAPI';
 import { FaExchangeAlt } from "react-icons/fa";
 import { ChangeRoomModal } from '../../components/modals/ChangeRoomModal';
+import { FaDeleteLeft } from 'react-icons/fa6';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -121,6 +122,7 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                                 booking.status !== BookingStatus.InProgress &&
                                 booking.status !== BookingStatus.Completed &&
                                 booking.paymentStatus !== 0 &&
+                                booking.status == BookingStatus.Confirmed &&
                                 (
                                     <button
                                         onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
@@ -141,6 +143,29 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                                     Check-out
                                 </button>
                             )}
+
+                            {/* {booking.status == BookingStatus.Pending && (
+                                <button
+                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
+                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <FaCheck className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                                    Xác nhận
+                                </button>
+                            )} */}
+
+                            {/* {booking.status == BookingStatus.Confirmed && (
+                                <button
+                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
+                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    <FaDeleteLeft className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                                    Hủy
+                                </button>
+                            )} */}
+
                             {booking.status !== BookingStatus.Cancelled &&
                                 booking.status !== BookingStatus.NoShow &&
                                 booking.status === BookingStatus.InProgress &&

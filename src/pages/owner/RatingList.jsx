@@ -4,6 +4,8 @@ import { FaSearch, FaStar, FaFilter, FaReply, FaTrash, FaChevronLeft, FaChevronR
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
 import ratingAPI from '../../services/api/ratingAPI';
+import { useParams } from 'react-router-dom';
+
 
 // Animation variants
 const pageVariants = {
@@ -338,6 +340,7 @@ const RatingList = () => {
     const [isLoading, setIsLoading] = useState(false);
     const itemsPerPage = 5;
     const [ratingApi, setRatingApi] = useState([]);
+    const { id: homestayId } = useParams();
 
     // Mock data
     const [ratings] = useState([
@@ -365,15 +368,22 @@ const RatingList = () => {
             reply: null
         },
     ]);
+    //  console.log(homestayId);
 
-    const fetchRatingAPI = async () =>{
+    const fetchRatingAPI = async () => {
         try {
-            const response = await ratingAPI.getRatingByHomestay(homestayId); 
-            if(response.statusCode === 200){
-                setRatingApi(response.data)
-            }
+            console.log('homestayId:', homestayId);
+            const response = await ratingAPI.getRatingByHomestay(homestayId);
+            console.log('API response:', response);
+            // if(response.statusCode === 200){
+            //     setRatingApi(response.data)
+            //     console.log(response.data);
+            // }
         } catch (error) {
-            console.log(error);
+            console.log('API error:', error);
+            if (error.response) {
+                console.log('Error response:', error.response);
+            }
         }
     }
 

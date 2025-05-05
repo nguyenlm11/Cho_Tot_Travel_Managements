@@ -3,7 +3,7 @@ import axiosInstance from "../config";
 const ratingAPI = {
     getRatingByHomestay: async (homestayId) => {
         try {
-            const response = await axiosInstance.post(`/rating/GetByHomeStay/${homestayId}`);
+            const response = await axiosInstance.get(`/rating/GetByHomeStay/${homestayId}`);
             return response.data;
         } catch (error) {
             console.log(error);
