@@ -68,6 +68,8 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
     const closeDropdown = () => setIsOpen(false);
     const [isChangeRoomModal, setIsChangeRoomModal] = useState(false);
     const [selectBooking, setSelectBooking] = useState(null);
+    const [isSameCheckinDate, setIsSameCheckinDate] = useState(false);
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -77,6 +79,16 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useState(() => {
+        // console.log(booking);
+        const currentDate = new Date();
+        const formattedCurrentDate = currentDate.toLocaleDateString('vi-VN');
+        const bookingDate = new Date(booking?.bookingDetails?.[0]?.checkInDate);
+        const formattedBookingDate = bookingDate.toLocaleDateString('vi-VN');
+
+        setIsSameCheckinDate(formattedBookingDate == formattedCurrentDate)
+    })
 
     const handleActionClick = (action) => {
         action();
@@ -123,9 +135,10 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                                 booking.status !== BookingStatus.Completed &&
                                 booking.paymentStatus !== 0 &&
                                 booking.status == BookingStatus.Confirmed &&
+                                isSameCheckinDate &&
                                 (
                                     <button
-                                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
+                                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.InProgress))}
                                         className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                         role="menuitem"
                                     >
@@ -135,7 +148,7 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                                 )}
                             {booking.status == BookingStatus.InProgress && (
                                 <button
-                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
+                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Completed))}
                                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
                                 >
@@ -144,27 +157,30 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                                 </button>
                             )}
 
-                            {/* {booking.status == BookingStatus.Pending && (
-                                <button
-                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
-                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    <FaCheck className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
-                                    Xác nhận
-                                </button>
-                            )} */}
+                            {booking.status == BookingStatus.Pending &&
+                                booking.paymentStatus !== 0 &&
+                                (booking.paymentStatus == PaymentStatus.Deposited ||
+                                    booking.paymentStatus == PaymentStatus.FullyPaid) && (
+                                    <button
+                                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Confirmed))}
+                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                        role="menuitem"
+                                    >
+                                        <FaCheck className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                                        Xác nhận
+                                    </button>
+                                )}
 
-                            {/* {booking.status == BookingStatus.Confirmed && (
+                            {booking.status == BookingStatus.Confirmed && (
                                 <button
-                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking))}
+                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Cancelled))}
                                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
                                 >
                                     <FaDeleteLeft className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
                                     Hủy
                                 </button>
-                            )} */}
+                            )}
 
                             {booking.status !== BookingStatus.Cancelled &&
                                 booking.status !== BookingStatus.NoShow &&
@@ -438,7 +454,7 @@ const BookingList = () => {
         setCurrentPage(1);
     }, [actualSearchTerm, selectedStatus]);
 
-    const handleScanResult = async (bookingId, booking = null) => {
+    const handleScanResult = async (bookingId, booking = null, bookingStatus = null) => {
         console.log(booking);
 
         try {
@@ -450,27 +466,22 @@ const BookingList = () => {
             if (!currentBooking) {
                 throw new Error('Không tìm thấy booking với ID này');
             }
-            let statusBooking = 0;
-            if (booking?.status === 0) {
-                statusBooking = BookingStatus.InProgress;
-            } else if (booking?.status === 2) {
-                statusBooking = BookingStatus.Completed;
-            }
             const bookingData = {
                 bookingId: parsedBookingId,
-                status: statusBooking,
+                status: bookingStatus,
                 paymentStatus: currentBooking.paymentStatus
-
             };
-            console.log(bookingData);
+            // console.log(bookingData);
 
             const response = await bookingAPI.updateBookingStatus(
                 bookingData.bookingId,
                 bookingData.status,
                 bookingData.paymentStatus
             );
-            console.log(response);
-            toast.success(`Check-${bookingData.status == 3 ? 'out' : 'in'} thành công!`, {
+            // console.log(response);
+            const messageStatus = { 1: "Xác nhận thành công", 2: "Check-in thành công", 3: "Check-out thành công", 4: "Hủy thành công" }
+
+            toast.success(messageStatus?.[bookingStatus], {
                 id: 'check-in-success',
                 style: {
                     borderRadius: '10px',
@@ -482,7 +493,7 @@ const BookingList = () => {
             setBookings(prevBookings =>
                 prevBookings.map(booking =>
                     booking.bookingID === parsedBookingId
-                        ? { ...booking, status: response?.data?.status === 2 ? BookingStatus.InProgress : BookingStatus.Completed }
+                        ? { ...booking, status: bookingStatus }
                         : booking
                 )
             );

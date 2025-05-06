@@ -51,7 +51,7 @@ class SignalRService {
         // Tạo connection mới
         this.log("Creating new connection object");
         this.connection = new signalR.HubConnectionBuilder()
-          .withUrl(`https://localhost:7221/chatHub`, {
+          .withUrl(`https://capstone-bookinghomestay.onrender.com/chatHub`, {
             accessTokenFactory: () => accessToken,
             skipNegotiation: false,
             transport: signalR.HttpTransportType.WebSockets

@@ -369,6 +369,9 @@ const RatingList = () => {
         },
     ]);
     //  console.log(homestayId);
+    useEffect(()=>{
+        fetchRatingAPI();
+    },[])
 
     const fetchRatingAPI = async () => {
         try {

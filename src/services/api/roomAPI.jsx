@@ -46,6 +46,15 @@ const roomAPI = {
             throw error;
         }
     },
+    getBookingsByRoomID: async (roomId) => {
+        try {
+            const response = await axiosInstance.get(`/booking-bookingservices/GetBookingByRoomID/${roomId}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },
 };
 
 export default roomAPI; 
