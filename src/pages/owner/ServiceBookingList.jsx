@@ -311,13 +311,21 @@ const ServiceBookingList = () => {
 
     const handleRefund = async (bookingServiceId) => {
         try {
+            const userInfoString = localStorage.getItem('userInfo');
+            let accountID;
+            if (userInfoString) {
+                const userInfo = JSON.parse(userInfoString);
+                accountID = userInfo.AccountID;
+            } else {
+                throw new Error('Không tìm thấy userInfo trong localStorage');
+            }
             setIsLoading(true);
             localStorage.setItem('currentBookingInfo', JSON.stringify({
                 bookingServiceId,
                 homestayId,
                 timestamp: new Date().getTime()
             }));
-            const response = await bookingAPI.processServiceRefund(bookingServiceId);
+            const response = await bookingAPI.processServiceRefund(bookingServiceId, accountID);
             console.log('Response từ API VNPay:', response);
             if (response) {
                 window.location.href = response;

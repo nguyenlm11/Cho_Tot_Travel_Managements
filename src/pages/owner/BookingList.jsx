@@ -517,14 +517,23 @@ const BookingList = () => {
 
     };
 
-    const handleRefund = async (bookingId) => {
+    const handleRefund = async (bookingId, homestayId) => {
         try {
+            const userInfoString = localStorage.getItem('userInfo');
+            let accountID;
+            if (userInfoString) {
+                const userInfo = JSON.parse(userInfoString);
+                accountID = userInfo.AccountID;
+            } else {
+                throw new Error('Không tìm thấy userInfo trong localStorage');
+            }
             setIsLoading(true);
             localStorage.setItem('currentBookingInfo', JSON.stringify({
                 bookingId,
                 homestayId
             }));
-            const response = await bookingAPI.processVnPayRefund(bookingId, homestayId);
+
+            const response = await bookingAPI.processVnPayRefund(bookingId, homestayId, accountID);
             console.log('Response từ API VNPay:', response);
             if (response) {
                 window.location.href = response;
