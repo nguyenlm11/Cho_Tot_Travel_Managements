@@ -10,18 +10,20 @@ class SignalRService {
     this.onUserStatusChangedCallbacks = [];
     this.isConnecting = false;
     this.retryCount = 0;
-    this.maxRetries = 3;
-    this.debug = true; 
+    this.maxRetries = 5; // Tăng số lần thử lại
+    this.debug = true;
+    // Xác định URL dựa trên môi trường
+    this.hubUrl = process.env.NODE_ENV === 'production'
+      ? 'https://capstone-bookinghomestay.onrender.com/chatHub'
+      : '/chatHub';
   }
 
   async startConnection(accessToken) {
-    // Nếu đang kết nối, trả về promise hiện tại
     if (this.isConnecting && this.connectionPromise) {
       this.log("Connection already in progress, returning existing promise");
       return this.connectionPromise;
     }
 
-    // Nếu đã kết nối, trả về connection
     if (this.connection && this.connection.state === signalR.HubConnectionState.Connected) {
       this.log("Already connected, returning existing connection");
       return Promise.resolve(this.connection);
@@ -30,10 +32,8 @@ class SignalRService {
     this.isConnecting = true;
     this.log("Starting new connection attempt");
 
-    // Tạo promise
     this.connectionPromise = new Promise(async (resolve, reject) => {
       try {
-        // Đóng kết nối cũ nếu có
         if (this.connection) {
           this.log("Stopping existing connection first");
           try {
@@ -48,35 +48,28 @@ class SignalRService {
           throw new Error("Access token is required");
         }
 
-        // Tạo connection mới
         this.log("Creating new connection object");
         this.connection = new signalR.HubConnectionBuilder()
-          .withUrl(`/chatHub`, {
+          .withUrl(this.hubUrl, {
             accessTokenFactory: () => accessToken,
             skipNegotiation: false,
-            transport: signalR.HttpTransportType.WebSockets
+            transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents | signalR.HttpTransportType.LongPolling // Thêm phương thức dự phòng
           })
           .withAutomaticReconnect([0, 2000, 5000, 10000, 15000])
           .configureLogging(signalR.LogLevel.Debug)
           .build();
 
-        // Thiết lập event handlers
         this._setupEventHandlers();
 
-        // Bắt đầu kết nối
         this.log("Starting connection...");
         await this.connection.start();
         this.connectionId = this.connection.connectionId;
         this.log("Connection started successfully with ID:", this.connectionId);
 
-        // Đăng ký người dùng hiện tại
         await this.registerCurrentUser();
 
-        // Reset retry count và resolve promise
         this.retryCount = 0;
         this.isConnecting = false;
-
-        // Thông báo trạng thái kết nối
         this.notifyConnectionStatus(true);
 
         resolve(this.connection);
@@ -86,8 +79,6 @@ class SignalRService {
 
         if (this.retryCount < this.maxRetries) {
           this.log(`Retrying (${this.retryCount}/${this.maxRetries}) in 3 seconds...`);
-
-          // Retry sau 3 giây
           setTimeout(() => {
             this.isConnecting = false;
             this.startConnection(accessToken)
@@ -99,10 +90,7 @@ class SignalRService {
           this.isConnecting = false;
           this.connection = null;
           this.connectionPromise = null;
-
-          // Thông báo trạng thái kết nối
           this.notifyConnectionStatus(false);
-
           reject(error);
         }
       }
@@ -111,7 +99,6 @@ class SignalRService {
     return this.connectionPromise;
   }
 
-  // Đăng ký người dùng hiện tại
   async registerCurrentUser() {
     if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
       this.log("Cannot register user: not connected");
@@ -137,7 +124,6 @@ class SignalRService {
     }
   }
 
-  // Gửi tin nhắn
   async sendMessage(receiverId, text, homestayId) {
     if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
       console.error('Connection is not established');
@@ -145,7 +131,6 @@ class SignalRService {
     }
 
     try {
-      // Lấy userId từ localStorage
       const userInfo = localStorage.getItem('userInfo');
       const senderId = userInfo ? JSON.parse(userInfo)?.AccountID : null;
       const senderName = userInfo ? JSON.parse(userInfo)?.Name || 'Owner' : 'Owner';
@@ -156,7 +141,6 @@ class SignalRService {
 
       console.log('Sending message via SignalR:', { senderId, receiverId, text, senderName, homestayId });
 
-      // Gọi phương thức với đúng thứ tự tham số như backend mong đợi
       await this.connection.invoke('SendMessage', senderId, receiverId, text, senderName, homestayId, null);
       return true;
     } catch (error) {
@@ -165,14 +149,12 @@ class SignalRService {
     }
   }
 
-  // Đánh dấu tin nhắn đã đọc
   async markMessagesAsRead(conversationId, userId) {
     if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
       console.error('Connection is not established');
       return false;
     }
     try {
-      // Gọi đúng phương thức theo backend
       await this.connection.invoke('MarkAllMessagesAsRead', conversationId, userId);
       return true;
     } catch (error) {
@@ -181,13 +163,9 @@ class SignalRService {
     }
   }
 
-  // Đăng ký callback events
   onMessageReceived(callback) {
-    // XÓA tất cả callback cũ TRƯỚC khi thêm mới
     this.onMessageReceivedCallbacks = [];
-    // Thêm callback mới
     this.onMessageReceivedCallbacks.push(callback);
-    
     return () => {
       this.onMessageReceivedCallbacks = this.onMessageReceivedCallbacks.filter(cb => cb !== callback);
     };
@@ -200,7 +178,6 @@ class SignalRService {
     };
   }
 
-  // Thông báo trạng thái kết nối
   notifyConnectionStatus(isConnected) {
     this.onUserStatusChangedCallbacks.forEach(callback => {
       try {
@@ -211,26 +188,21 @@ class SignalRService {
     });
   }
 
-  // Thiết lập event handlers với kiểm tra trùng lặp
   _setupEventHandlers() {
     if (!this.connection) {
       console.error('Cannot setup event handlers: connection is null');
       return;
     }
 
-    // Đảm bảo xóa event handlers cũ trước khi đăng ký mới
     this.connection.off('ReceiveMessage');
     this.connection.off('MessageRead');
 
-    // Đăng ký sự kiện nhận tin nhắn mới
     this.connection.on('ReceiveMessage', (senderId, content, sentAt, messageId, conversationId) => {
-      // Nếu tin nhắn không có ID thì bỏ qua
       if (!messageId) {
         console.log('Skipping message without ID');
         return;
       }
-      
-      // Tạo đối tượng tin nhắn
+
       const message = {
         senderID: senderId,
         content: content || '',
@@ -238,8 +210,7 @@ class SignalRService {
         messageID: messageId,
         conversationID: conversationId
       };
-      
-      // Gọi callback - chỉ gọi callback đầu tiên vì chỉ có một
+
       if (this.onMessageReceivedCallbacks.length > 0) {
         try {
           this.onMessageReceivedCallbacks[0](message);
@@ -249,27 +220,22 @@ class SignalRService {
       }
     });
 
-    // Đăng ký sự kiện tin nhắn đã đọc
     this.connection.on('MessageRead', (messageId) => {
       console.log('Message marked as read:', messageId);
     });
   }
 
-  // Reset all events
   resetEventHandlers() {
     if (!this.connection) return;
 
-    // Remove all registered events
     this.registeredEvents.forEach(eventName => {
       this.connection.off(eventName);
     });
     this.registeredEvents.clear();
 
-    // Setup again
     this._setupEventHandlers();
   }
 
-  // Dừng kết nối
   async stopConnection() {
     if (this.connection) {
       try {
@@ -287,27 +253,24 @@ class SignalRService {
     }
   }
 
-  // Log helper
   log(...args) {
     if (this.debug) {
       console.log("[SignalR]", ...args);
     }
   }
 
-  // Lấy trạng thái kết nối hiện tại
   getConnectionState() {
     if (!this.connection) return "Disconnected";
     return this.connection.state;
   }
 
-  // Kiểm tra kết nối
   isConnected() {
     return this.connection && this.connection.state === signalR.HubConnectionState.Connected;
   }
 
   async checkHubStatus() {
     try {
-      const response = await fetch('https://localhost:7221/api/health/hub', {
+      const response = await fetch('https://capstone-bookinghomestay.onrender.com/api/health/hub', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -325,6 +288,5 @@ class SignalRService {
   }
 }
 
-// Ensure singleton
 const signalRService = new SignalRService();
 export default signalRService;
