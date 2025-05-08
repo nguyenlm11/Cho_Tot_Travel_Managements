@@ -77,6 +77,7 @@ const PaymentCallback = () => {
             if (!params) return;
             const isRefund = params.vnp_OrderInfo?.includes('Refund') || params.vnp_TxnRef?.includes('Refund');
             const apiUrl = 'https://capstone-bookinghomestay.onrender.com/api/booking-checkout/vnpay-return-refunded'
+            // const apiUrl = 'http://localhost:7221/api/booking-checkout/vnpay-return-refunded'
 
             const formattedParams = {};
             Object.keys(params).forEach(key => {
