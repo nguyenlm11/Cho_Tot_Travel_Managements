@@ -21,7 +21,7 @@ const chatAPI = {
           name: otherUser.name || 'Không tên',
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.name)}&background=random`,
           lastMessage: lastMessage.content || 'Bắt đầu cuộc trò chuyện',
-          timestamp: formatTimestamp(lastMessage.sentAt || new Date()),
+          // timestamp: formatTimestamp(lastMessage.sentAt || new Date()),
           unread: lastMessage.isRead === false ? 1 : 0,
           isOnline: false
         };
@@ -73,7 +73,7 @@ const chatAPI = {
         id: msg.messageID,
         sender: msg.senderID === currentUserId ? 'owner' : 'customer',
         text: msg.content || '',
-        timestamp: formatMessageTime(msg.sentAt),
+        timestamp: msg.sentAt ? new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Vừa xong',
         isRead: !!msg.isRead,
         senderName: msg.senderName
       }));
@@ -132,45 +132,6 @@ const chatAPI = {
       console.error('Error sending message:', error);
       throw error;
     }
-  }
-};
-
-// Hàm định dạng thời gian
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return 'Không có';
-  try {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) {
-      return 'Vừa xong';
-    } else if (diffMins < 60) {
-      return `${diffMins} phút trước`;
-    } else if (diffMins < 1440) {
-      return `${Math.floor(diffMins / 60)} giờ trước`;
-    } else if (diffMins < 10080) {
-      return `${Math.floor(diffMins / 1440)} ngày trước`;
-    } else {
-      return date.toLocaleDateString('vi-VN');
-    }
-  } catch (error) {
-    console.error('Error formatting timestamp:', error);
-    return 'Không xác định';
-  }
-};
-
-// Hàm định dạng thời gian tin nhắn
-const formatMessageTime = (timestamp) => {
-  if (!timestamp) return '';
-
-  try {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } catch (error) {
-    console.error('Error formatting message time:', error);
-    return '';
   }
 };
 
