@@ -24,5 +24,20 @@
       "source": "/:path*",
       "destination": "/index.html"
     }
+  ],
+  "headers": [
+    {
+      "source": "/chatHub",
+      "headers": [
+        {
+          "key": "Connection",
+          "value": "Upgrade"
+        },
+        {
+          "key": "Upgrade",
+          "value": "websocket"
+        }
+      ]
+    }
   ]
 }

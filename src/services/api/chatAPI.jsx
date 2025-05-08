@@ -21,7 +21,8 @@ const chatAPI = {
           name: otherUser.name || 'Không tên',
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.name)}&background=random`,
           lastMessage: lastMessage.content || 'Bắt đầu cuộc trò chuyện',
-          // timestamp: formatTimestamp(lastMessage.sentAt || new Date()),
+          sentAt: lastMessage.sentAt,
+          timestamp: new Date(lastMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           unread: lastMessage.isRead === false ? 1 : 0,
           isOnline: false
         };
@@ -130,6 +131,30 @@ const chatAPI = {
       });
     } catch (error) {
       console.error('Error sending message:', error);
+      throw error;
+    }
+  },
+
+  // Tạo cuộc trò chuyện mới
+  createConversation: async (receiverId, homestayId) => {
+    try {
+      const userInfo = localStorage.getItem('userInfo');
+      const senderId = userInfo ? JSON.parse(userInfo)?.AccountID : null;
+
+      if (!senderId) {
+        throw new Error('Sender ID is not available');
+      }
+
+      const response = await axiosInstance.post('/Chat/create-conversation', {
+        receiverID: senderId,
+        senderID: receiverId,
+        homeStayId: homestayId,
+        createdAt: new Date().toISOString()
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error creating conversation:', error);
       throw error;
     }
   }

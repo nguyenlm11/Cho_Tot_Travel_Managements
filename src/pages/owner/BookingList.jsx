@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaQrcode, FaCheck, FaMoneyBillWave, FaCopy, FaExternalLinkAlt, FaInfoCircle, FaSync, FaEllipsisV, FaEye } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaQrcode, FaCheck, FaMoneyBillWave, FaCopy, FaExternalLinkAlt, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaComments } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import QRScannerModal from '../../components/modals/QRScannerModal';
 import CountUp from 'react-countup';
@@ -11,6 +11,7 @@ import changeRoomAPI from '../../services/api/changeRoomAPI';
 import { FaExchangeAlt } from "react-icons/fa";
 import { ChangeRoomModal } from '../../components/modals/ChangeRoomModal';
 import { FaDeleteLeft } from 'react-icons/fa6';
+import chatAPI from '../../services/api/chatAPI';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -366,6 +367,7 @@ const BookingList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'bookingDate', direction: 'desc' });
     const itemsPerPage = 10;
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchBookings();
@@ -375,6 +377,7 @@ const BookingList = () => {
         try {
             setIsLoading(true);
             const response = await bookingAPI.getBookingsByHomeStay(homestayId);
+            console.log(response.data);
             setBookings(response.data || []);
         } catch (error) {
             toast.error('Không thể tải danh sách đặt phòng');
@@ -511,7 +514,6 @@ const BookingList = () => {
             });
         }
     };
-    const navigate = useNavigate();
     const handleViewBooking = async (bookingId) => {
         navigate(`/owner/homestays/${homestayId}/bookings/${bookingId}`);
 
@@ -556,6 +558,19 @@ const BookingList = () => {
                 border: '1px solid #6EE7B7'
             },
         });
+    };
+
+    const handleStartChat = async (customerId, homestayId) => {
+        try {
+            const response = await chatAPI.createConversation(customerId, homestayId);
+            console.log(response.data.conversationID);
+            localStorage.setItem('selectedConversationId', response.data.conversationID);
+            navigate(`/owner/homestays/${homestayId}/chat`);
+            toast.success('Đã tạo cuộc trò chuyện mới');
+        } catch (error) {
+            console.error('Error starting chat:', error);
+            toast.error('Không thể tạo cuộc trò chuyện');
+        }
     };
 
     const TableHeader = ({ label, sortKey }) => {
@@ -776,13 +791,24 @@ const BookingList = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <ActionDropdown
-                                                    booking={booking}
-                                                    homestayId={homestayId}
-                                                    handleViewBooking={handleViewBooking}
-                                                    handleRefund={handleRefund}
-                                                    handleScanResult={handleScanResult}
-                                                />
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex gap-2">
+                                                        <ActionDropdown
+                                                            booking={booking}
+                                                            homestayId={homestayId}
+                                                            handleViewBooking={handleViewBooking}
+                                                            handleRefund={handleRefund}
+                                                            handleScanResult={handleScanResult}
+                                                        />
+                                                        <button
+                                                            onClick={() => handleStartChat(booking.accountID, homestayId)}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                                        >
+                                                            <FaComments />
+                                                            <span>Chat</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </td>
                                         </motion.tr>
                                     );
