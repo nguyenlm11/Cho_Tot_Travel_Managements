@@ -51,11 +51,7 @@ class SignalRService {
           .withUrl(this.hubUrl, {
             accessTokenFactory: () => accessToken,
             skipNegotiation: false,
-            transport: signalR.HttpTransportType.WebSockets,
-            headers: {
-              'Connection': 'Upgrade',
-              'Upgrade': 'websocket'
-            }
+            transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents | signalR.HttpTransportType.LongPolling // Thêm phương thức dự phòng
           })
           .withAutomaticReconnect([0, 2000, 5000, 10000, 15000])
           .configureLogging(signalR.LogLevel.Debug)

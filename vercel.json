@@ -4,7 +4,9 @@
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "rewrites": [
@@ -23,21 +25,6 @@
     {
       "source": "/:path*",
       "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/chatHub",
-      "headers": [
-        {
-          "key": "Connection",
-          "value": "Upgrade"
-        },
-        {
-          "key": "Upgrade",
-          "value": "websocket"
-        }
-      ]
     }
   ]
 }
