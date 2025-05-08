@@ -51,7 +51,7 @@ const bookingAPI = {
         }
     },
 
-    processVnPayRefund: async (bookingId, homestayId) => {
+    processVnPayRefund: async (bookingId, homestayId, accountID) => {
         try {
             localStorage.setItem('currentBookingInfo', JSON.stringify({
                 bookingId,
@@ -59,7 +59,7 @@ const bookingAPI = {
                 timestamp: new Date().getTime()
             }));
             const response = await axiosInstance.post(
-                `/booking-checkout/BookingPayment-Refund?bookingID=${bookingId}`
+                `/booking-checkout/BookingPayment-Refund?bookingID=${bookingId}&accountId=${accountID}`
             );
             console.log('VNPay Refund URL:', response);
             return response.data;
@@ -68,10 +68,10 @@ const bookingAPI = {
         }
     },
 
-    processServiceRefund: async (bookingServiceId) => {
+    processServiceRefund: async (bookingServiceId, accountID) => {
         try {
             const response = await axiosInstance.post(
-                `/booking-checkout/BookingPaymentService-Refund?bookingServiceID=${bookingServiceId}`
+                `/booking-checkout/BookingPaymentService-Refund?bookingServiceID=${bookingServiceId}&accountId=${accountID}`
             );
             return response.data;
         } catch (error) {
