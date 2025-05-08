@@ -10,6 +10,10 @@ export default defineConfig({
         changeOrigin: true,
         secure: true, // Đảm bảo kết nối HTTPS
         ws: true, // Hỗ trợ WebSocket
+        headers: {
+          'Connection': 'Upgrade',
+          'Upgrade': 'websocket'
+        }
       },
       '/api': {
         target: 'https://capstone-bookinghomestay.onrender.com/api',

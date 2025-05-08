@@ -166,6 +166,64 @@ const ChatHomestay = () => {
     }, [messages, visibleMessages]);
 
     const hasMoreMessages = messages.length > visibleMessages;
+    const handleSendMessage = async (text = newMessage, images = selectedImages) => {
+        const messageText = text || newMessage;
+        const messageImages = images || selectedImages;
+        if ((!selectedCustomerId || !messageText.trim()) && messageImages.length === 0) return;
+
+        // Tạo tin nhắn tạm thời
+        const tempMessage = {
+            id: `temp-${Date.now()}`,
+            sender: 'owner',
+            text: messageText.trim() || 'Đã gửi hình ảnh',
+            timestamp: 'Vừa xong',
+            isRead: false
+        };
+
+        // Cập nhật UI ngay lập tức
+        setMessages(prev => [...prev, tempMessage]);
+
+        // Cập nhật danh sách và sort lại
+        setCustomers(prev => {
+            const updated = prev.map(customer =>
+                customer.id === selectedCustomerId
+                    ? {
+                        ...customer,
+                        lastMessage: messageText.trim() || 'Đã gửi hình ảnh',
+                        timestamp: 'Vừa xong',
+                        lastMessageTime: new Date().toISOString(),
+                        sentAt: new Date().toISOString() // Cập nhật sentAt để sort
+                    }
+                    : customer
+            );
+            // Sort lại danh sách
+            return updated.sort((a, b) => {
+                const timeA = a.sentAt ? new Date(a.sentAt) : new Date(0);
+                const timeB = b.sentAt ? new Date(b.sentAt) : new Date(0);
+                return timeB - timeA;
+            });
+        });
+
+        try {
+            await chatAPI.sendMessage(selectedCustomerId, homestayId, messageText.trim(), messageImages);
+            setNewMessage('');
+            setSelectedImages([]);
+            setShowEmojiPicker(false);
+
+            // Scroll xuống dưới sau khi gửi
+            setTimeout(() => {
+                if (chatContainerRef.current) {
+                    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+                }
+                setShowScrollButton(false);
+            }, 100);
+        } catch (error) {
+            // Nếu gửi thất bại, xóa tin nhắn tạm
+            setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+            toast.error('Không thể gửi tin nhắn');
+        }
+    };
+
     const handleNewMessage = useCallback((message) => {
         if (!message.messageID || messageIdSet.current.has(message.messageID)) {
             return;
@@ -206,8 +264,10 @@ const ChatHomestay = () => {
 
         setCustomers(prevCustomers => {
             const existingIndex = prevCustomers.findIndex(c => c.id === partnerId);
+            let updatedList;
+
             if (existingIndex === -1 && !isMyMessage) {
-                return [
+                updatedList = [
                     {
                         id: partnerId,
                         name: 'Khách hàng',
@@ -216,28 +276,33 @@ const ChatHomestay = () => {
                         lastMessage: message.content,
                         timestamp: 'Vừa xong',
                         lastMessageTime: message.sentAt || new Date().toISOString(),
+                        sentAt: message.sentAt || new Date().toISOString(),
                         unread: isViewingConversation ? 0 : 1,
                         isOnline: false
                     },
                     ...prevCustomers
                 ];
             } else if (existingIndex >= 0) {
-                const updatedList = [...prevCustomers];
+                updatedList = [...prevCustomers];
                 updatedList[existingIndex] = {
                     ...updatedList[existingIndex],
                     lastMessage: message.content,
                     timestamp: 'Vừa xong',
                     lastMessageTime: message.sentAt || new Date().toISOString(),
+                    sentAt: message.sentAt || new Date().toISOString(),
                     unread: isViewingConversation
                         ? updatedList[existingIndex].unread
                         : (updatedList[existingIndex].unread || 0) + 1
                 };
-                const conversation = updatedList[existingIndex];
-                updatedList.splice(existingIndex, 1);
-                updatedList.unshift(conversation);
-                return updatedList;
+            } else {
+                return prevCustomers;
             }
-            return prevCustomers;
+
+            return updatedList.sort((a, b) => {
+                const timeA = a.sentAt ? new Date(a.sentAt) : new Date(0);
+                const timeB = b.sentAt ? new Date(b.sentAt) : new Date(0);
+                return timeB - timeA;
+            });
         });
     }, [selectedCustomerId]);
 
@@ -264,15 +329,10 @@ const ChatHomestay = () => {
                 const conversations = await chatAPI.getConversations(homestayId);
                 if (isMounted) {
                     const conversationsArray = Array.isArray(conversations) ? conversations : [];
-                    console.log("conversationsArray", conversationsArray);
                     const sortedConversations = conversationsArray.sort((a, b) => {
-                        if (a.timestamp && b.timestamp) {
-                            return new Date(b.timestamp) - new Date(a.timestamp);
-                        }
-                        if (a.updatedAt && b.updatedAt) {
-                            return new Date(b.updatedAt) - new Date(a.updatedAt);
-                        }
-                        return 0;
+                        const timeA = a.sentAt ? new Date(a.sentAt) : new Date(0);
+                        const timeB = b.sentAt ? new Date(b.sentAt) : new Date(0);
+                        return timeB - timeA;
                     });
 
                     setCustomers(sortedConversations);
@@ -311,55 +371,6 @@ const ChatHomestay = () => {
             signalRService.stopConnection();
         };
     }, []);
-
-    const handleSendMessage = async (text = newMessage, images = selectedImages) => {
-        const messageText = text || newMessage;
-        const messageImages = images || selectedImages;
-        if ((!selectedCustomerId || !messageText.trim()) && messageImages.length === 0) return;
-
-        // Tạo tin nhắn tạm thời
-        const tempMessage = {
-            id: `temp-${Date.now()}`,
-            sender: 'owner',
-            text: messageText.trim() || 'Đã gửi hình ảnh',
-            timestamp: 'Vừa xong',
-            isRead: false
-        };
-
-        // Cập nhật UI ngay lập tức
-        setMessages(prev => [...prev, tempMessage]);
-        setCustomers(prev =>
-            prev.map(customer =>
-                customer.id === selectedCustomerId
-                    ? {
-                        ...customer,
-                        lastMessage: messageText.trim() || 'Đã gửi hình ảnh',
-                        timestamp: 'Vừa xong',
-                        lastMessageTime: new Date().toISOString()
-                    }
-                    : customer
-            )
-        );
-
-        try {
-            await chatAPI.sendMessage(selectedCustomerId, homestayId, messageText.trim(), messageImages);
-            setNewMessage('');
-            setSelectedImages([]);
-            setShowEmojiPicker(false);
-            
-            // Scroll xuống dưới sau khi gửi
-            setTimeout(() => {
-                if (chatContainerRef.current) {
-                    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-                }
-                setShowScrollButton(false);
-            }, 100);
-        } catch (error) {
-            // Nếu gửi thất bại, xóa tin nhắn tạm
-            setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
-            toast.error('Không thể gửi tin nhắn');
-        }
-    };
 
     useEffect(() => {
         if (!selectedCustomerId) {
