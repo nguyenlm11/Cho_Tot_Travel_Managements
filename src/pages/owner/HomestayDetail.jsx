@@ -221,7 +221,7 @@ const HomestayDetail = () => {
                             variants={itemVariants}
                             className={`bg-gradient-to-r ${stat.gradient} rounded-xl p-6 text-white`}
                         >
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4" key={index}>
                                 <div className="p-3 bg-white/10 rounded-lg">
                                     {stat.icon}
                                 </div>

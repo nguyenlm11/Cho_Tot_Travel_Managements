@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaStar, FaFilter, FaReply, FaTrash, FaChevronLeft, FaChevronRight, FaExclamationTriangle, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
@@ -198,134 +198,88 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedScore, setSelectedScore,
     );
 };
 
-const RatingCard = ({ rating, onReply, onDelete }) => {
-    const [isHovered, setIsHovered] = useState(false);
-
+const RatingCard = ({ rating }) => {
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('vi-VN', {
+        const date = new Date(dateString);
+        const datePart = date.toLocaleDateString('vi-VN', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric'
         });
+        const timePart = date.toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+        return `${timePart}, ${datePart}`;
     };
-
-    const renderStars = (score) => {
-        return [...Array(5)].map((_, index) => (
-            <FaStar
-                key={index}
-                className={`w-5 h-5 ${index < score
-                    ? 'text-yellow-400'
-                    : 'text-gray-300 dark:text-gray-600'}`}
-            />
-        ));
-    };
-
     return (
         <motion.div
             variants={cardVariants}
             initial="initial"
             animate="animate"
             whileHover="hover"
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
-            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden
-                border border-gray-100 dark:border-gray-700
-                transition-all duration-300 hover:shadow-xl hover:shadow-primary/10"
+            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10"
         >
-            <div className="p-6">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                            <img
-                                src={rating.userAvatar || 'https://via.placeholder.com/48'}
-                                alt={rating.userName}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                {rating.userName}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-1">
-                                {renderStars(rating.score)}
-                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                                    {rating.score}/5
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatDate(rating.createdAt)}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Content */}
-                <div className="mb-4">
-                    <p className="text-gray-700 dark:text-gray-300">
-                        {rating.comment}
-                    </p>
-                </div>
-
-                {/* Images if any */}
-                {rating.images && rating.images.length > 0 && (
-                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                        {rating.images.map((image, index) => (
-                            <div
-                                key={index}
-                                className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden"
-                            >
+            <div className="">
+                <div className="py-3 px-6 border rounded-2xl dark:border-gray-800 bg-white dark:bg-gray-800">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden border-2 border-primary shadow">
                                 <img
-                                    src={image}
-                                    alt={`Rating image ${index + 1}`}
+                                    src={'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGecVsI8KWwGOkEA0gZ4GSwySCMq2dgtRE6RKPlzhpQleNn9nH9aC5CHPGlAcd1AzNuDI&usqp=CAU'}
+                                    alt={rating?.username}
                                     className="w-full h-full object-cover"
                                 />
                             </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Reply section */}
-                {rating.reply && (
-                    <div className="mt-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center gap-2 mb-2">
-                            <FaReply className="text-primary" />
-                            <span className="font-medium text-gray-900 dark:text-white">
-                                Phản hồi từ chủ nhà
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {rating?.username || "Ẩn danh"}
+                                </h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <div className="flex">
+                                        {[1, 2, 3, 4, 5].map(i => (
+                                            <svg key={i} className={`w-5 h-5 ${i <= Math.round(rating?.sumRate) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
+                                                <polygon points="9.9,1.1 12.3,6.6 18.2,7.3 13.7,11.3 15,17.1 9.9,14.1 4.8,17.1 6.1,11.3 1.6,7.3 7.5,6.6 " />
+                                            </svg>
+                                        ))}
+                                    </div>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
+                                        {rating?.sumRate ? `${rating.sumRate.toFixed(1)}/5` : ""}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400 italic">
+                                {formatDate(rating?.updatedAt)}
                             </span>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            {rating.reply}
+                    </div>
+                    {/* Content */}
+                    <div className="mb-4">
+                        <p className="text-gray-700 dark:text-gray-300 text-base">
+                            {rating?.content || "Không có nội dung đánh giá"}
                         </p>
                     </div>
-                )}
-
-                {/* Actions */}
-                <div className="mt-4 flex justify-end gap-2">
-                    {!rating.reply && (
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => onReply(rating)}
-                            className="px-4 py-2 bg-primary/10 text-primary rounded-lg
-                                hover:bg-primary hover:text-white transition-all duration-300"
-                        >
-                            <FaReply className="w-5 h-5" />
-                        </motion.button>
+                    {/* Images if any */}
+                    {rating?.imageRatings && rating.imageRatings.length > 0 && (
+                        <div className="flex gap-3 mb-2 overflow-x-auto pb-2">
+                            {rating?.imageRatings?.map((image, index) => (
+                                <div
+                                    key={index}
+                                    className="w-[300px] h-[250px] flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+                                >
+                                    <img
+                                        src={image?.image}
+                                        alt={`Rating image ${index + 1}`}
+                                        className="w-full max-h-[300px] object-cover"
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     )}
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => onDelete(rating)}
-                        className="px-4 py-2 bg-red-500/10 text-red-500 rounded-lg
-                            hover:bg-red-500 hover:text-white transition-all duration-300"
-                    >
-                        <FaTrash className="w-5 h-5" />
-                    </motion.button>
                 </div>
             </div>
         </motion.div>
@@ -337,72 +291,43 @@ const RatingList = () => {
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [selectedScore, setSelectedScore] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
-    const [isLoading, setIsLoading] = useState(false);
+    // const [isLoading, setIsLoading] = useState(false);
     const itemsPerPage = 5;
-    const [ratingApi, setRatingApi] = useState([]);
+    const [ratingApi, setRatingApi] = useState({ item1: [] });
     const { id: homestayId } = useParams();
 
-    // Mock data
-    const [ratings] = useState([
-        {
-            id: 1,
-            userName: "Nguyễn Văn A",
-            userAvatar: "https://i.pravatar.cc/150?img=1",
-            score: 5,
-            comment: "Phòng rất sạch sẽ, thoáng mát. Chủ nhà thân thiện, nhiệt tình. Sẽ quay lại lần sau!",
-            createdAt: "2024-03-15T10:30:00",
-            images: [
-                "https://images.unsplash.com/photo-1566665797739-1674de7a421a",
-                "https://images.unsplash.com/photo-1566665797739-1674de7a421a"
-            ],
-            reply: "Cảm ơn bạn đã để lại đánh giá tích cực. Rất mong được đón tiếp bạn trong những lần tới!"
-        },
-        {
-            id: 2,
-            userName: "Trần Thị B",
-            userAvatar: "https://i.pravatar.cc/150?img=2",
-            score: 4,
-            comment: "Vị trí thuận tiện, gần trung tâm. Tuy nhiên wifi hơi yếu.",
-            createdAt: "2024-03-14T15:45:00",
-            images: [],
-            reply: null
-        },
-    ]);
-    //  console.log(homestayId);
-    useEffect(()=>{
+    useEffect(() => {
         fetchRatingAPI();
-    },[])
+    }, []);
 
     const fetchRatingAPI = async () => {
         try {
-            console.log('homestayId:', homestayId);
             const response = await ratingAPI.getRatingByHomestay(homestayId);
-            console.log('API response:', response);
-            // if(response.statusCode === 200){
-            //     setRatingApi(response.data)
-            //     console.log(response.data);
-            // }
-        } catch (error) {
-            console.log('API error:', error);
-            if (error.response) {
-                console.log('Error response:', error.response);
+            if (response.statusCode === 200) {
+                setRatingApi(response.data);
             }
+        } catch (error) {
+            console.log(error);
         }
-    }
-
-    const handleSearch = () => {
-        setActualSearchTerm(searchTerm);
-        setCurrentPage(1);
     };
 
+    // Map API data to UI data
+    const mappedRatings = useMemo(() => {
+        if (!ratingApi?.item1) return [];
+        return ratingApi.item1.map(rating => ({
+            ...rating,
+            // Nếu cần map lại trường, làm ở đây
+        }));
+    }, [ratingApi]);
+
     const filteredRatings = useMemo(() => {
-        return ratings.filter(rating => {
-            const matchesSearch = rating.userName.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
-                rating.comment.toLowerCase().includes(actualSearchTerm.toLowerCase());
-            const matchesScore = selectedScore === 'all' || rating.score === parseInt(selectedScore);
+        return mappedRatings.filter(rating => {
+            const matchesSearch = (rating.username || '').toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
+                (rating.content || '').toLowerCase().includes(actualSearchTerm.toLowerCase());
+            const matchesScore = selectedScore === 'all' || Math.round(rating.sumRate) === parseInt(selectedScore);
             return matchesSearch && matchesScore;
         });
-    }, [ratings, actualSearchTerm, selectedScore]);
+    }, [mappedRatings, actualSearchTerm, selectedScore]);
 
     const totalPages = Math.ceil(filteredRatings.length / itemsPerPage);
     const paginatedRatings = filteredRatings.slice(
@@ -410,45 +335,42 @@ const RatingList = () => {
         currentPage * itemsPerPage
     );
 
-    const handleReply = (rating) => {
-        console.log('Reply to rating:', rating);
-    };
-
-    const handleDelete = (rating) => {
-        console.log('Delete rating:', rating);
-    };
-
     useEffect(() => {
         setCurrentPage(1);
     }, [actualSearchTerm, selectedScore]);
 
-    const averageRating = (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1);
+    // const averageRating = (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1);
 
-    const statsData = [
-        {
-            label: 'Đánh giá trung bình',
-            value: averageRating,
-            icon: <FaStar className="w-6 h-6" />,
-            gradient: 'from-yellow-500 to-yellow-600',
-            iconBg: 'bg-yellow-400/20',
-            suffix: '/5',
-            decimals: 1
-        },
-        {
-            label: 'Chưa phản hồi',
-            value: ratings.filter(r => !r.reply).length,
-            icon: <FaExclamationTriangle className="w-6 h-6" />,
-            gradient: 'from-red-500 to-red-600',
-            iconBg: 'bg-red-400/20'
-        },
-        {
-            label: 'Đã phản hồi',
-            value: ratings.filter(r => r.reply).length,
-            icon: <FaCheckCircle className="w-6 h-6" />,
-            gradient: 'from-green-500 to-green-600',
-            iconBg: 'bg-green-400/20'
-        }
-    ];
+    // const statsData = [
+    //     {
+    //         label: 'Đánh giá trung bình',
+    //         value: averageRating,
+    //         icon: <FaStar className="w-6 h-6" />,
+    //         gradient: 'from-yellow-500 to-yellow-600',
+    //         iconBg: 'bg-yellow-400/20',
+    //         suffix: '/5',
+    //         decimals: 1
+    //     },
+    //     {
+    //         label: 'Chưa phản hồi',
+    //         value: ratings.filter(r => !r.reply).length,
+    //         icon: <FaExclamationTriangle className="w-6 h-6" />,
+    //         gradient: 'from-red-500 to-red-600',
+    //         iconBg: 'bg-red-400/20'
+    //     },
+    //     {
+    //         label: 'Đã phản hồi',
+    //         value: ratings.filter(r => r.reply).length,
+    //         icon: <FaCheckCircle className="w-6 h-6" />,
+    //         gradient: 'from-green-500 to-green-600',
+    //         iconBg: 'bg-green-400/20'
+    //     }
+    // ];
+    
+
+    useEffect(() => {
+        console.log(ratingApi?.item1);
+    }, []);
 
     return (
         <motion.div
@@ -475,63 +397,133 @@ const RatingList = () => {
                 </div>
 
                 {/* Stats Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                    {statsData.map((stat, index) => (
-                        <motion.div
-                            key={stat.label}
-                            variants={itemVariants}
-                            transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
-                            className={`bg-gradient-to-r ${stat.gradient} 
-                                rounded-xl p-6 transform transition-all duration-300 
-                                hover:scale-105 hover:shadow-xl group`}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-lg ${stat.iconBg} 
-                                    transition-all duration-300 group-hover:bg-white/20`}>
-                                    <motion.div
-                                        initial={{ rotate: 0 }}
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                                    >
-                                        {stat.icon}
-                                    </motion.div>
-                                </div>
-                                <div>
-                                    <p className="text-white/80 text-sm font-medium">
-                                        {stat.label}
-                                    </p>
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.5 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{
-                                            type: "spring",
-                                            stiffness: 100,
-                                            delay: index * 0.2
-                                        }}
-                                        className="text-2xl font-bold text-white flex items-center"
-                                    >
-                                        <CountUp
-                                            end={stat.value}
-                                            duration={2}
-                                            decimals={stat.decimals || 0}
-                                            decimal="."
-                                            separator=","
-                                            delay={0.5}
-                                            enableScrollSpy
-                                            scrollSpyOnce
-                                        >
-                                            {({ countUpRef }) => (
-                                                <span ref={countUpRef} />
-                                            )}
-                                        </CountUp>
-                                        {stat.suffix && (
-                                            <span className="ml-1">{stat.suffix}</span>
-                                        )}
-                                    </motion.div>
-                                </div>
+
+
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
+
+                    {/* {motion 1} */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-yellow-400/20 transition-all duration-300 group-hover:bg-white/20">
+                                <motion.div initial={{ rotate: 0 }} animate={{ rotate: 360 }}>
+                                    <FaStar className="w-6 h-6" />
+                                </motion.div>
                             </div>
-                        </motion.div>
-                    ))}
+                            <div>
+                                <p className="text-white/80 text-sm font-medium">Đánh giá trung bình</p>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 100 }}
+                                    className="text-2xl font-bold text-white flex items-center"
+                                >
+                                    <CountUp duration={2} decimal="." separator="," delay={0.5} enableScrollSpy scrollSpyOnce>
+                                        {({ countUpRef }) => <span ref={countUpRef} />}
+                                    </CountUp>
+
+                                    <span className="ml-1">
+                                        {/* {stat?.sumRate}/5 */}
+                                        {/* {console.log(ratingApi)} */}
+                                        /5
+                                    </span>
+
+                                </motion.div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+
+
+                    {/* {motion 2} */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-red-400/20 transition-all duration-300 group-hover:bg-white/20">
+                                <motion.div initial={{ rotate: 0 }} animate={{ rotate: 360 }}>
+                                    <FaStar className="w-6 h-6" />
+                                </motion.div>
+                            </div>
+                            <div>
+                                <p className="text-white/80 text-sm font-medium">Đánh giá sạch sẽ</p>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 100 }}
+                                    className="text-2xl font-bold text-white flex items-center"
+                                >
+                                    <CountUp duration={2} decimal="." separator="," delay={0.5} enableScrollSpy scrollSpyOnce>
+                                        {({ countUpRef }) => <span ref={countUpRef} />}
+                                    </CountUp>
+                                    <span className="ml-1">/5</span>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+
+                    {/* {motion 3} */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-green-400/20 transition-all duration-300 group-hover:bg-white/20">
+                                <motion.div initial={{ rotate: 0 }} animate={{ rotate: 360 }}>
+                                    <FaStar className="w-6 h-6" />
+                                </motion.div>
+                            </div>
+                            <div>
+                                <p className="text-white/80 text-sm font-medium">Đánh giá dịch vụ</p>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 100 }}
+                                    className="text-2xl font-bold text-white flex items-center"
+                                >
+                                    <CountUp duration={2} decimal="." separator="," delay={0.5} enableScrollSpy scrollSpyOnce>
+                                        {({ countUpRef }) => <span ref={countUpRef} />}
+                                    </CountUp>
+                                    <span className="ml-1">/5</span>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+
+                    {/* {motion 4} */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-gray-400/20 transition-all duration-300 group-hover:bg-white/20">
+                                <motion.div initial={{ rotate: 0 }} animate={{ rotate: 360 }}>
+                                    <FaStar className="w-6 h-6" />
+                                </motion.div>
+                            </div>
+                            <div>
+                                <p className="text-white/80 text-sm font-medium">Đánh giá cơ sở vật chất</p>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 100 }}
+                                    className="text-2xl font-bold text-white flex items-center"
+                                >
+                                    <CountUp duration={2} decimal="." separator="," delay={0.5} enableScrollSpy scrollSpyOnce>
+                                        {({ countUpRef }) => <span ref={countUpRef} />}
+                                    </CountUp>
+                                    <span className="ml-1">/5</span>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </motion.div>
+
                 </div>
             </motion.div>
 
@@ -545,7 +537,10 @@ const RatingList = () => {
                     setSearchTerm={setSearchTerm}
                     selectedScore={selectedScore}
                     setSelectedScore={setSelectedScore}
-                    handleSearch={handleSearch}
+                    handleSearch={() => {
+                        setActualSearchTerm(searchTerm);
+                        setCurrentPage(1);
+                    }}
                     setActualSearchTerm={setActualSearchTerm}
                     actualSearchTerm={actualSearchTerm}
                 />
@@ -557,9 +552,7 @@ const RatingList = () => {
                     initial: { opacity: 0 },
                     animate: {
                         opacity: 1,
-                        transition: {
-                            staggerChildren: 0.1
-                        }
+                        transition: { staggerChildren: 0.1 }
                     }
                 }}
                 initial="initial"
@@ -568,10 +561,8 @@ const RatingList = () => {
             >
                 {paginatedRatings.map((rating) => (
                     <RatingCard
-                        key={rating.id}
+                        key={rating.ratingID}
                         rating={rating}
-                        onReply={handleReply}
-                        onDelete={handleDelete}
                     />
                 ))}
             </motion.div>
@@ -583,8 +574,7 @@ const RatingList = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl
-                                shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
+                        className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 mt-8"
                     >
                         <div className="text-gray-400 dark:text-gray-500 mb-4">
                             <FaStar className="mx-auto w-16 h-16" />
@@ -611,7 +601,6 @@ const RatingList = () => {
                     >
                         <FaChevronLeft className="w-5 h-5" />
                     </button>
-
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
                         <button
                             key={number}
@@ -623,7 +612,6 @@ const RatingList = () => {
                             {number}
                         </button>
                     ))}
-
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                         disabled={currentPage === totalPages}

@@ -118,7 +118,7 @@ const CustomerManagement = () => {
             const response = await axios.get(`${API_CONFIG.BASE_URL}/account/Get-all-accounts`);
             // Lọc chỉ lấy các tài khoản có role là Customer
             const customerAccounts = response.data.filter(account =>
-                !account.roles.includes('Owner') && !account.roles.includes('Admin')
+                !account.roles.includes('Owner') && !account.roles.includes('Admin') && !account.roles.includes('Staff')
             );
             console.log(response.data);
 
@@ -329,11 +329,8 @@ const CustomerManagement = () => {
                                             </p>
                                         </td>
                                         <td className="px-6 py-4 ">
-                                            <span className={`px-3 py-1 rounded-full text-sm font-medium
-                                                ${customer.status ?
-                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
-                                                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}>
-                                                {customer.status ? 'Hoạt động' : 'Không hoạt động'}
+                                            <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                                                Hoạt động
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">

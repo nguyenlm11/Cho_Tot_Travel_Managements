@@ -6,7 +6,7 @@ import roomAPI from '../../services/api/roomAPI';
 import { IoEye, IoEyeOff } from 'react-icons/io5';
 import { useParams } from 'react-router-dom';
 
-export const ChangeRoomModal = ({ booking, isOpen, onClose, staffIdAccount }) => {
+export const ChangeRoomModal = ({ booking, isOpen, onClose }) => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const { id: homestayId } = useParams();
     const [selectRoomChangeTo, setSelectRoomChangeTo] = useState('0');
@@ -109,7 +109,8 @@ export const ChangeRoomModal = ({ booking, isOpen, onClose, staffIdAccount }) =>
                                         Chọn phòng cần đổi...
                                     </option>
                                     {booking?.bookingDetails?.map(bd => (<option value={bd?.rooms?.roomID} key={bd?.roomID}>
-                                        {bd?.rooms?.roomNumber}
+                                        Phòng: {bd?.rooms?.roomNumber} - Loại: {bd?.rooms?.roomTypeName} - Homestay: {bd?.rooms?.homeStayRentalName}
+                                        {/* {console.log(bd)} */}
                                     </option>))}
                                 </select>
                             </div>
@@ -127,9 +128,10 @@ export const ChangeRoomModal = ({ booking, isOpen, onClose, staffIdAccount }) =>
                                     <option value={'0'}>
                                         Chọn phòng mới...
                                     </option>
-                                    {roomAvailableList.map(room => (<option value={room?.roomID} key={room?.roomID}>
-                                        {room?.roomNumber}
-                                    </option>))}
+                                    {roomAvailableList.map(room => (
+                                        <option value={room?.roomID} key={room?.roomID}>
+                                            Phòng: {room?.roomNumber} - Loại: {room?.roomTypeName} - Homestay: {room?.homeStayRentalName}
+                                        </option>))}
                                 </select>
                             </div>
                             <div className="flex justify-end gap-3">
