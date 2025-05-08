@@ -8,12 +8,8 @@ export default defineConfig({
       '/chatHub': {
         target: 'https://capstone-bookinghomestay.onrender.com',
         changeOrigin: true,
-        secure: true, // Đảm bảo kết nối HTTPS
-        ws: true, // Hỗ trợ WebSocket
-        headers: {
-          'Connection': 'Upgrade',
-          'Upgrade': 'websocket'
-        }
+        secure: true,
+        ws: true,
       },
       '/api': {
         target: 'https://capstone-bookinghomestay.onrender.com/api',
