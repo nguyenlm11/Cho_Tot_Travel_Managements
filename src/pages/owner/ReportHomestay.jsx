@@ -224,13 +224,13 @@ const ReportHomestay = () => {
 
     const totalTransactions = transactions.length;
     const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount / 100, 0);
-    const totalAmount = transactions.reduce((sum, transaction) => {
-        const amount = transaction.amount / 100;
-        if (transaction.transactionKind === 2) {
-            return sum - amount; // Trừ đi số tiền hoàn
-        }
-        return sum + amount; // Cộng thêm số tiền đặt cọc và thanh toán đủ
-    }, 0);
+    // const totalAmount = transactions.reduce((sum, transaction) => {
+    //     const amount = transaction.amount / 100;
+    //     if (transaction.transactionKind === 2) {
+    //         return sum - amount; // Trừ đi số tiền hoàn
+    //     }
+    //     return sum + amount; // Cộng thêm số tiền đặt cọc và thanh toán đủ
+    // }, 0);
     const successfulTransactions = transactions.filter(transaction => transaction.transactionStatus === '00').length;
     const pendingTransactions = transactions.filter(transaction => transaction.transactionStatus === '01').length;
 
