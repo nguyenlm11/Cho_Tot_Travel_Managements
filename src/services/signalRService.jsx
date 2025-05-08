@@ -162,8 +162,9 @@ class SignalRService {
   }
 
   onMessageReceived(callback) {
-    this.onMessageReceivedCallbacks = [];
-    this.onMessageReceivedCallbacks.push(callback);
+    if (!this.onMessageReceivedCallbacks.includes(callback)) {
+      this.onMessageReceivedCallbacks.push(callback);
+    }
     return () => {
       this.onMessageReceivedCallbacks = this.onMessageReceivedCallbacks.filter(cb => cb !== callback);
     };
@@ -209,13 +210,14 @@ class SignalRService {
         conversationID: conversationId
       };
 
-      if (this.onMessageReceivedCallbacks.length > 0) {
+      // Gọi tất cả callback đã đăng ký
+      this.onMessageReceivedCallbacks.forEach(callback => {
         try {
-          this.onMessageReceivedCallbacks[0](message);
+          callback(message);
         } catch (error) {
           console.error('Error in message callback:', error);
         }
-      }
+      });
     });
 
     this.connection.on('MessageRead', (messageId) => {

@@ -196,9 +196,7 @@ const ChatHomestay = () => {
                     id: message.messageID,
                     sender: isMyMessage ? 'owner' : 'customer',
                     text: message.content,
-                    timestamp: new Date(message.sentAt).toLocaleTimeString([], {
-                        hour: '2-digit', minute: '2-digit'
-                    }),
+                    timestamp: 'Vừa xong',
                     isRead: false
                 };
 
@@ -318,6 +316,18 @@ const ChatHomestay = () => {
         const messageText = text || newMessage;
         const messageImages = images || selectedImages;
         if ((!selectedCustomerId || !messageText.trim()) && messageImages.length === 0) return;
+
+        // Tạo tin nhắn tạm thời
+        const tempMessage = {
+            id: `temp-${Date.now()}`,
+            sender: 'owner',
+            text: messageText.trim() || 'Đã gửi hình ảnh',
+            timestamp: 'Vừa xong',
+            isRead: false
+        };
+
+        // Cập nhật UI ngay lập tức
+        setMessages(prev => [...prev, tempMessage]);
         setCustomers(prev =>
             prev.map(customer =>
                 customer.id === selectedCustomerId
@@ -330,11 +340,14 @@ const ChatHomestay = () => {
                     : customer
             )
         );
+
         try {
             await chatAPI.sendMessage(selectedCustomerId, homestayId, messageText.trim(), messageImages);
             setNewMessage('');
             setSelectedImages([]);
             setShowEmojiPicker(false);
+            
+            // Scroll xuống dưới sau khi gửi
             setTimeout(() => {
                 if (chatContainerRef.current) {
                     chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -342,6 +355,8 @@ const ChatHomestay = () => {
                 setShowScrollButton(false);
             }, 100);
         } catch (error) {
+            // Nếu gửi thất bại, xóa tin nhắn tạm
+            setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
             toast.error('Không thể gửi tin nhắn');
         }
     };
