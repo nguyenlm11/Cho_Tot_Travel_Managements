@@ -6,7 +6,8 @@ import { FaUser, FaMoneyBillWave, FaInfoCircle, FaHotel, FaBed, FaReceipt, FaMap
 import { formatPrice, formatDate } from '../../utils/utils';
 import { FaHouse } from 'react-icons/fa6';
 import roomAPI from '../../services/api/roomAPI';
- 
+import { FaCalendarAlt } from 'react-icons/fa';
+
 
 const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, NoShow: 5, Refund: 6 };
 const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
@@ -44,7 +45,7 @@ export default function RoomBookingDetail() {
           })
           formatData.push(data);
         })
-        console.log(formatData);
+        // console.log(formatData);
 
         setBooking(formatData);
 
@@ -57,7 +58,25 @@ export default function RoomBookingDetail() {
   }, [roomID]);
 
   if (!booking) {
-    return <div>Loading...</div>;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="w-full h-full flex flex-col items-center justify-center mt-9 bg-white dark:bg-gray-800"
+        style={{ minHeight: '700px' }} // Có thể điều chỉnh minHeight nếu muốn
+      >
+        <div className="text-gray-400 dark:text-gray-500 mb-4">
+          <FaCalendarAlt className="mx-auto w-16 h-16" />
+        </div>
+        <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+          Không tìm thấy thông tin đặt phòng
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">
+          Đặt phòng này không tồn tại hoặc đã bị xóa
+        </p>
+      </motion.div>
+    );
   }
 
   const containerVariants = {
@@ -165,31 +184,31 @@ export default function RoomBookingDetail() {
         {booking.map((infor, index) => (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6" key={index}>
             <InfoCard icon={FaUser} title="Thông tin khách hàng">
-              <div className="space-y-3" >                               
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold text-gray-800 dark:text-white">Tên: </span>
-                    {infor.account.name}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold text-gray-800 dark:text-white">Email: </span>
-                    {infor.account.email}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold text-gray-800 dark:text-white">Số điện thoại: </span>
-                    {infor.account.phone}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold text-gray-800 dark:text-white">Địa chỉ: </span>
-                    {infor.account.address}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold text-gray-800 dark:text-white">Ngày check-in: </span>
-                    {formatDate(infor.account.checkInDate)}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold text-gray-800 dark:text-white">Ngày check-out: </span>
-                    {formatDate(infor.account.checkOutDate)}
-                  </p>
+              <div className="space-y-3" >
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold text-gray-800 dark:text-white">Tên: </span>
+                  {infor.account.name}
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold text-gray-800 dark:text-white">Email: </span>
+                  {infor.account.email}
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold text-gray-800 dark:text-white">Số điện thoại: </span>
+                  {infor.account.phone}
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold text-gray-800 dark:text-white">Địa chỉ: </span>
+                  {infor.account.address}
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold text-gray-800 dark:text-white">Ngày check-in: </span>
+                  {formatDate(infor.checkInDate)}
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold text-gray-800 dark:text-white">Ngày check-out: </span>
+                  {formatDate(infor.checkOutDate)}
+                </p>
               </div>
             </InfoCard>
 
@@ -199,23 +218,30 @@ export default function RoomBookingDetail() {
             {/* Payment Information */}
             {/* {booking.map((infor, index) => ( */}
             <InfoCard icon={FaMoneyBillWave} title={`Đơn phòng số ${infor.bookingID}`} >
-              <div className="space-y-3">
+
+              <div className="space-y-3" key={index}>
                 <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
-                  <span>Tổng tiền thuê:</span>
-                  <span className="font-semibold text-gray-800 dark:text-white">{formatPrice(booking.total)}</span>
+                  <span>Tên homestay: </span>
+                  <span className="font-semibold text-gray-800 dark:text-white">
+                    {infor?.homeStayRentals?.name}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
-                  <span>Tiền đặt cọc:</span>
-                  <span className="font-semibold text-blue-600 dark:text-blue-400">{formatPrice(booking.bookingDeposit)}</span>
+                  <span>Loại thuê:</span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">{infor?.homeStayRentals?.rentWhole == false ? "Theo phòng" : "Nguyên căn"}</span>
                 </div>
                 <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
-                  <span>Số tiền còn lại:</span>
-                  <span className="font-semibold text-red-600 dark:text-red-400">{formatPrice(booking.remainingBalance)}</span>
+                  <span>
+                    Số Phòng:
+                  </span>
+                  <span className="font-semibold text-red-600 dark:text-red-400">{infor?.rooms?.roomNumber}</span>
                 </div>
                 <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between text-gray-700 dark:text-gray-300">
-                    <span>Trạng thái thanh toán:</span>
-                    <StatusBadge status={booking.paymentStatus} config={paymentStatusConfig} />
+                    <span>Giá thuê: </span>
+                    <span className="font-semibold text-gray-800 dark:text-white">
+                      {formatPrice(infor?.rentPrice)}
+                    </span>
                   </div>
                 </div>
               </div>

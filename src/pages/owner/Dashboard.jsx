@@ -1,37 +1,48 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
-import { FaUsers, FaMoneyBillWave, FaBed, FaCalendarCheck } from 'react-icons/fa';
+import { FaUsers, FaMoneyBillWave, FaBed, FaCalendarCheck, FaCheck } from 'react-icons/fa';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import { Bar, Line, Pie } from 'react-chartjs-2';
+import dashboardAPI from '../../services/api/dashboardAPI'
+import { useParams } from 'react-router-dom';
+import { getAllMonthsInYear, getCurrentWeekDates } from '../../utils/utils';
+import { HiMiniReceiptRefund } from "react-icons/hi2";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 
 const Dashboard = () => {
-    const monthlyData = {
-        labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
-        datasets: [
-            {
-                label: 'Doanh thu (triệu VNĐ)',
-                data: [150, 180, 220, 190, 210, 240, 200, 230, 250, 270, 260, 280],
-                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1,
-                borderRadius: 6,
-                yAxisID: 'y'
-            },
-            {
-                label: 'Lượt đặt phòng',
-                data: [45, 52, 65, 48, 56, 70, 58, 63, 72, 75, 68, 80],
-                backgroundColor: 'rgba(75, 192, 192, 0.8)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-                borderRadius: 6,
-                yAxisID: 'y1'
-            }
-        ]
+    // const monthlyData = {
+    //     labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+    //     datasets: [
+    //         {
+    //             label: 'Doanh thu (triệu VNĐ)',
+    //             data: [150, 180, 220, 190, 210, 240, 200, 230, 250, 270, 260, 280],
+    //             backgroundColor: 'rgba(54, 162, 235, 0.8)',
+    //             borderColor: 'rgba(54, 162, 235, 1)',
+    //             borderWidth: 1,
+    //             borderRadius: 6,
+    //             yAxisID: 'y'
+    //         },
+    //         {
+    //             label: 'Lượt đặt phòng',
+    //             data: [45, 52, 65, 48, 56, 70, 58, 63, 72, 75, 68, 80],
+    //             backgroundColor: 'rgba(75, 192, 192, 0.8)',
+    //             borderColor: 'rgba(75, 192, 192, 1)',
+    //             borderWidth: 1,
+    //             borderRadius: 6,
+    //             yAxisID: 'y1'
+    //         }
+    //     ]
+    // };
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
     };
-
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -57,7 +68,7 @@ const Dashboard = () => {
                     color: 'rgba(0, 0, 0, 0.1)',
                 },
                 ticks: {
-                    callback: (value) => `${value}M`,
+                    callback: (value) => formatCurrency(value),
                     font: {
                         size: 12
                     }
@@ -125,7 +136,7 @@ const Dashboard = () => {
                     label: (context) => {
                         const label = context.dataset.label || '';
                         const value = context.parsed.y;
-                        return `${label}: ${value}${context.dataset.yAxisID === 'y' ? 'M' : ' lượt'}`;
+                        return `${label}: ${context.dataset.yAxisID === 'y' ? formatCurrency(value) : value + ' lượt'}`;
                     }
                 }
             }
@@ -167,18 +178,18 @@ const Dashboard = () => {
     ];
 
     // Chart data cho doanh thu tuần
-    const weeklyRevenueData = {
-        labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
-        datasets: [{
-            label: 'Doanh thu (triệu VNĐ)',
-            data: [15, 18, 22, 25, 30, 35, 28],
-            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true
-        }]
-    };
+    // const weeklyRevenueData = {
+    //     labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+    //     datasets: [{
+    //         label: 'Doanh thu (triệu VNĐ)',
+    //         data: [15, 18, 22, 25, 30, 35, 28],
+    //         backgroundColor: 'rgba(54, 162, 235, 0.8)',
+    //         borderColor: 'rgba(54, 162, 235, 1)',
+    //         borderWidth: 2,
+    //         tension: 0.4,
+    //         fill: true
+    //     }]
+    // };
 
     // Chart data cho thống kê dịch vụ
     const serviceUsageData = {
@@ -212,17 +223,231 @@ const Dashboard = () => {
     };
 
     // Chart data cho khách hàng thân thiết
-    const loyalCustomersData = {
-        labels: ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C', 'Phạm Thị D', 'Hoàng Văn E'],
+    // const loyalCustomersData = {
+    //     labels: ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C', 'Phạm Thị D', 'Hoàng Văn E'],
+    //     datasets: [{
+    //         label: 'Số lần đặt phòng',
+    //         data: [15, 12, 10, 8, 7],
+    //         backgroundColor: 'rgba(75, 192, 192, 0.8)',
+    //         borderColor: 'rgba(75, 192, 192, 1)',
+    //         borderWidth: 1,
+    //         borderRadius: 5
+    //     }]
+    // };
+    const [dashboardForWeek, setDashboardForWeek] = useState({
+        labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+        datasets: [{
+            label: 'Doanh thu (triệu VNĐ)',
+            data: [],
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+        }]
+    })
+    const { id: homeStayID } = useParams();
+    // console.log(homeStayID);
+
+    useEffect(() => {
+        fetchDashboardForWeek();
+        fetchDashboardForMonth();
+        fetchDashboardForLoyalCustomer();
+        fetchStaticBooking();
+        // console.log(staticBooking);
+        // console.log(getAllMonthsInYear());
+    }, [])
+
+    const fetchDashboardForWeek = async () => {
+        try {
+            let week = getCurrentWeekDates()
+            const response = await dashboardAPI.getTotalBookingsTotalBookingsAmountForHomeStay(homeStayID, week[0], week[6], "day")
+            if (response.statusCode === 200) {
+                const formatData = {
+                    labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+                    datasets: [{
+                        label: 'Doanh thu (triệu VNĐ)',
+                        data: response?.data?.map(item => item?.totalBookingsAmount),
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                };
+                // console.log(formatData);
+                setDashboardForWeek(formatData)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+
+    const [dashboardForMonth, setDashboardForMonth] = useState({
+        labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+        datasets: [
+            {
+                label: 'Doanh thu (triệu VNĐ)',
+                data: [],
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+                yAxisID: 'y'
+            },
+            {
+                label: 'Lượt đặt phòng',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+                yAxisID: 'y1'
+            }
+        ]
+    })
+
+    const fetchDashboardForMonth = async () => {
+        try {
+            let month = getAllMonthsInYear()
+            const respone = await dashboardAPI.getTotalBookingsTotalBookingsAmountForHomeStay(homeStayID, month[0], month[11], "month")
+            if (respone.statusCode === 200) {
+                const formatData = {
+                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                    datasets: [
+                        {
+                            label: 'Doanh thu (triệu VNĐ)',
+                            data: respone?.data?.map(item => item?.totalBookingsAmount),
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Lượt đặt phòng',
+                            data: respone?.data?.map(item => item?.totalBookings),
+                            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                }
+                // console.log(formatData);
+                setDashboardForMonth(formatData);
+
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    const [dashboardForLoyalCustomer, setDashboardForLoyalCustomer] = useState({
+        labels: [],
         datasets: [{
             label: 'Số lần đặt phòng',
-            data: [15, 12, 10, 8, 7],
+            data: [],
             backgroundColor: 'rgba(75, 192, 192, 0.8)',
             borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1,
             borderRadius: 5
         }]
-    };
+    })
+    const fetchDashboardForLoyalCustomer = async () => {
+        try {
+            const respone = await dashboardAPI.getTopLoyalCustomers(homeStayID, "5")
+            if (respone.statusCode === 200) {
+                const formatData = {
+                    labels: respone?.data?.map(item => item?.customerName),
+                    datasets: [{
+                        label: 'Số lần đặt phòng',
+                        data: respone?.data?.map(item => item?.totalBookings),
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                }
+                // console.log(formatData);
+                setDashboardForLoyalCustomer(formatData)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+
+    const [staticBooking, setStaticBooking] = useState([
+        {
+            title: 'Tổng doanh thu',
+            value: 550000000,
+            suffix: 'đ',
+            icon: <FaMoneyBillWave className="w-6 h-6" />,
+            color: 'from-green-400 to-green-600'
+        },
+        {
+            title: 'Tổng đặt phòng',
+            value: 128,
+            icon: <FaCalendarCheck className="w-6 h-6" />,
+            color: 'from-blue-400 to-blue-600'
+        },
+        {
+            title: 'Tổng đơn hoàn thành và hủy',
+            value: 85,
+            icon: <FaUsers className="w-6 h-6" />,
+            color: 'from-purple-400 to-purple-600'
+        },
+        {
+            title: 'Tổng đơn hoàn thành',
+            value: 75,
+            // suffix: '%',
+            icon: <HiMiniReceiptRefund className="w-6 h-6" />,
+            color: 'from-orange-400 to-orange-600'
+        }
+    ]);
+
+    const fetchStaticBooking = async () => {
+        try {
+            const respone = await dashboardAPI.getAllGetStaticBookings();
+            if (respone.statusCode === 200) {
+                const formatData = [
+                    {
+                        title: 'Tổng doanh thu',
+                        value: 550000000,
+                        suffix: 'đ',
+                        icon: <FaMoneyBillWave className="w-6 h-6" />,
+                        color: 'from-green-400 to-green-600'
+                    },
+                    {
+                        title: 'Tổng đặt phòng',
+                        value: respone?.data?.bookings,
+                        icon: <FaCalendarCheck className="w-6 h-6" />,
+                        color: 'from-blue-400 to-blue-600'
+                    },
+                    {
+                        title: 'Tổng đơn hoàn thành và hủy',
+                        value: respone?.data?.bookingsReturnOrCancell,
+                        icon: <FaCheck className="w-6 h-6" />,
+                        color: 'from-purple-400 to-purple-600'
+                    },
+                    {
+                        title: 'Tổng đơn hoàn trả',
+                        value: respone?.data?.bookingsReturnRefund,
+                        // suffix: '%',
+                        icon: <HiMiniReceiptRefund className="w-6 h-6" />,
+                        color: 'from-orange-400 to-orange-600'
+                    }
+                ]
+                console.log(formatData);
+                setStaticBooking(formatData)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
 
     return (
         <motion.div
@@ -234,7 +459,7 @@ const Dashboard = () => {
             <div className="space-y-6">
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {statsCards.map((stat, index) => (
+                    {staticBooking.map((stat, index) => (
                         <motion.div
                             key={index}
                             initial={{ opacity: 0, y: 20 }}
@@ -254,6 +479,7 @@ const Dashboard = () => {
                                             separator="."
                                             suffix={stat.suffix || ''}
                                             decimals={0}
+                                            formatter={(value) => stat.suffix === 'đ' ? formatCurrency(value) : value}
                                         />
                                     </h3>
                                 </div>
@@ -276,7 +502,7 @@ const Dashboard = () => {
                         Doanh thu tuần này
                     </h2>
                     <div className="h-[300px]">
-                        <Line data={weeklyRevenueData} options={{
+                        <Line data={dashboardForWeek} options={{
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: {
@@ -285,7 +511,7 @@ const Dashboard = () => {
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    ticks: { callback: value => `${value}M` }
+                                    ticks: { callback: (value) => formatCurrency(value) }
                                 }
                             }
                         }} />
@@ -303,7 +529,7 @@ const Dashboard = () => {
                         Thống kê doanh thu và lượt đặt phòng theo tháng
                     </h2>
                     <div className="h-[400px]">
-                        <Bar data={monthlyData} options={chartOptions} />
+                        <Bar data={dashboardForMonth} options={chartOptions} />
                     </div>
                 </motion.div>
 
@@ -377,7 +603,7 @@ const Dashboard = () => {
                         Top khách hàng thân thiết
                     </h2>
                     <div className="h-[300px]">
-                        <Bar data={loyalCustomersData} options={{
+                        <Bar data={dashboardForLoyalCustomer} options={{
                             indexAxis: 'y',
                             responsive: true,
                             maintainAspectRatio: false,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import bookingAPI from '../../services/api/bookingAPI';
-import { FaUser, FaMoneyBillWave, FaInfoCircle, FaHotel, FaBed, FaReceipt, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUser, FaMoneyBillWave, FaInfoCircle, FaHotel, FaBed, FaReceipt, FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
 import { formatPrice, formatDate } from '../../utils/utils';
 import { FaHouse } from 'react-icons/fa6';
 
@@ -58,7 +58,25 @@ export const BookingDetail = () => {
     }, [bookingId]);
 
     if (!booking) {
-        return <div>Loading...</div>;
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="w-full h-full flex flex-col items-center justify-center mt-9 bg-white dark:bg-gray-800"
+                style={{ minHeight: '700px' }} // Có thể điều chỉnh minHeight nếu muốn
+            >
+                <div className="text-gray-400 dark:text-gray-500 mb-4">
+                    <FaCalendarAlt className="mx-auto w-16 h-16" />
+                </div>
+                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                    Không tìm thấy thông tin đặt phòng
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    Đặt phòng này không tồn tại hoặc đã bị xóa
+                </p>
+            </motion.div>
+        );
     }
 
     const containerVariants = {

@@ -130,7 +130,7 @@ const ReportHomestay = () => {
 
     // Tính toán thống kê giao dịch
     const totalTransactions = transactions.length;
-    const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+    const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount / 100, 0);
     const successfulTransactions = transactions.filter(transaction => transaction.transactionStatus === '00').length;
     const pendingTransactions = transactions.filter(transaction => transaction.transactionStatus === '01').length;
 
