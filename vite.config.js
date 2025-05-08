@@ -7,7 +7,7 @@ export default defineConfig({
     proxy: {
       '/chatHub': {
         //Chạy sever deploy link này
-        target: 'https://capstone-bookinghomestay.onrender.com/api',
+        target: 'https://capstone-bookinghomestay.onrender.com/chatHub',
         // target: 'http://localhost:7221/api',
         changeOrigin: true,
         ws: true,
