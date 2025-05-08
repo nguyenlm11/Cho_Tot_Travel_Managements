@@ -7,27 +7,22 @@
       "config": { "distDir": "dist" }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/chatHub(/(.*))?",
-      "dest": "https://capstone-bookinghomestay.onrender.com/chatHub$1",
-      "headers": {
-        "Upgrade": "websocket",
-        "Connection": "Upgrade"
-      },
-      "continue": true
+      "source": "/api/:path*",
+      "destination": "https://capstone-bookinghomestay.onrender.com/api/:path*"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "https://capstone-bookinghomestay.onrender.com/api/$1"
+      "source": "/chat/:path*",
+      "destination": "https://capstone-bookinghomestay.onrender.com/api/:path*"
     },
     {
-      "src": "/chat/(.*)",
-      "dest": "https://capstone-bookinghomestay.onrender.com/api/$1"
+      "source": "/chatHub/:path*",
+      "destination": "https://capstone-bookinghomestay.onrender.com/chatHub/:path*"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ]
 }
