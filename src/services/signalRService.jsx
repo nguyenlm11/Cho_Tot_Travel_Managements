@@ -13,9 +13,7 @@ class SignalRService {
     this.maxRetries = 5; // Tăng số lần thử lại
     this.debug = true;
     // Xác định URL dựa trên môi trường
-    this.hubUrl = process.env.NODE_ENV === 'production'
-      ? 'https://capstone-bookinghomestay.onrender.com/chatHub'
-      : '/chatHub';
+    this.hubUrl = '/chatHub';
   }
 
   async startConnection(accessToken) {
