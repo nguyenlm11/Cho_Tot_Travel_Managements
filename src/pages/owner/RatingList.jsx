@@ -295,6 +295,12 @@ const RatingList = () => {
     const itemsPerPage = 5;
     const [ratingApi, setRatingApi] = useState({ item1: [] });
     const { id: homestayId } = useParams();
+    const [averageRatings, setAverageRatings] = useState({
+        averageRating: 0,
+        cleanlinessRating: 0,
+        serviceRating: 0,
+        facilityRating: 0
+    });
 
     useEffect(() => {
         fetchRatingAPI();
@@ -339,38 +345,33 @@ const RatingList = () => {
         setCurrentPage(1);
     }, [actualSearchTerm, selectedScore]);
 
-    // const averageRating = (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1);
-
-    // const statsData = [
-    //     {
-    //         label: 'Đánh giá trung bình',
-    //         value: averageRating,
-    //         icon: <FaStar className="w-6 h-6" />,
-    //         gradient: 'from-yellow-500 to-yellow-600',
-    //         iconBg: 'bg-yellow-400/20',
-    //         suffix: '/5',
-    //         decimals: 1
-    //     },
-    //     {
-    //         label: 'Chưa phản hồi',
-    //         value: ratings.filter(r => !r.reply).length,
-    //         icon: <FaExclamationTriangle className="w-6 h-6" />,
-    //         gradient: 'from-red-500 to-red-600',
-    //         iconBg: 'bg-red-400/20'
-    //     },
-    //     {
-    //         label: 'Đã phản hồi',
-    //         value: ratings.filter(r => r.reply).length,
-    //         icon: <FaCheckCircle className="w-6 h-6" />,
-    //         gradient: 'from-green-500 to-green-600',
-    //         iconBg: 'bg-green-400/20'
-    //     }
-    // ];
-    
-
     useEffect(() => {
-        console.log(ratingApi?.item1);
-    }, []);
+        if (ratingApi?.item1 && ratingApi.item1.length > 0) {
+            const total = ratingApi.item1.reduce((acc, curr) => ({
+                sumRate: acc.sumRate + curr.sumRate,
+                cleaningRate: acc.cleaningRate + curr.cleaningRate,
+                serviceRate: acc.serviceRate + curr.serviceRate,
+                facilityRate: acc.facilityRate + curr.facilityRate
+            }), {
+                sumRate: 0,
+                cleaningRate: 0,
+                serviceRate: 0,
+                facilityRate: 0
+            });
+
+            const count = ratingApi.item1.length;
+            setAverageRatings({
+                averageRating: total.sumRate / count,
+                cleanlinessRating: total.cleaningRate / count,
+                serviceRating: total.serviceRate / count,
+                facilityRating: total.facilityRate / count
+            });
+        }
+    }, [ratingApi]);
+
+    // useEffect(() => {
+    //     console.log("Rating API Data:", ratingApi);
+    // }, [ratingApi]);
 
     return (
         <motion.div
@@ -397,12 +398,8 @@ const RatingList = () => {
                 </div>
 
                 {/* Stats Summary */}
-
-
-
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
-
-                    {/* {motion 1} */}
+                    {/* Đánh giá trung bình */}
                     <motion.div
                         variants={itemVariants}
                         className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
@@ -421,24 +418,18 @@ const RatingList = () => {
                                     transition={{ type: "spring", stiffness: 100 }}
                                     className="text-2xl font-bold text-white flex items-center"
                                 >
-                                    <CountUp duration={2} decimal="." separator="," delay={0.5} enableScrollSpy scrollSpyOnce>
-                                        {({ countUpRef }) => <span ref={countUpRef} />}
-                                    </CountUp>
-
-                                    <span className="ml-1">
-                                        {/* {stat?.sumRate}/5 */}
-                                        {/* {console.log(ratingApi)} */}
-                                        /5
-                                    </span>
-
+                                    <CountUp
+                                        end={averageRatings.averageRating}
+                                        duration={2}
+                                        decimals={1}
+                                        suffix="/5"
+                                    />
                                 </motion.div>
                             </div>
                         </div>
                     </motion.div>
 
-
-
-                    {/* {motion 2} */}
+                    {/* Đánh giá sạch sẽ */}
                     <motion.div
                         variants={itemVariants}
                         className="bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
@@ -457,17 +448,18 @@ const RatingList = () => {
                                     transition={{ type: "spring", stiffness: 100 }}
                                     className="text-2xl font-bold text-white flex items-center"
                                 >
-                                    <CountUp duration={2} decimal="." separator="," delay={0.5} enableScrollSpy scrollSpyOnce>
-                                        {({ countUpRef }) => <span ref={countUpRef} />}
-                                    </CountUp>
-                                    <span className="ml-1">/5</span>
+                                    <CountUp
+                                        end={averageRatings.cleanlinessRating}
+                                        duration={2}
+                                        decimals={1}
+                                        suffix="/5"
+                                    />
                                 </motion.div>
                             </div>
                         </div>
                     </motion.div>
 
-
-                    {/* {motion 3} */}
+                    {/* Đánh giá dịch vụ */}
                     <motion.div
                         variants={itemVariants}
                         className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
@@ -486,17 +478,18 @@ const RatingList = () => {
                                     transition={{ type: "spring", stiffness: 100 }}
                                     className="text-2xl font-bold text-white flex items-center"
                                 >
-                                    <CountUp duration={2} decimal="." separator="," delay={0.5} enableScrollSpy scrollSpyOnce>
-                                        {({ countUpRef }) => <span ref={countUpRef} />}
-                                    </CountUp>
-                                    <span className="ml-1">/5</span>
+                                    <CountUp
+                                        end={averageRatings.serviceRating}
+                                        duration={2}
+                                        decimals={1}
+                                        suffix="/5"
+                                    />
                                 </motion.div>
                             </div>
                         </div>
                     </motion.div>
 
-
-                    {/* {motion 4} */}
+                    {/* Đánh giá cơ sở vật chất */}
                     <motion.div
                         variants={itemVariants}
                         className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
@@ -515,15 +508,16 @@ const RatingList = () => {
                                     transition={{ type: "spring", stiffness: 100 }}
                                     className="text-2xl font-bold text-white flex items-center"
                                 >
-                                    <CountUp duration={2} decimal="." separator="," delay={0.5} enableScrollSpy scrollSpyOnce>
-                                        {({ countUpRef }) => <span ref={countUpRef} />}
-                                    </CountUp>
-                                    <span className="ml-1">/5</span>
+                                    <CountUp
+                                        end={averageRatings.facilityRating}
+                                        duration={2}
+                                        decimals={1}
+                                        suffix="/5"
+                                    />
                                 </motion.div>
                             </div>
                         </div>
                     </motion.div>
-
                 </div>
             </motion.div>
 

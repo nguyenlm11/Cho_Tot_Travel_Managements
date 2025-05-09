@@ -50,6 +50,33 @@ const homestayAPI = {
             throw error;
         }
     },
+    getTotalBookingsAndAmountForHomeStayByHomestayID: async (homeStayID) => {
+        try {
+            const response = await axiosInstance.get(`/booking-bookingservices/GetTotalBookingsAndAmountForHomeStay/${homeStayID}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+    },
+    getStaticBookingsForHomeStayByHomestayID: async (homestayId) => {
+        try {
+            const response = await axiosInstance.get(`/booking-bookingservices/GetStaticBookingsForHomeStay/${homestayId}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+    },
+    getAverageRatingForHomeStayByHomestayID: async (homeStayId ) => {
+        try {
+            const response = await axiosInstance.get(`/rating/GetAverageRating/${homeStayId }`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+    },
 
     deleteHomestay: async (homestayId) => {
         try {

@@ -284,7 +284,7 @@ const Dashboard = () => {
                         borderWidth: 0
                     }]
                 }
-                console.log(formatData);
+                // console.log(formatData);
                 setRoomTypeData(formatData)
             }
         } catch (error) {
@@ -465,26 +465,26 @@ const Dashboard = () => {
     const [staticBooking, setStaticBooking] = useState([
         {
             title: 'Tổng doanh thu',
-            value: 550000000,
+            value: [],
             suffix: 'đ',
             icon: <FaMoneyBillWave className="w-6 h-6" />,
             color: 'from-green-400 to-green-600'
         },
         {
             title: 'Tổng đặt phòng',
-            value: 128,
+            value: [],
             icon: <FaCalendarCheck className="w-6 h-6" />,
             color: 'from-blue-400 to-blue-600'
         },
         {
             title: 'Tổng đơn hoàn thành và hủy',
-            value: 85,
+            value: [],
             icon: <FaUsers className="w-6 h-6" />,
             color: 'from-purple-400 to-purple-600'
         },
         {
             title: 'Tổng đơn hoàn thành',
-            value: 75,
+            value: [],
             // suffix: '%',
             icon: <HiMiniReceiptRefund className="w-6 h-6" />,
             color: 'from-orange-400 to-orange-600'
@@ -493,31 +493,32 @@ const Dashboard = () => {
 
     const fetchStaticBooking = async () => {
         try {
-            const respone = await dashboardAPI.getAllGetStaticBookings();
-            if (respone.statusCode === 200) {
+            const responseRevenue = await dashboardAPI.getTotalBookingsAndAmountForHomeStayByHomestayID(homeStayID)
+            const responeBookings = await dashboardAPI.getAllGetStaticBookingsByHomestayID(homestayId);
+            if (responeBookings.statusCode === 200 && responseRevenue.statusCode === 200) {
                 const formatData = [
                     {
                         title: 'Tổng doanh thu',
-                        value: 550000000,
+                        value: responseRevenue?.data?.totalBookingsAmount,
                         suffix: 'đ',
                         icon: <FaMoneyBillWave className="w-6 h-6" />,
                         color: 'from-green-400 to-green-600'
                     },
                     {
                         title: 'Tổng đặt phòng',
-                        value: respone?.data?.bookings,
+                        value: responeBookings?.data?.bookings,
                         icon: <FaCalendarCheck className="w-6 h-6" />,
                         color: 'from-blue-400 to-blue-600'
                     },
                     {
                         title: 'Tổng đơn hoàn thành và hủy',
-                        value: respone?.data?.bookingsReturnOrCancell,
+                        value: responeBookings?.data?.bookingsReturnOrCancell,
                         icon: <FaCheck className="w-6 h-6" />,
                         color: 'from-purple-400 to-purple-600'
                     },
                     {
                         title: 'Tổng đơn hoàn trả',
-                        value: respone?.data?.bookingsReturnRefund,
+                        value: responeBookings?.data?.bookingsReturnRefund,
                         // suffix: '%',
                         icon: <HiMiniReceiptRefund className="w-6 h-6" />,
                         color: 'from-orange-400 to-orange-600'

@@ -223,8 +223,6 @@ const ServiceBookingList = () => {
             const response = await bookingAPI.getBookingServicesByHomeStayID(homestayId);
             if (response.statusCode === 200) {
                 setServiceBookings(response.data || []);
-            } else {
-                toast.error('Không thể tải danh sách đặt dịch vụ');
             }
         } catch (error) {
             console.error('Error fetching service bookings:', error);

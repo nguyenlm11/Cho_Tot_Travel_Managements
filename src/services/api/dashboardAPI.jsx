@@ -10,9 +10,9 @@ const dashboardAPI = {
         }
 
     },
-    getAllGetStaticBookings: async () => {
+    getAllGetStaticBookingsByHomestayID: async (homestayId) => {
         try {
-            const respone = await axiosInstance.get('/booking-bookingservices/adminDashBoard/GetStaticBookings')
+            const respone = await axiosInstance.get(`/booking-bookingservices/GetStaticBookingsForHomeStay/${homestayId}`)
             return respone.data;
         } catch (error) {
             console.log(error);
@@ -115,6 +115,16 @@ const dashboardAPI = {
     getTopLoyalOwners: async (top) => {
         try {
             const respone = await axiosInstance.get(`/homestay/adminDashBoard/GetTopLoyalOwners?top=${top}`)
+            return respone.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+
+    },
+    getTotalBookingsAndAmountForHomeStayByHomestayID: async (homeStayID) => {
+        try {
+            const respone = await axiosInstance.get(`/booking-bookingservices/GetTotalBookingsAndAmountForHomeStay/${homeStayID}`)
             return respone.data;
         } catch (error) {
             console.log(error);
