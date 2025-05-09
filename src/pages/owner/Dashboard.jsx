@@ -6,12 +6,17 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import dashboardAPI from '../../services/api/dashboardAPI'
 import { useParams } from 'react-router-dom';
-import { getAllMonthsInYear, getCurrentWeekDates } from '../../utils/utils';
+// import { getAllMonthsInYear, getCurrentWeekDates } from '../../utils/utils';
 import { HiMiniReceiptRefund } from "react-icons/hi2";
+import WeekSelectorModal from '../../components/modals/WeekSelectorModal';
+import YearSelectorModal from '../../components/modals/YearSelectorModal';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 
 const Dashboard = () => {
+
+
+
     // const monthlyData = {
     //     labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
     //     datasets: [
@@ -148,34 +153,34 @@ const Dashboard = () => {
         }
     };
 
-    const statsCards = [
-        {
-            title: 'Tổng doanh thu',
-            value: 550000000,
-            suffix: 'đ',
-            icon: <FaMoneyBillWave className="w-6 h-6" />,
-            color: 'from-green-400 to-green-600'
-        },
-        {
-            title: 'Tổng đặt phòng',
-            value: 128,
-            icon: <FaCalendarCheck className="w-6 h-6" />,
-            color: 'from-blue-400 to-blue-600'
-        },
-        {
-            title: 'Tổng khách hàng',
-            value: 85,
-            icon: <FaUsers className="w-6 h-6" />,
-            color: 'from-purple-400 to-purple-600'
-        },
-        {
-            title: 'Tỷ lệ lấp đầy',
-            value: 75,
-            suffix: '%',
-            icon: <FaBed className="w-6 h-6" />,
-            color: 'from-orange-400 to-orange-600'
-        }
-    ];
+    // const statsCards = [
+    //     {
+    //         title: 'Tổng doanh thu',
+    //         value: 550000000,
+    //         suffix: 'đ',
+    //         icon: <FaMoneyBillWave className="w-6 h-6" />,
+    //         color: 'from-green-400 to-green-600'
+    //     },
+    //     {
+    //         title: 'Tổng đặt phòng',
+    //         value: 128,
+    //         icon: <FaCalendarCheck className="w-6 h-6" />,
+    //         color: 'from-blue-400 to-blue-600'
+    //     },
+    //     {
+    //         title: 'Tổng khách hàng',
+    //         value: 85,
+    //         icon: <FaUsers className="w-6 h-6" />,
+    //         color: 'from-purple-400 to-purple-600'
+    //     },
+    //     {
+    //         title: 'Tỷ lệ lấp đầy',
+    //         value: 75,
+    //         suffix: '%',
+    //         icon: <FaBed className="w-6 h-6" />,
+    //         color: 'from-orange-400 to-orange-600'
+    //     }
+    // ];
 
     // Chart data cho doanh thu tuần
     // const weeklyRevenueData = {
@@ -192,10 +197,10 @@ const Dashboard = () => {
     // };
 
     // Chart data cho thống kê dịch vụ
-    const serviceUsageData = {
-        labels: ['Giặt ủi', 'Đưa đón', 'Spa', 'Ăn uống', 'Dọn phòng'],
+    const [serviceData, setServiceData] = useState({
+        labels: [],
         datasets: [{
-            data: [300, 250, 180, 400, 280],
+            data: [],
             backgroundColor: [
                 'rgba(255, 99, 132, 0.8)',
                 'rgba(54, 162, 235, 0.8)',
@@ -205,13 +210,48 @@ const Dashboard = () => {
             ],
             borderWidth: 0
         }]
+    })
+    const { id: homestayId } = useParams();
+    useEffect(() => {
+        // console.log(homestayId);
+        fetchServiceBar();
+    }, [])
+
+    const fetchServiceBar = async () => {
+        try {
+            const response = await dashboardAPI.getCheckBookingServiceStats(homestayId);
+            if (response?.statusCode === 200) {
+                const formatData = {
+                    labels: response?.data?.map(item => item?.serviceName),
+                    datasets: [{
+                        data: response?.data?.map(item => item?.count),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                }
+                // console.log(formatData);
+                setServiceData(formatData)
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
+
+
+
+
     // Chart data cho loại phòng
-    const roomTypeData = {
-        labels: ['Phòng đơn', 'Phòng đôi', 'Phòng VIP', 'Phòng gia đình'],
+    const [roomTypeData, setRoomTypeData] = useState({
+        labels: [],
         datasets: [{
-            data: [35, 25, 20, 20],
+            data: [],
             backgroundColor: [
                 'rgba(54, 162, 235, 0.8)',
                 'rgba(75, 192, 192, 0.8)',
@@ -220,20 +260,41 @@ const Dashboard = () => {
             ],
             borderWidth: 0
         }]
-    };
+    })
 
-    // Chart data cho khách hàng thân thiết
-    // const loyalCustomersData = {
-    //     labels: ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C', 'Phạm Thị D', 'Hoàng Văn E'],
-    //     datasets: [{
-    //         label: 'Số lần đặt phòng',
-    //         data: [15, 12, 10, 8, 7],
-    //         backgroundColor: 'rgba(75, 192, 192, 0.8)',
-    //         borderColor: 'rgba(75, 192, 192, 1)',
-    //         borderWidth: 1,
-    //         borderRadius: 5
-    //     }]
-    // };
+    useEffect(() => {
+        // console.log(homestayId);
+        fetchDashboardRoomType();
+    }, [])
+
+    const fetchDashboardRoomType = async () => {
+        try {
+            const response = await dashboardAPI.getRoomTypeStats(homestayId);
+            if (response?.statusCode === 200) {
+                const formatData = {
+                    labels: response?.data?.map(item => item?.roomTypeName),
+                    datasets: [{
+                        data: response?.data?.map(item => item?.count),
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)',
+                            'rgba(255, 159, 64, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                }
+                console.log(formatData);
+                setRoomTypeData(formatData)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
+
     const [dashboardForWeek, setDashboardForWeek] = useState({
         labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
         datasets: [{
@@ -250,18 +311,24 @@ const Dashboard = () => {
     // console.log(homeStayID);
 
     useEffect(() => {
-        fetchDashboardForWeek();
-        fetchDashboardForMonth();
         fetchDashboardForLoyalCustomer();
         fetchStaticBooking();
-        // console.log(staticBooking);
-        // console.log(getAllMonthsInYear());
     }, [])
+
+    const [selectedWeekData, setSelectedWeekData] = useState(null);
+    const handleWeekChange = (weekData) => {
+        setSelectedWeekData(weekData);
+    };
+    useEffect(() => {
+        if (selectedWeekData !== null) {
+            fetchDashboardForWeek();
+        }
+    }, [selectedWeekData])
+
 
     const fetchDashboardForWeek = async () => {
         try {
-            let week = getCurrentWeekDates()
-            const response = await dashboardAPI.getTotalBookingsTotalBookingsAmountForHomeStay(homeStayID, week[0], week[6], "day")
+            const response = await dashboardAPI.getTotalBookingsTotalBookingsAmountForHomeStay(homeStayID, selectedWeekData?.startDate, selectedWeekData?.endDate, "day")
             if (response.statusCode === 200) {
                 const formatData = {
                     labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
@@ -308,10 +375,24 @@ const Dashboard = () => {
         ]
     })
 
+
+
+    const [selectedMonthData, setSelectedMonthData] = useState(null);
+    const handleMonthChange = (monthData) => {
+        setSelectedMonthData(monthData);
+        // console.log(selectedMonthData);
+
+        // console.log('Week selected:', weekData); // Xử lý dữ liệu tuần (gọi API, v.v.)
+    };
+
+    useEffect(() => {
+        if (selectedMonthData !== null) {
+            fetchDashboardForMonth();
+        }
+    }, [selectedMonthData])
     const fetchDashboardForMonth = async () => {
         try {
-            let month = getAllMonthsInYear()
-            const respone = await dashboardAPI.getTotalBookingsTotalBookingsAmountForHomeStay(homeStayID, month[0], month[11], "month")
+            const respone = await dashboardAPI.getTotalBookingsTotalBookingsAmountForHomeStay(homeStayID, selectedMonthData?.startDate, selectedMonthData?.endDate, "month")
             if (respone.statusCode === 200) {
                 const formatData = {
                     labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
@@ -352,7 +433,8 @@ const Dashboard = () => {
             backgroundColor: 'rgba(75, 192, 192, 0.8)',
             borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1,
-            borderRadius: 5
+            borderRadius: 5,
+            barThickness: 60
         }]
     })
     const fetchDashboardForLoyalCustomer = async () => {
@@ -367,7 +449,8 @@ const Dashboard = () => {
                         backgroundColor: 'rgba(75, 192, 192, 0.8)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1,
-                        borderRadius: 5
+                        borderRadius: 5,
+                        barThickness: 60
                     }]
                 }
                 // console.log(formatData);
@@ -440,7 +523,7 @@ const Dashboard = () => {
                         color: 'from-orange-400 to-orange-600'
                     }
                 ]
-                console.log(formatData);
+                // console.log(formatData);
                 setStaticBooking(formatData)
             }
         } catch (error) {
@@ -498,9 +581,21 @@ const Dashboard = () => {
                     transition={{ delay: 0.2 }}
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4"
                 >
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                        Doanh thu tuần này
-                    </h2>
+                    <div className='flex justify-between items-center'>
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                            Doanh thu tuần này
+                        </h2>
+                        <div className="flex gap-2">
+                            <WeekSelectorModal
+                                // defaultYear={2025}
+                                // defaultMonth={5}
+                                // years={[2023, 2024, 2025, 2026]} // Có thể tùy chỉnh danh sách năm
+                                onWeekChange={handleWeekChange}
+                            />
+
+                        </div>
+                    </div>
+
                     <div className="h-[300px]">
                         <Line data={dashboardForWeek} options={{
                             responsive: true,
@@ -525,9 +620,21 @@ const Dashboard = () => {
                     transition={{ delay: 0.3 }}
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4"
                 >
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                        Thống kê doanh thu và lượt đặt phòng theo tháng
-                    </h2>
+                    <div className='flex justify-between items-center'>
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                            Thống kê doanh thu và lượt đặt phòng theo tháng
+                        </h2>
+                        <div className="flex gap-2">
+                            <YearSelectorModal
+                                // defaultYear={2025}
+                                // defaultMonth={5}
+                                // years={[2023, 2024, 2025, 2026]} // Có thể tùy chỉnh danh sách năm
+                                onWeekChange={handleMonthChange}
+                            />
+
+                        </div>
+                    </div>
+
                     <div className="h-[400px]">
                         <Bar data={dashboardForMonth} options={chartOptions} />
                     </div>
@@ -546,7 +653,7 @@ const Dashboard = () => {
                             Thống kê sử dụng dịch vụ
                         </h2>
                         <div className="h-[300px]">
-                            <Pie data={serviceUsageData} options={{
+                            <Pie data={serviceData} options={{
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 plugins: {
