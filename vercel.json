@@ -11,18 +11,6 @@
   ],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://capstone-bookinghomestay.onrender.com/api/:path*"
-    },
-    {
-      "source": "/chat/:path*",
-      "destination": "https://capstone-bookinghomestay.onrender.com/api/:path*"
-    },
-    {
-      "source": "/chatHub/:path*",
-      "destination": "https://capstone-bookinghomestay.onrender.com/chatHub/:path*"
-    },
-    {
       "source": "/:path*",
       "destination": "/index.html"
     }
