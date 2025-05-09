@@ -223,7 +223,7 @@ const ReportHomestay = () => {
     };
 
     const totalTransactions = transactions.length;
-    const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount / 100, 0);
+    const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
     // const totalAmount = transactions.reduce((sum, transaction) => {
     //     const amount = transaction.amount / 100;
     //     if (transaction.transactionKind === 2) {
@@ -351,7 +351,7 @@ const ReportHomestay = () => {
     };
 
     const formatAmount = (amount, kind) => {
-        const formattedAmount = formatCurrency(amount / 100);
+        const formattedAmount = formatCurrency(amount);
         return kind === 2 ? `-${formattedAmount}` : formattedAmount;
     };
 
@@ -498,6 +498,7 @@ const ReportHomestay = () => {
                                     <TableHeader label="Loại giao dịch" sortKey="transactionKind" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Số tiền đơn" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Số tiền nhận" sortKey="amountOwner" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Phí hoa hồng" sortKey="amountAdmin" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Trạng thái" sortKey="status" sortConfig={sortConfig} onSort={handleSort} />
                                 </tr>
                             </thead>
@@ -537,11 +538,18 @@ const ReportHomestay = () => {
                                                 {formatAmount(transaction?.ownerAmount)}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <span className={getTransactionKindColor(transaction.transactionKind)}>
+                                                {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}
+                                                {formatAmount(transaction?.adminAmount)}
+                                            </span>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(transaction.transactionStatus)}`}>
                                                 {getStatusText(transaction.transactionStatus)}
                                             </span>
                                         </td>
+
                                     </motion.tr>
                                 ))}
                             </tbody>

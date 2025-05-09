@@ -16,6 +16,7 @@ import { FaTicket } from 'react-icons/fa6';
 import AddpolicyModal from '../../components/modals/AddPolicyModal';
 import EditPolicyModal from '../../components/modals/EditPolicyModal';
 import toast, { Toaster } from 'react-hot-toast';
+import CountUp from 'react-countup';
 
 const HomestayDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0);
@@ -30,7 +31,9 @@ const HomestayDetail = () => {
     const user = JSON.parse(localStorage.getItem('userInfo'));
 
     useEffect(() => {
-        if (id) fectchHomestayDetail();
+        if (id)
+            fectchHomestayDetail();
+        // console.log(homestayData);
     }, [id]);
 
     const fectchHomestayDetail = async () => {
@@ -104,32 +107,67 @@ const HomestayDetail = () => {
         }
     };
 
-    const statsCards = [
+    const [statsCardsData, setStatsCardsData] = useState([
         {
             title: "Tổng số đặt phòng",
-            value: homestay.totalBookings,
+            value: [],
             icon: <FaCalendarAlt />,
             gradient: "from-blue-500 to-blue-600"
         },
         {
             title: "Doanh thu",
-            value: `${(homestay.revenue / 1000000).toFixed(1)}M`,
+            value: [],
             icon: <FaChartLine />,
             gradient: "from-green-500 to-green-600"
         },
         {
-            title: "Tỷ lệ lấp đầy",
-            value: `${homestay.occupancyRate}%`,
-            icon: <FaRegClock />,
-            gradient: "from-purple-500 to-purple-600"
-        },
-        {
             title: "Đánh giá",
-            value: `${homestay.rating}/5`,
+            value: [],
             icon: <FaStar />,
             gradient: "from-yellow-500 to-yellow-600"
         }
-    ];
+    ])
+    const { id: homeStayID } = useParams();
+    useEffect(() => {
+        // console.log(homeStayID);
+        fetchDashboardForHomestayDetail();
+    }, [])
+
+    const fetchDashboardForHomestayDetail = async () => {
+        try {
+            const responeAverageRatings = await homestayAPI.getAverageRatingForHomeStayByHomestayID(homeStayID)
+            const responeBookings = await homestayAPI.getStaticBookingsForHomeStayByHomestayID(homeStayID)
+            const responseRevenue = await homestayAPI.getTotalBookingsAndAmountForHomeStayByHomestayID(homeStayID)
+            if (responseRevenue?.statusCode === 200 && responeBookings?.statusCode === 200 && responeAverageRatings?.statusCode === 200) {
+                const formatData = [
+                    {
+                        title: "Tổng số đặt phòng",
+                        value: responseRevenue?.data?.totalBookings,
+                        icon: <FaCalendarAlt />,
+                        gradient: "from-blue-500 to-blue-600"
+                    },
+                    {
+                        title: "Doanh thu",
+                        value: responseRevenue?.data?.totalBookingsAmount,
+                        icon: <FaChartLine />,
+                        gradient: "from-green-500 to-green-600"
+                    },
+                    {
+                        title: "Đánh giá",
+                        value: responeAverageRatings?.data,
+                        icon: <FaStar />,
+                        gradient: "from-yellow-500 to-yellow-600"
+                    }
+                ]
+                setStatsCardsData(formatData);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
 
     const navigate = useNavigate();
     const handleViewService = () => {
@@ -214,8 +252,8 @@ const HomestayDetail = () => {
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4">
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {statsCards.map((stat, index) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    {statsCardsData.map((stat, index) => (
                         <motion.div
                             key={stat.title}
                             variants={itemVariants}
@@ -227,7 +265,19 @@ const HomestayDetail = () => {
                                 </div>
                                 <div>
                                     <p className="text-white/80 text-sm">{stat.title}</p>
-                                    <h3 className="text-2xl font-bold">{stat.value}</h3>
+                                    <h3 className="text-2xl font-bold">
+                                        <CountUp
+                                            end={stat.value}
+                                            duration={2}
+                                            decimals={
+                                                stat.title === "Đánh giá" ? 1 : 0  // Chỉ hiển thị số thập phân cho đánh giá
+                                            }
+                                            suffix={
+                                                stat.title === "Doanh thu" ? " đ" :
+                                                    stat.title === "Đánh giá" ? "/5" : ""
+                                            }
+                                        />
+                                    </h3>
                                 </div>
                             </div>
                         </motion.div>

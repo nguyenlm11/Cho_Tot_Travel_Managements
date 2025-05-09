@@ -62,7 +62,7 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanResult }) => {
+const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanResult, handleStartChat, homestayId }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const toggleDropdown = () => setIsOpen(!isOpen);
@@ -209,6 +209,14 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                             >
                                 <FaEye className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
                                 Xem chi tiết
+                            </button>
+                            <button
+                                onClick={() => handleActionClick(() => handleStartChat(booking.accountID, homestayId))}
+                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                role="menuitem"
+                            >
+                                <FaComments className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                                Chat
                             </button>
                         </div>
                     </motion.div>
