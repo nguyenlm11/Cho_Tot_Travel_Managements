@@ -323,6 +323,14 @@ const HomestayList = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState({ isOpen: false, homestaySelect: null });
 
+  // Validate Role Staff
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('userInfo'));
+    if (user?.role === 'Staff') {
+      navigate(`/owner/homestays/${user?.homeStayID}/dashboard`, { replace: true });
+    }
+  }, [location, navigate]);
+
   // Hàm lấy trạng thái
   const getStatusText = (status) => {
     switch (status) {

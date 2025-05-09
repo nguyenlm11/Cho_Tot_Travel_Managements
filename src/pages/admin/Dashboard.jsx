@@ -20,6 +20,7 @@ import WeekSelectorModal from '../../components/modals/WeekSelectorModal';
 // import { formatDate } from '../../utils/utils';
 import YearSelectorModal from '../../components/modals/YearSelectorModal';
 import dashboardAPI from '../../services/api/dashboardAPI';
+import { getWeekdaysFromRange } from '../../utils/utils';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 
@@ -169,26 +170,26 @@ const Dashboard = () => {
     const [statsCards, setStatsCards] = useState([
         {
             title: 'Tổng doanh thu',
-            value: 120000000,
+            value: [],
             suffix: 'đ',
             icon: <FaMoneyBillWave className="w-6 h-6" />,
             color: 'from-green-400 to-green-600'
         },
         {
             title: 'Tổng đặt phòng',
-            value: 1500,
+            value: [],
             icon: <FaCalendarCheck className="w-6 h-6" />,
             color: 'from-blue-400 to-blue-600'
         },
         {
             title: 'Tổng chủ homestay',
-            value: 1500,
+            value: [],
             icon: <FaUsers className="w-6 h-6" />,
             color: 'from-purple-400 to-purple-600'
         },
         {
             title: 'Tổng khách hàng',
-            value: 500,
+            value: [],
             icon: <FaHome className="w-6 h-6" />,
             color: 'from-orange-400 to-orange-600'
         }
@@ -198,19 +199,21 @@ const Dashboard = () => {
     }, [])
     const fetchDashboardTitle = async () => {
         try {
+            const responeBookings = await dashboardAPI.getAllStaticBookings()
+            const responseRevenue = await dashboardAPI.getTotalBookingsAndAmount()
             const response = await dashboardAPI.getTotalAccount();
-            if (response?.statusCode === 200) {
+            if (response?.statusCode === 200 && responseRevenue?.statusCode === 200 && responeBookings?.statusCode === 200) {
                 const formatData = [
                     {
                         title: 'Tổng doanh thu',
-                        value: 120000000,
+                        value: responseRevenue?.data?.totalBookingsAmount,
                         suffix: 'đ',
                         icon: <FaMoneyBillWave className="w-6 h-6" />,
                         color: 'from-green-400 to-green-600'
                     },
                     {
                         title: 'Tổng đặt phòng',
-                        value: 1500,
+                        value: responeBookings?.data?.bookings,
                         icon: <FaCalendarCheck className="w-6 h-6" />,
                         color: 'from-blue-400 to-blue-600'
                     },
@@ -292,10 +295,11 @@ const Dashboard = () => {
 
     const fetchDataByWeek = async () => {
         try {
+            const weekdaysFromRange = getWeekdaysFromRange(selectedWeekData?.startDate, selectedWeekData?.endDate);
             const response = await dashboardAPI.getTotalBookingsTotalBookingsAmount(selectedWeekData?.startDate, selectedWeekData?.endDate, "day")
             if (response?.statusCode === 200) {
                 const formatData = {
-                    labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+                    labels: weekdaysFromRange,
                     datasets: [{
                         label: 'Doanh thu (triệu VNĐ)',
                         data: response?.data?.map(item => item?.totalBookingsAmount),

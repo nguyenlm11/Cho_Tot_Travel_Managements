@@ -10,6 +10,7 @@ import { IoClose } from 'react-icons/io5';
 import roomAPI from '../../services/api/roomAPI';
 import RoomAddModal from '../../components/modals/RoomAddModal';
 import RoomEditModal from '../../components/modals/RoomEditModal';
+import homestayRentalAPI from '../../services/api/homestayrentalAPI';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -268,10 +269,36 @@ const RoomList = () => {
     const itemsPerPage = 9;
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState({ isOpen: false, roomSelect: null });
+    const [rental, setRental] = useState();
     const user = JSON.parse(localStorage.getItem('userInfo'));
     useEffect(() => {
         fetchRooms();
     }, [roomTypeId, rentalId]);
+
+    useEffect(() => {
+        if (homestayId) {
+            fetchRentalDetails();
+        }
+    }, [homestayId])
+
+    const fetchRentalDetails = async () => {
+        setLoading(true);
+        try {
+            const response = await homestayRentalAPI.getHomeStayRentalDetail(rentalId);
+            if (response && response.statusCode === 200) {
+                setRental(response.data);
+            } else {
+                toast.error('Không thể tải thông tin căn thuê');
+                navigate(`/owner/homestays/${homestayId}/homestay-rental`);
+            }
+        } catch (error) {
+            console.error('Error fetching rental details:', error);
+            toast.error('Có lỗi xảy ra khi tải thông tin chi tiết');
+            navigate(`/owner/homestays/${homestayId}/homestay-rental`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchRooms = async () => {
         setLoading(true);
@@ -397,7 +424,7 @@ const RoomList = () => {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setIsAddModalOpen(true)}
                                 className="bg-primary hover:bg-primary-dark text-white font-semibold 
-                                px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300"
+                            px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300"
                             >
                                 <FaPlus className="w-5 h-5" />
                                 Thêm phòng mới

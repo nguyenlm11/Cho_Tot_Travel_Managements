@@ -270,8 +270,8 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                                             } rounded-md p-2 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary`}
                                     >
                                         {/* <option value="">Chọn loại dịch vụ</option> */}
-                                        <option value="0">Thuê theo số lần</option>
-                                        <option value="2">Thuê theo ngày</option>
+                                        <option value="0">Trọn gói</option>
+                                        <option value="2">Theo ngày</option>
                                     </select>
                                     {errors.serviceType && (
                                         <p className="mt-1 text-sm text-red-500 flex items-center">

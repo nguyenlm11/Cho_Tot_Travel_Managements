@@ -117,11 +117,19 @@ export const StaffList = () => {
     const [isModalEditStaffOpen, setIsModalEditStaffOpen] = useState(false);
     const [selectedStaffID, setSelectedStaffID] = useState(null);
     const itemsPerPage = 10;
+    const navigate = useNavigate();
+
+
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('userInfo'));
+        if (user?.role === 'Staff') {
+            navigate(`/owner/homestays/${user?.homeStayID}/dashboard`, { replace: true });
+        }
+    }, [location, navigate]);
 
     useEffect(() => {
         fetchStaffs();
     }, []);
-    const navigate = useNavigate();
 
     const fetchStaffs = async () => {
         try {

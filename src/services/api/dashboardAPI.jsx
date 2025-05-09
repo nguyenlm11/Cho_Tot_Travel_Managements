@@ -112,9 +112,29 @@ const dashboardAPI = {
         }
 
     },
+    getTotalBookingsAndAmount: async () => {
+        try {
+            const respone = await axiosInstance.get('/booking-bookingservices/adminDashBoard/GetTotalBookingsAndAmount')
+            return respone.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+
+    },
     getTopLoyalOwners: async (top) => {
         try {
             const respone = await axiosInstance.get(`/homestay/adminDashBoard/GetTopLoyalOwners?top=${top}`)
+            return respone.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+
+    },
+    getAllStaticBookings: async () => {
+        try {
+            const respone = await axiosInstance.get('/booking-bookingservices/adminDashBoard/GetStaticBookings')
             return respone.data;
         } catch (error) {
             console.log(error);

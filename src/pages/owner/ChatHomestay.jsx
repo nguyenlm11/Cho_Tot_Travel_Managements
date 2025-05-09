@@ -73,7 +73,7 @@ const ChatHomestay = () => {
     const lastFetchTimeRef = useRef({});
     const chatContainerRef = useRef(null);
     const fileInputRef = useRef(null);
-
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     useEffect(() => {
         customersRef.current = customers;
     }, [customers]);
@@ -531,7 +531,8 @@ const ChatHomestay = () => {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center">
                                             <h3 className="font-medium truncate text-gray-900 dark:text-white">{customer.name}</h3>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{customer.timestamp}</span>
+                                            {customer?.sentAt && (<span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{customer.timestamp}</span>)}
+
                                         </div>
                                         <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{customer.lastMessage}</p>
                                     </div>
@@ -756,70 +757,73 @@ const ChatHomestay = () => {
                         )}
 
                         {/* Input message bar - fixed height */}
-                        <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-                            <div className="flex items-end gap-3">
-                                <div className="relative flex-1">
-                                    <textarea
-                                        className="w-full px-5 py-3 pr-14 bg-gray-100 dark:bg-gray-700 rounded-2xl text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark transition-all resize-none max-h-32 min-h-[44px] shadow-inner"
-                                        placeholder="Nhập tin nhắn..."
-                                        rows={Math.min(3, Math.max(1, newMessage.split('\n').length))}
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        onKeyDown={handleKeyPress}
-                                    ></textarea>
+                        {user?.role === 'Staff' && (
+                            <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+                                <div className="flex items-end gap-3">
+                                    <div className="relative flex-1">
+                                        <textarea
+                                            className="w-full px-5 py-3 pr-14 bg-gray-100 dark:bg-gray-700 rounded-2xl text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark transition-all resize-none max-h-32 min-h-[44px] shadow-inner"
+                                            placeholder="Nhập tin nhắn..."
+                                            rows={Math.min(3, Math.max(1, newMessage.split('\n').length))}
+                                            value={newMessage}
+                                            onChange={(e) => setNewMessage(e.target.value)}
+                                            onKeyDown={handleKeyPress}
+                                        ></textarea>
 
-                                    {/* Emoji picker button */}
-                                    <div className="absolute right-3 bottom-1/2 transform translate-y-1/2">
-                                        <button
-                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                            className="p-2 text-gray-500 hover:text-primary dark:hover:text-primary-dark rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                            title="Chèn biểu tượng cảm xúc"
-                                        >
-                                            <FaRegSmile className="text-xl" />
-                                        </button>
-                                        {showEmojiPicker && (
-                                            <div className="absolute bottom-12 right-0 z-20 shadow-xl rounded-lg overflow-hidden">
-                                                <EmojiPicker
-                                                    onEmojiClick={handleEmojiClick}
-                                                    width={300}
-                                                    height={400}
-                                                />
-                                            </div>
-                                        )}
+                                        {/* Emoji picker button */}
+                                        <div className="absolute right-3 bottom-1/2 transform translate-y-1/2">
+                                            <button
+                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                className="p-2 text-gray-500 hover:text-primary dark:hover:text-primary-dark rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                                title="Chèn biểu tượng cảm xúc"
+                                            >
+                                                <FaRegSmile className="text-xl" />
+                                            </button>
+                                            {showEmojiPicker && (
+                                                <div className="absolute bottom-12 right-0 z-20 shadow-xl rounded-lg overflow-hidden">
+                                                    <EmojiPicker
+                                                        onEmojiClick={handleEmojiClick}
+                                                        width={300}
+                                                        height={400}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
+
+                                    {/* File upload button */}
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="p-3 text-gray-500 hover:text-primary dark:hover:text-primary-dark rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                        title="Tải ảnh lên"
+                                    >
+                                        <FaImage className="text-xl" />
+                                    </button>
+
+                                    {/* Send button */}
+                                    <button
+                                        onClick={() => handleSendMessage(newMessage, selectedImages)}
+                                        disabled={!newMessage.trim() && selectedImages.length === 0}
+                                        className={`p-3 rounded-full transition-all ${newMessage.trim() || selectedImages.length > 0
+                                            ? 'bg-primary dark:bg-primary-dark text-white hover:bg-primary-dark dark:hover:bg-primary-light'
+                                            : 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed'
+                                            }`}
+                                        title="Gửi tin nhắn"
+                                    >
+                                        <FaPaperPlane className="text-xl" />
+                                    </button>
                                 </div>
-
-                                {/* File upload button */}
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                />
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="p-3 text-gray-500 hover:text-primary dark:hover:text-primary-dark rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                    title="Tải ảnh lên"
-                                >
-                                    <FaImage className="text-xl" />
-                                </button>
-
-                                {/* Send button */}
-                                <button
-                                    onClick={() => handleSendMessage(newMessage, selectedImages)}
-                                    disabled={!newMessage.trim() && selectedImages.length === 0}
-                                    className={`p-3 rounded-full transition-all ${newMessage.trim() || selectedImages.length > 0
-                                        ? 'bg-primary dark:bg-primary-dark text-white hover:bg-primary-dark dark:hover:bg-primary-light'
-                                        : 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed'
-                                        }`}
-                                    title="Gửi tin nhắn"
-                                >
-                                    <FaPaperPlane className="text-xl" />
-                                </button>
                             </div>
-                        </div>
+                        )}
+
                     </>
                 ) : (
                     <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
