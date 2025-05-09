@@ -245,27 +245,27 @@ const ServiceCard = ({ service, handleEditService }) => {
                                 exit="exit"
                                 className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3"
                             >
-                                {user?.role === "Owner" && (
-                                    <>
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            onClick={() => handleEditService(service)}
-                                            className="p-2 bg-white/90 rounded-full hover:bg-white
+
+                                <>
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => handleEditService(service)}
+                                        className="p-2 bg-white/90 rounded-full hover:bg-white
                                             transform hover:scale-110 transition-all duration-200"
-                                        >
-                                            <FaEdit className="w-5 h-5 text-primary" />
-                                        </motion.button>
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            className="p-2 bg-white/90 rounded-full hover:bg-white
+                                    >
+                                        <FaEdit className="w-5 h-5 text-primary" />
+                                    </motion.button>
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        className="p-2 bg-white/90 rounded-full hover:bg-white
                                             transform hover:scale-110 transition-all duration-200"
-                                        >
-                                            <FaTrash className="w-5 h-5 text-red-500" />
-                                        </motion.button>
-                                    </>
-                                )}
+                                    >
+                                        <FaTrash className="w-5 h-5 text-red-500" />
+                                    </motion.button>
+                                </>
+
 
                             </motion.div>
                         )}

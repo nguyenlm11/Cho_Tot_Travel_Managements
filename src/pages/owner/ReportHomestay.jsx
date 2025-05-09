@@ -210,6 +210,8 @@ const ReportHomestay = () => {
                     const dateB = new Date(b.payDate);
                     return dateB - dateA;
                 });
+                console.log({ sortedData });
+
                 setTransactions(sortedData);
             } else {
                 toast.error('Không thể tải dữ liệu báo cáo');
@@ -223,14 +225,12 @@ const ReportHomestay = () => {
     };
 
     const totalTransactions = transactions.length;
-    const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-    // const totalAmount = transactions.reduce((sum, transaction) => {
-    //     const amount = transaction.amount / 100;
-    //     if (transaction.transactionKind === 2) {
-    //         return sum - amount; // Trừ đi số tiền hoàn
-    //     }
-    //     return sum + amount; // Cộng thêm số tiền đặt cọc và thanh toán đủ
-    // }, 0);
+    const totalAmount = transactions.reduce((sum, transaction) => {
+        if (transaction.transactionKind === 2) {
+            return sum - transaction?.amount;
+        }
+        return sum + (transaction?.amount - transaction?.adminAmount);
+    }, 0);
     const successfulTransactions = transactions.filter(transaction => transaction.transactionStatus === '00').length;
     const pendingTransactions = transactions.filter(transaction => transaction.transactionStatus === '01').length;
 
@@ -380,10 +380,17 @@ const ReportHomestay = () => {
 
     const statsData = useMemo(() => [
         { label: 'Tổng số giao dịch', value: totalTransactions, color: 'bg-blue-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
-        { label: 'Tổng giá trị', value: totalAmount, color: 'bg-green-500', icon: <FaMoneyBillWave className="w-6 h-6" /> },
+        // { label: 'Tổng giá trị', value: totalAmount, color: 'bg-green-500', icon: <FaMoneyBillWave className="w-6 h-6" /> },
         { label: 'Giao dịch thành công', value: successfulTransactions, color: 'bg-indigo-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
         { label: 'Đang xử lý', value: pendingTransactions, color: 'bg-yellow-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> }
-    ], [totalTransactions, totalAmount, successfulTransactions, pendingTransactions]);
+    ], [totalTransactions, successfulTransactions, pendingTransactions]);
+
+    // const statsData = useMemo(() => [
+    //     { label: 'Tổng số giao dịch', value: totalTransactions, color: 'bg-blue-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
+    //     { label: 'Tổng giá trị', value: totalAmount, color: 'bg-green-500', icon: <FaMoneyBillWave className="w-6 h-6" /> },
+    //     { label: 'Giao dịch thành công', value: successfulTransactions, color: 'bg-indigo-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
+    //     { label: 'Đang xử lý', value: pendingTransactions, color: 'bg-yellow-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> }
+    // ], [totalTransactions, totalAmount, successfulTransactions, pendingTransactions]);
 
     return (
         <motion.div
@@ -422,7 +429,7 @@ const ReportHomestay = () => {
                         hidden: { opacity: 0, scale: 0.8 },
                         visible: { opacity: 1, scale: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } }
                     }}>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         {statsData.map((stat, index) => (
                             <motion.div
                                 key={stat.label}

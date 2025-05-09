@@ -42,3 +42,17 @@ export const getAllMonthsInYear = () => {
 
     return months;
 };
+
+export const getWeekdaysFromRange = (startDateStr, endDateStr) => {
+    const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    const result = [];
+
+    // Duyệt từ startDate đến endDate
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        result.push(weekdays[d.getDay()]);
+    }
+
+    return result;
+}

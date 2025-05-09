@@ -10,6 +10,7 @@ import { useParams } from 'react-router-dom';
 import { HiMiniReceiptRefund } from "react-icons/hi2";
 import WeekSelectorModal from '../../components/modals/WeekSelectorModal';
 import YearSelectorModal from '../../components/modals/YearSelectorModal';
+import { getWeekdaysFromRange } from '../../utils/utils';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 
@@ -327,11 +328,13 @@ const Dashboard = () => {
 
 
     const fetchDashboardForWeek = async () => {
+        const weekdaysFromRange = getWeekdaysFromRange(selectedWeekData?.startDate, selectedWeekData?.endDate);
+
         try {
             const response = await dashboardAPI.getTotalBookingsTotalBookingsAmountForHomeStay(homeStayID, selectedWeekData?.startDate, selectedWeekData?.endDate, "day")
             if (response.statusCode === 200) {
                 const formatData = {
-                    labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+                    labels: weekdaysFromRange,
                     datasets: [{
                         label: 'Doanh thu (triệu VNĐ)',
                         data: response?.data?.map(item => item?.totalBookingsAmount),
@@ -511,8 +514,8 @@ const Dashboard = () => {
                         color: 'from-blue-400 to-blue-600'
                     },
                     {
-                        title: 'Tổng đơn hoàn thành và hủy',
-                        value: responeBookings?.data?.bookingsReturnOrCancell,
+                        title: 'Tổng đơn hoàn thành ',
+                        value: responeBookings?.data?.bookingsComplete,
                         icon: <FaCheck className="w-6 h-6" />,
                         color: 'from-purple-400 to-purple-600'
                     },

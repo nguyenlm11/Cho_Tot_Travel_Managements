@@ -34,7 +34,7 @@ const FilterRoomStartAndEndDate = ({ onClose, onSave, isOpen }) => {
             onClose();
         } catch (error) {
             console.error('Error searching room:', error);
-            toast.error('Không thể tìm thấy phòng thuê: ' + error.message);
+            // toast.error('Không thể tìm thấy phòng thuê: ' + error.message);
         }
     };
     const handlePricingChange = (field, value) => {

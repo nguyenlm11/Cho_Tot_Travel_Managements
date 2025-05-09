@@ -62,7 +62,7 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanResult, handleStartChat, homestayId }) => {
+const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanResult, handleStartChat }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const toggleDropdown = () => setIsOpen(!isOpen);
@@ -211,7 +211,7 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                                 Xem chi tiết
                             </button>
                             <button
-                                onClick={() => handleActionClick(() => handleStartChat(booking.accountID, homestayId))}
+                                onClick={() => handleActionClick(handleStartChat)}
                                 className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                 role="menuitem"
                             >
@@ -607,7 +607,7 @@ const BookingList = () => {
 
     const statsData = useMemo(() => [
         { label: 'Tổng số đặt phòng', value: bookings.length, color: 'bg-blue-500', icon: <FaCalendarAlt className="w-6 h-6" /> },
-        { label: 'Đang ở', value: bookings.filter(b => b.status === BookingStatus.InProgress).length, color: 'bg-green-500', icon: <FaUser className="w-6 h-6" /> },
+        // { label: 'Đang ở', value: bookings.filter(b => b.status === BookingStatus.InProgress).length, color: 'bg-green-500', icon: <FaUser className="w-6 h-6" /> },
         { label: 'Đã xác nhận', value: bookings.filter(b => b.status === BookingStatus.Confirmed).length, color: 'bg-indigo-500', icon: <FaCheck className="w-6 h-6" /> },
         { label: 'Chờ xác nhận', value: bookings.filter(b => b.status === BookingStatus.Pending).length, color: 'bg-yellow-500', icon: <FaCalendarAlt className="w-6 h-6" /> }
     ], [bookings]);
@@ -660,7 +660,7 @@ const BookingList = () => {
                         hidden: { opacity: 0, scale: 0.8 },
                         visible: { opacity: 1, scale: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } }
                     }}>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         {statsData.map((stat, index) => (
                             <motion.div
                                 key={stat.label}
@@ -807,14 +807,15 @@ const BookingList = () => {
                                                             handleViewBooking={handleViewBooking}
                                                             handleRefund={handleRefund}
                                                             handleScanResult={handleScanResult}
+                                                            handleStartChat={() => handleStartChat(booking.accountID, homestayId)}
                                                         />
-                                                        <button
+                                                        {/* <button
                                                             onClick={() => handleStartChat(booking.accountID, homestayId)}
                                                             className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                                                         >
                                                             <FaComments />
                                                             <span>Chat</span>
-                                                        </button>
+                                                        </button> */}
                                                     </div>
                                                 </div>
                                             </td>

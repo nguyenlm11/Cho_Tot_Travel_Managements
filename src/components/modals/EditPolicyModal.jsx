@@ -16,6 +16,11 @@ const EditPolicyModal = ({ onClose, isOpen, cancelPolicy, fetchHomestay }) => {
     });
     const [errors, setErrors] = useState({});
 
+    useEffect(() => {
+        console.log({ cancelPolicy });
+
+    }, [cancelPolicy])
+
     const handleSave = async (e) => {
         e.preventDefault();
 

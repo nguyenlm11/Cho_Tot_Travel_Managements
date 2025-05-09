@@ -8,6 +8,7 @@ import homestayAPI from '../../services/api/homestayAPI';
 // import homestayRentalAPI from '../../services/api/homestayrentalAPI';
 import { FaWifi } from 'react-icons/fa6';
 import axiosInstance from '../../services/config';
+import cancelPolicyAPI from '../../services/api/cancelPolicyAPI';
 
 const API_KEY = "MdlDIjhDKvUnozmB9NJjiW4L5Pu5ogxX";
 const BASE_URL = "https://mapapis.openmap.vn/v1/autocomplete";
@@ -25,9 +26,15 @@ const AddHomestay = () => {
   const searchTimeout = useRef(null);
   const [errors, setErrors] = useState({});
   const [step, setStep] = useState(1);
-
-
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('userInfo'));
+    if (user?.role === 'Staff') {
+      navigate(`/owner/homestays/${user?.homeStayID}/dashboard`, { replace: true });
+    }
+  }, [location, navigate]);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -302,8 +309,16 @@ const AddHomestay = () => {
           // console.log(formatData);
           const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
           if (response.statusCode === 201) {
-            toast.success('Tạo homestay thành công!');
-            navigate('/owner/homestays');
+            const dataPolicy = {
+              dayBeforeCancel: 7,
+              refundPercentage: 1,
+              homeStayID: response?.data?.homeStay?.homeStayID
+            }
+            const responsePolicy = await cancelPolicyAPI.addCancelPolicy(dataPolicy);
+            if (responsePolicy.statusCode === 201) {
+              toast.success('Tạo homestay thành công!');
+              navigate('/owner/homestays');
+            }
           }
         }
       } else if (step === 3) {
@@ -311,8 +326,16 @@ const AddHomestay = () => {
         // console.log(formatData);
         const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
         if (response.statusCode === 201) {
-          toast.success('Tạo homestay thành công!');
-          navigate('/owner/homestays');
+          const dataPolicy = {
+            dayBeforeCancel: 7,
+            refundPercentage: 1,
+            homeStayID: response?.data?.homeStay?.homeStayID
+          }
+          const responsePolicy = await cancelPolicyAPI.addCancelPolicy(dataPolicy);
+          if (responsePolicy.statusCode === 201) {
+            toast.success('Tạo homestay thành công!');
+            navigate('/owner/homestays');
+          }
         }
       }
     } catch (error) {
@@ -659,6 +682,10 @@ const AddHomestay = () => {
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  <div className='text-red-500 text-sm  italic'>
+                    Mặc định chính sách hoàn trả khi tạo homestay là 100% trong vòng 7 ngày
                   </div>
                 </div>
               </div>

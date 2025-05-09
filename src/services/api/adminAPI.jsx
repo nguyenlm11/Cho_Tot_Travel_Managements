@@ -54,6 +54,15 @@ const adminAPI = {
             return { error: 'Không thể thêm mới chủ homestay' };
         }
     },
+    getAllTransactions: async () => {
+        try {
+            const response = await axiosInstance.get('/Transaction/GetAllTransactions');
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy danh sách' };
+        }
+    },
 
     // Quản lý báo cáo và thống kê
     getStatistics: async (startDate, endDate) => {

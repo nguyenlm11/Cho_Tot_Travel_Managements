@@ -31,6 +31,13 @@ const EditHomestay = () => {
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('userInfo'));
+        if (user?.role === 'Staff') {
+            navigate(`/owner/homestays/${user?.homeStayID}/dashboard`, { replace: true });
+        }
+    }, [location, navigate]);
+
+    useEffect(() => {
         setLoading(true);
         const fetchHomestay = async () => {
             try {

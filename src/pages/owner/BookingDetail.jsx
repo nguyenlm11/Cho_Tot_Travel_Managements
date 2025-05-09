@@ -23,7 +23,7 @@ const statusConfig = {
 const paymentStatusConfig = {
     [PaymentStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chưa thanh toán' },
     [PaymentStatus.Deposited]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã đặt cọc' },
-    [PaymentStatus.FullyPaid]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đã thanh toán' },
+    [PaymentStatus.FullyPaid]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đã trả đủ' },
     [PaymentStatus.Refunded]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Đã hoàn tiền' }
 };
 
@@ -223,14 +223,18 @@ export const BookingDetail = () => {
                                     {formatPrice(booking.bookingServices.reduce((acc, service) => acc + service.total, 0))}
                                 </span>
                             </div> */}
-                            <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
-                                <span>Tiền đặt cọc:</span>
-                                <span className="font-semibold text-blue-600 dark:text-blue-400">{formatPrice(booking.bookingDeposit)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
-                                <span>Số tiền còn lại:</span>
-                                <span className="font-semibold text-red-600 dark:text-red-400">{formatPrice(booking.remainingBalance)}</span>
-                            </div>
+                            {(booking?.paymentServiceStatus === 2 && booking?.paymentStatus === 0) && (
+                                <>
+                                    <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                        <span>Tiền đặt cọc:</span>
+                                        <span className="font-semibold text-blue-600 dark:text-blue-400">{formatPrice(booking.bookingDeposit)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                        <span>Số tiền còn lại:</span>
+                                        <span className="font-semibold text-red-600 dark:text-red-400">{formatPrice(booking.remainingBalance)}</span>
+                                    </div>
+                                </>
+                            )}
                             <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                                 <div className="flex items-center justify-between text-gray-700 dark:text-gray-300">
                                     <span>Trạng thái thanh toán:</span>
