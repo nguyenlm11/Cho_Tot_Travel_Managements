@@ -82,5 +82,45 @@ const dashboardAPI = {
         }
 
     },
+    getCheckBookingServiceStats: async (homestayId) => {
+        try {
+            const respone = await axiosInstance.get(`bookingservices/GetServiceStats?homestayId=${homestayId}`)
+            return respone.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+
+    },
+    getRoomTypeStats: async (homestayId) => {
+        try {
+            const respone = await axiosInstance.get(`booking-checkout/GetRoomTypeStats?homestayId=${homestayId}`)
+            return respone.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+
+    },
+    getTotalAccount: async () => {
+        try {
+            const respone = await axiosInstance.get('/account/adminDashBoard/GetTotalAccount')
+            return respone.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+
+    },
+    getTopLoyalOwners: async (top) => {
+        try {
+            const respone = await axiosInstance.get(`/homestay/adminDashBoard/GetTopLoyalOwners?top=${top}`)
+            return respone.data;
+        } catch (error) {
+            console.log(error);
+            return { error: 'Không thể lấy được danh sách' };
+        }
+
+    },
 }
 export default dashboardAPI;
