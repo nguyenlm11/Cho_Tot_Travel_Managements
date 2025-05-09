@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/chatHub': {
-        target: 'https://capstone-bookinghomestay.onrender.com',
+        target: 'https://capstone-bookinghomestay.onrender.com/chatHub',
         changeOrigin: true,
         secure: true,
         ws: true,
