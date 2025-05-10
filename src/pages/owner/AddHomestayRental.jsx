@@ -239,7 +239,7 @@ const AddHomestayRental = () => {
     const confirmSubmit = async () => {
         setIsModalOpen(false);
         setLoading(true);
-        const loadingToast = toast.loading('Đang thêm phòng thuê mới...');
+        const loadingToast = toast.loading('Đang thêm căn thuê mới...');
         try {
             const rentalData = {
                 Name: formData.Name,
@@ -323,7 +323,7 @@ const AddHomestayRental = () => {
 
                 <div className="mt-6">
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Thêm phòng thuê mới
+                        Thêm căn thuê mới
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">
                         {step === 1 ?
@@ -374,7 +374,7 @@ const AddHomestayRental = () => {
                                             {/* Name */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                    Tên phòng <span className="text-red-500">*</span>
+                                                    Tên căn thuê <span className="text-red-500">*</span>
                                                 </label>
                                                 <div className="relative">
                                                     <input
@@ -1023,7 +1023,7 @@ const AddHomestayRental = () => {
                             <div className="mb-6">
                                 <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4">
                                     <p className="text-gray-700 dark:text-gray-300">
-                                        Bạn có chắc muốn thêm phòng thuê mới không?
+                                        Bạn có chắc muốn thêm căn thuê mới không?
                                     </p>
                                 </div>
 
