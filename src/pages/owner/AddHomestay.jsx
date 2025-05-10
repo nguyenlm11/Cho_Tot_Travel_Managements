@@ -228,11 +228,11 @@ const AddHomestay = () => {
         return;
       }
       // Nếu chọn thuê nguyên căn thì chuyển sang step 3, nếu không thì submit luôn
-      if (rentalData.RentWhole) {
-        setStep(3);
-      } else {
-        setIsModalOpen(true);
-      }
+      // if (rentalData.RentWhole) {
+      setStep(3);
+      // } else {
+      // setIsModalOpen(true);
+      // }
     } else if (step === 3) {
       if (!validatePricingForm()) { // Thêm hàm validate cho form pricing
         toast.error('Vui lòng điền đầy đủ thông tin giá');
@@ -282,45 +282,45 @@ const AddHomestay = () => {
         RentalName: rentalData.Name,
         RentalDescription: rentalData.Description,
         RentalImages: rentalData.Images,
-        ...(rentalData.RentWhole && {
-          Pricing: rentalData.pricingEntries[0],
-          PricingJson: rentalData.RentWhole ? JSON.stringify(
-            rentalData.pricingEntries.map(entry => ({
-              unitPrice: entry.unitPrice,
-              rentPrice: entry.rentPrice,
-              isDefault: entry.isDefault,
-              isActive: entry.isActive,
-              dayType: entry.dayType,
-              description: entry.description || ""
-            }))
-          ) : ""
-        }
+        // ...(rentalData.RentWhole && {
+        Pricing: rentalData.pricingEntries[0],
+        PricingJson: JSON.stringify(
+          rentalData.pricingEntries.map(entry => ({
+            unitPrice: entry.unitPrice,
+            rentPrice: entry.rentPrice,
+            isDefault: entry.isDefault,
+            isActive: entry.isActive,
+            dayType: entry.dayType,
+            description: entry.description || ""
+          }))
         )
+        // }
+        // )
       }
     }
     try {
       if (step === 1) {
         setStep(2);
       } else if (step === 2) {
-        if (rentalData.RentWhole) {
-          setStep(3);
-        } else {
-          const formatData = handleFormatData();
-          // console.log(formatData);
-          const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
-          if (response.statusCode === 201) {
-            const dataPolicy = {
-              dayBeforeCancel: 7,
-              refundPercentage: 1,
-              homeStayID: response?.data?.homeStay?.homeStayID
-            }
-            const responsePolicy = await cancelPolicyAPI.addCancelPolicy(dataPolicy);
-            if (responsePolicy.statusCode === 201) {
-              toast.success('Tạo homestay thành công!');
-              navigate('/owner/homestays');
-            }
-          }
-        }
+
+        setStep(3);
+
+        const formatData = handleFormatData();
+        // console.log(formatData);
+        // const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
+        // if (response.statusCode === 201) {
+        //   const dataPolicy = {
+        //     dayBeforeCancel: 7,
+        //     refundPercentage: 1,
+        //     homeStayID: response?.data?.homeStay?.homeStayID
+        //   }
+        //   const responsePolicy = await cancelPolicyAPI.addCancelPolicy(dataPolicy);
+        //   if (responsePolicy.statusCode === 201) {
+        //     toast.success('Tạo homestay thành công!');
+        //     navigate('/owner/homestays');
+        //   }
+        // }
+
       } else if (step === 3) {
         const formatData = handleFormatData();
         // console.log(formatData);
