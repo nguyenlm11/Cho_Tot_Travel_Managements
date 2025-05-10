@@ -488,7 +488,7 @@ const AddHomestay = () => {
             <span>Thông tin Homestay</span>
             <span className="w-5 h-px bg-gray-300 dark:bg-gray-600"></span>
             <span className={`w-3 h-3 rounded-full ${step === 2 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
-            <span>Thông tin phòng thuê</span>
+            <span>Thông tin căn thuê</span>
             <span className="w-5 h-px bg-gray-300 dark:bg-gray-600"></span>
             <span className={`w-3 h-3 rounded-full ${step === 3 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
             <span>Thông tin gói thuê</span>
@@ -736,7 +736,7 @@ const AddHomestay = () => {
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Tên phòng <span className="text-red-500">*</span>
+                  Tên căn thuê <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
