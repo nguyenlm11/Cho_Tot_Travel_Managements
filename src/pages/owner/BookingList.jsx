@@ -1,13 +1,12 @@
-import React, { useState, useRef, useEffect, useMemo, Fragment } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaQrcode, FaCheck, FaMoneyBillWave, FaCopy, FaExternalLinkAlt, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaComments } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaQrcode, FaCheck, FaMoneyBillWave, FaSync, FaEllipsisV, FaEye, FaComments } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import QRScannerModal from '../../components/modals/QRScannerModal';
 import CountUp from 'react-countup';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import bookingAPI from '../../services/api/bookingAPI';
-import changeRoomAPI from '../../services/api/changeRoomAPI';
 import { FaExchangeAlt } from "react-icons/fa";
 import { ChangeRoomModal } from '../../components/modals/ChangeRoomModal';
 import { FaDeleteLeft } from 'react-icons/fa6';
@@ -466,30 +465,58 @@ const BookingList = () => {
     }, [actualSearchTerm, selectedStatus]);
 
     const handleScanResult = async (bookingId, booking = null, bookingStatus = null) => {
-        console.log(booking);
+        console.log("Booking:", booking);
+        console.log("BookingStatus:", bookingStatus);
 
         try {
             const parsedBookingId = parseInt(bookingId, 10);
             if (isNaN(parsedBookingId)) {
                 throw new Error('bookingId không hợp lệ');
             }
+
             const currentBooking = bookings.find(booking => booking.bookingID === parsedBookingId);
             if (!currentBooking) {
                 throw new Error('Không tìm thấy booking với ID này');
             }
+
+            if (bookingStatus === null || bookingStatus === undefined) {
+                throw new Error('Trạng thái booking không hợp lệ');
+            }
+
+            if (bookingStatus === BookingStatus.InProgress) {
+                if (currentBooking.status !== BookingStatus.Confirmed) {
+                    throw new Error('Không thể check-in');
+                }
+                const bookingCheckInDate = new Date(currentBooking.bookingDetails[0]?.checkInDate);
+                const today = new Date();
+                const bookingDateString = bookingCheckInDate.toISOString().split('T')[0];
+                const todayString = today.toISOString().split('T')[0];
+
+                if (bookingDateString !== todayString) {
+                    throw new Error('Chỉ có thể check-in vào đúng ngày nhận phòng');
+                }
+            }
+
+            if (bookingStatus === BookingStatus.Completed) {
+                if (currentBooking.status !== BookingStatus.InProgress) {
+                    throw new Error('Không thể check-out');
+                }
+            }
+
             const bookingData = {
                 bookingId: parsedBookingId,
                 status: bookingStatus,
                 paymentStatus: currentBooking.paymentStatus
             };
-            // console.log(bookingData);
+
+            console.log("Sending data:", bookingData);
 
             const response = await bookingAPI.updateBookingStatus(
                 bookingData.bookingId,
                 bookingData.status,
                 bookingData.paymentStatus
             );
-            // console.log(response);
+
             const messageStatus = { 1: "Xác nhận thành công", 2: "Check-in thành công", 3: "Check-out thành công", 4: "Hủy thành công" }
 
             toast.success(messageStatus?.[bookingStatus], {
@@ -509,9 +536,10 @@ const BookingList = () => {
                 )
             );
             setIsScannerOpen(false);
+            return true;
         } catch (error) {
             console.error('Error updating booking:', error);
-            toast.error('Có lỗi xảy ra khi check-in', {
+            toast.error(error.message || 'Có lỗi xảy ra khi check-in', {
                 id: 'check-in-error',
                 style: {
                     borderRadius: '10px',
@@ -520,6 +548,8 @@ const BookingList = () => {
                     border: '1px solid #FCA5A5'
                 },
             });
+            // Không đóng modal scan khi có lỗi để người dùng có thể quét lại
+            throw error;
         }
     };
     const handleViewBooking = async (bookingId) => {
