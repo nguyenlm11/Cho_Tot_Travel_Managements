@@ -10,6 +10,7 @@ const QRScannerModal = ({ onClose, onScanSuccess }) => {
     const [isScanning, setIsScanning] = useState(true);
     const [scanner, setScanner] = useState(null);
     const [scannerKey, setScannerKey] = useState(0);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const initScanner = () => {
         if (!videoRef.current) return;
@@ -19,17 +20,32 @@ const QRScannerModal = ({ onClose, onScanSuccess }) => {
         }
         const qrScanner = new QrScanner(
             videoRef.current,
-            (result) => {
-                const qrData = result.data;
-                setScanResult(qrData);
-                setIsScanning(false);
-                const bookingId = extractBookingId(qrData);
-                if (bookingId) {
-                    onScanSuccess?.(bookingId);
-                } else {
-                    setError('Mã QR không hợp lệ: Không tìm thấy ID đặt phòng');
+            async (result) => {
+                try {
+                    setIsProcessing(true);
+                    const qrData = result.data;
+                    setScanResult(qrData);
+                    setIsScanning(false);
+                    const bookingId = extractBookingId(qrData);
+                    if (bookingId) {
+                        try {
+                            await onScanSuccess?.(bookingId, null, 2);
+                        } catch (err) {
+                            setError(err.message || 'Không thể xử lý booking này');
+                            setIsProcessing(false);
+                            return;
+                        }
+                    } else {
+                        setError('Mã QR không hợp lệ: Không tìm thấy ID đặt phòng');
+                        setIsProcessing(false);
+                    }
+                } catch (err) {
+                    setError(err.message || 'Có lỗi xảy ra khi quét');
+                    setIsProcessing(false);
+                } finally {
+                    qrScanner.stop();
+                    setIsProcessing(false);
                 }
-                qrScanner.stop();
             },
             {
                 returnDetailedScanResult: true,
@@ -144,7 +160,12 @@ const QRScannerModal = ({ onClose, onScanSuccess }) => {
                             </div>
                         ) : (
                             <div className="p-4 rounded-xl">
-                                {error ? (
+                                {isProcessing ? (
+                                    <div className="text-center">
+                                        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+                                        <p className="text-gray-600 dark:text-gray-400">Đang xử lý...</p>
+                                    </div>
+                                ) : error ? (
                                     <div className="text-center">
                                         <FaExclamationTriangle className="w-16 h-16 mx-auto text-red-500 mb-4" />
                                         <h3 className="text-xl font-semibold text-red-500 mb-2">Quét không thành công</h3>
