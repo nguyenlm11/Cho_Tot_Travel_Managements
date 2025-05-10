@@ -106,8 +106,12 @@ const EditPricingRoomTypeModal = ({ pricing, onClose, onSave, isOpen, roomType }
         const currentDate = new Date();
         currentDate.setHours(0, 0, 0, 0);
 
-        if (formData.dayType !== 0 && (!formData.unitPrice || formData.unitPrice <= 0)) {
-            newErrors[`unitPrice`] = `Vui lòng chọn phần trăm tăng giá`;
+        if (formData.dayType !== 0) {
+            if (!formData.percentage && formData.percentage !== 0) {
+                newErrors[`percentage`] = `Vui lòng chọn phần trăm tăng giá`;
+            } else if (formData.percentage < 0 || formData.percentage > 100) {
+                newErrors[`percentage`] = `Vui lòng nhập trong khoảng 0-100%`;
+            }
         }
         if (formData.rentPrice <= 0) newErrors[`rentPrice`] = `Giá thuê phải lớn hơn 0 VNĐ`;
         if ((formData.unitPrice > formData.rentPrice) && formData.dayType === 0) {
@@ -247,9 +251,11 @@ const EditPricingRoomTypeModal = ({ pricing, onClose, onSave, isOpen, roomType }
                                                             value={formData.percentage}
                                                             onChange={(e) => {
                                                                 const selectedPercentage = Number(e.target.value);
-                                                                const newRentPrice = regularPrice + (regularPrice * (selectedPercentage / 100));
-                                                                handlePricingChange("percentage", selectedPercentage);
-                                                                handlePricingChange("rentPrice", newRentPrice);
+                                                                if (selectedPercentage >= 0 && selectedPercentage <= 100) {
+                                                                    const newRentPrice = Math.round(regularPrice + (regularPrice * (selectedPercentage / 100)));
+                                                                    handlePricingChange("percentage", selectedPercentage);
+                                                                    handlePricingChange("rentPrice", newRentPrice);
+                                                                }
                                                             }}
                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 appearance-none"
                                                         >

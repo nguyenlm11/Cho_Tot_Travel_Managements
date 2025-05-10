@@ -6,6 +6,7 @@ import axios from 'axios';
 import { API_CONFIG } from '../../services/config';
 import CountUp from 'react-countup';
 import { IoClose } from 'react-icons/io5';
+import adminAPI from '../../services/api/adminAPI';
 
 // Animation variants
 const pageVariants = {
@@ -115,16 +116,17 @@ const CustomerManagement = () => {
 
     const fetchCustomers = async () => {
         try {
-            const response = await axios.get(`${API_CONFIG.BASE_URL}/account/Get-all-accounts`);
+            const response = await adminAPI.getAllAccount()
             // Lọc chỉ lấy các tài khoản có role là Customer
-            const customerAccounts = response.data.filter(account =>
+            const customerAccounts = response.filter(account =>
                 !account.roles.includes('Owner') && !account.roles.includes('Admin') && !account.roles.includes('Staff')
             );
-            console.log(response.data);
+            // console.log(response);
 
             setCustomers(customerAccounts);
             setLoading(false);
         } catch (error) {
+            console.log(error);
             toast.error('Không thể tải danh sách khách hàng');
             setLoading(false);
         }

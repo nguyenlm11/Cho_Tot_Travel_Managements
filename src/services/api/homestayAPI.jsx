@@ -68,9 +68,9 @@ const homestayAPI = {
             return { error: 'Không thể lấy được danh sách' };
         }
     },
-    getAverageRatingForHomeStayByHomestayID: async (homeStayId ) => {
+    getAverageRatingForHomeStayByHomestayID: async (homeStayId) => {
         try {
-            const response = await axiosInstance.get(`/rating/GetAverageRating/${homeStayId }`);
+            const response = await axiosInstance.get(`/rating/GetAverageRating/${homeStayId}`);
             return response.data;
         } catch (error) {
             console.log(error);

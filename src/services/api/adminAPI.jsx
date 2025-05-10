@@ -64,15 +64,14 @@ const adminAPI = {
         }
     },
 
-    // Quản lý báo cáo và thống kê
-    getStatistics: async (startDate, endDate) => {
+    // Quản lý khách hàng
+    getAllAccount: async () => {
         try {
-            const response = await axiosInstance.get('/admin/statistics', {
-                params: { startDate, endDate }
-            });
+            const response = await axiosInstance.get('/account/Get-all-accounts');
             return response.data;
         } catch (error) {
-            throw error;
+            console.log(error);
+            return { error: 'Không thể lấy danh sách' };
         }
     },
 

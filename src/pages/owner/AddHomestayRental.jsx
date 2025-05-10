@@ -89,24 +89,24 @@ const AddHomestayRental = () => {
 
     const validateStep2 = () => {
         const newErrors = {};
-        if (formData.RentWhole) {
-            formData.pricingEntries.forEach((entry, index) => {
-                if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá phải lớn hơn 0 VNĐ`;
-                if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê phải lớn hơn 0 VNĐ`;
-                if (entry.unitPrice > entry.rentPrice) {
-                    newErrors[`unitPrice_${index}`] = `Đơn giá không được lớn hơn giá thuê`;
-                }
-                if (!entry.description.trim()) newErrors[`description_${index}`] = `Vui lòng nhập mô tả giá`;
+        // if (formData.RentWhole) {
+        formData.pricingEntries.forEach((entry, index) => {
+            if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá phải lớn hơn 0 VNĐ`;
+            if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê phải lớn hơn 0 VNĐ`;
+            if (entry.unitPrice > entry.rentPrice) {
+                newErrors[`unitPrice_${index}`] = `Đơn giá không được lớn hơn giá thuê`;
+            }
+            if (!entry.description.trim()) newErrors[`description_${index}`] = `Vui lòng nhập mô tả giá`;
 
-                if (parseInt(entry.dayType) === 2) {
-                    if (!entry.startDate) newErrors[`startDate_${index}`] = `Vui lòng chọn ngày bắt đầu`;
-                    if (!entry.endDate) newErrors[`endDate_${index}`] = `Vui lòng chọn ngày kết thúc`;
-                    if (entry.startDate && entry.endDate && new Date(entry.startDate) > new Date(entry.endDate)) {
-                        newErrors[`startDate_${index}`] = `Ngày bắt đầu không thể sau ngày kết thúc`;
-                    }
+            if (parseInt(entry.dayType) === 2) {
+                if (!entry.startDate) newErrors[`startDate_${index}`] = `Vui lòng chọn ngày bắt đầu`;
+                if (!entry.endDate) newErrors[`endDate_${index}`] = `Vui lòng chọn ngày kết thúc`;
+                if (entry.startDate && entry.endDate && new Date(entry.startDate) > new Date(entry.endDate)) {
+                    newErrors[`startDate_${index}`] = `Ngày bắt đầu không thể sau ngày kết thúc`;
                 }
-            });
-        }
+            }
+        });
+        // }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -223,11 +223,11 @@ const AddHomestayRental = () => {
                 }
                 return;
             }
-            if (formData.RentWhole) {
-                setStep(2);
-            } else {
-                setIsModalOpen(true);
-            }
+            // if (formData.RentWhole) {
+            setStep(2);
+            // } else {
+            //     setIsModalOpen(true);
+            // }
         } else if (step === 2) {
             if (!validateStep2()) {
                 return;
@@ -255,7 +255,7 @@ const AddHomestayRental = () => {
                 MaxChildren: formData.MaxChildren,
                 MaxPeople: formData.MaxPeople,
                 Images: formData.Images,
-                PricingJson: formData.RentWhole ? JSON.stringify(
+                PricingJson: JSON.stringify(
                     formData.pricingEntries.map(entry => ({
                         unitPrice: entry.unitPrice,
                         rentPrice: entry.rentPrice,
@@ -267,8 +267,10 @@ const AddHomestayRental = () => {
                         dayType: entry.dayType,
                         description: entry.description || ""
                     }))
-                ) : ""
+                )
             };
+            // console.log(rentalData);
+
             const response = await homestayRentalAPI.createHomestayRental(rentalData);
             if (response.statusCode === 201) {
                 toast.dismiss(loadingToast);
@@ -793,8 +795,13 @@ const AddHomestayRental = () => {
                                                                         <select
                                                                             value={entry.unitPrice}
                                                                             onChange={(e) => {
-                                                                                handlePricingChange(index, "unitPrice", e.target.value)
-                                                                                handlePricingChange(index, "rentPrice", e.target.value)
+                                                                                const selectedPercentage = Number(e.target.value);
+                                                                                if (selectedPercentage >= 0 && selectedPercentage <= 100) {
+                                                                                    handlePricingChange(index, "unitPrice", selectedPercentage);
+                                                                                    handlePricingChange(index, "rentPrice", selectedPercentage);
+                                                                                } else {
+                                                                                    toast.error('Vui lòng nhập trong khoảng từ 0-100%');
+                                                                                }
                                                                             }}
                                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 appearance-none"
                                                                         >
