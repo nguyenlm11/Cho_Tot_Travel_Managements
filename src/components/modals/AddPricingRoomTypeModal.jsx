@@ -99,10 +99,14 @@ const AddPricingRoomTypeModal = ({ onClose, onSave, isOpen, roomType }) => {
     const validateStep2 = () => {
         const newErrors = {};
         const currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0); // Reset time part to start of day
+        currentDate.setHours(0, 0, 0, 0);
 
-        if (formData.dayType !== 0 && (!formData.unitPrice || formData.unitPrice <= 0)) {
-            newErrors[`unitPrice`] = `Vui lòng chọn phần trăm tăng giá`;
+        if (formData.dayType !== 0) {
+            if (!formData.unitPrice && formData.unitPrice !== 0) {
+                newErrors[`unitPrice`] = `Vui lòng chọn phần trăm tăng giá`;
+            } else if (formData.unitPrice < 0 || formData.unitPrice > 100) {
+                newErrors[`unitPrice`] = `Vui lòng nhập trong khoảng 0-100%`;
+            }
         }
         if (formData.rentPrice <= 0) newErrors[`rentPrice`] = `Giá thuê phải lớn hơn 0 VNĐ`;
         if (formData.unitPrice > formData.rentPrice) {
@@ -190,10 +194,15 @@ const AddPricingRoomTypeModal = ({ onClose, onSave, isOpen, roomType }) => {
                                             <div className="relative">
                                                 <input
                                                     type='number'
+                                                    min={0}
+                                                    max={100}
                                                     value={formData.unitPrice}
                                                     onChange={(e) => {
-                                                        handlePricingChange("unitPrice", e.target.value)
-                                                        handlePricingChange("rentPrice", e.target.value)
+                                                        const selectedPercentage = Number(e.target.value);
+                                                        if (selectedPercentage >= 0 && selectedPercentage <= 100) {
+                                                            handlePricingChange("unitPrice", selectedPercentage);
+                                                            handlePricingChange("rentPrice", selectedPercentage);
+                                                        }
                                                     }}
                                                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 appearance-none"
                                                 />

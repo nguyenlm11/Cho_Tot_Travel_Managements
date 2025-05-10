@@ -223,7 +223,7 @@ const TransactionHistory = () => {
     };
 
     const totalTransactions = transactions.length;
-    const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.adminAmount, 0);
+    // const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.adminAmount, 0);
     // const totalAmount = transactions.reduce((sum, transaction) => {
     //     const amount = transaction.amount / 100;
     //     if (transaction.transactionKind === 2) {
@@ -507,7 +507,7 @@ const TransactionHistory = () => {
                                     <TableHeader label="Người thanh toán" sortKey="payerName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Loại giao dịch" sortKey="transactionKind" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Số tiền đơn" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Số tiền nhận" sortKey="amountOwner" sortConfig={sortConfig} onSort={handleSort} />
+                                    {/* <TableHeader label="Số tiền nhận" sortKey="amountOwner" sortConfig={sortConfig} onSort={handleSort} /> */}
                                     <TableHeader label="Phí hoa hồng" sortKey="amountAdmin" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Trạng thái" sortKey="status" sortConfig={sortConfig} onSort={handleSort} />
                                 </tr>
@@ -542,12 +542,12 @@ const TransactionHistory = () => {
                                                 {formatAmount(transaction.amount)}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <span className={getTransactionKindColor(transaction.transactionKind)}>
-                                                {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}
+                                                {formatAmount(transaction.amount, transaction.transactionKind)}
                                                 {formatAmount(transaction?.ownerAmount)}
                                             </span>
-                                        </td>
+                                        </td> */}
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <span className={getTransactionKindColor(transaction.transactionKind)}>
                                                 {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}

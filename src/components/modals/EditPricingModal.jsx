@@ -104,8 +104,12 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
         const currentDate = new Date();
         currentDate.setHours(0, 0, 0, 0);
 
-        if (formData.dayType !== 0 && (!formData.unitPrice || formData.unitPrice <= 0)) {
-            newErrors[`unitPrice`] = `Vui lòng chọn phần trăm tăng giá`;
+        if (formData.dayType !== 0) {
+            if (!formData.percentage && formData.percentage !== 0) {
+                newErrors[`percentage`] = `Vui lòng chọn phần trăm tăng giá`;
+            } else if (formData.percentage < 0 || formData.percentage > 100) {
+                newErrors[`percentage`] = `Vui lòng nhập trong khoảng 0-100%`;
+            }
         }
         if (formData.rentPrice <= 0) newErrors[`rentPrice`] = `Giá thuê phải lớn hơn 0 VNĐ`;
         if ((formData.unitPrice > formData.rentPrice) && formData.dayType === 0) {
@@ -242,16 +246,20 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
                                                     <div className="relative">
                                                         <input
                                                             type="number"
+                                                            min={0}
+                                                            max={100}
                                                             value={formData.percentage}
                                                             onChange={(e) => {
                                                                 const selectedPercentage = Number(e.target.value);
-                                                                const newRentPrice = regularPrice + (regularPrice * (selectedPercentage / 100));
-                                                                handlePricingChange("percentage", selectedPercentage);
-                                                                handlePricingChange("rentPrice", newRentPrice);
+                                                                if (selectedPercentage >= 0 && selectedPercentage <= 100) {
+                                                                    const newRentPrice = regularPrice + (regularPrice * (selectedPercentage / 100));
+                                                                    handlePricingChange("percentage", selectedPercentage);
+                                                                    handlePricingChange("rentPrice", newRentPrice);
+                                                                }
                                                             }}
                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-primary/50 appearance-none"
                                                         />
-                                                        <div className="pointer-events-none absolute inset-y-0 right-[455px] flex items-center px-2 text-gray-500">
+                                                        <div className="pointer-events-none absolute inset-y-0 right-[450px] flex items-center px-2 text-gray-500">
                                                             <FaPercent className="h-4 w-4" />
                                                         </div>
                                                     </div>

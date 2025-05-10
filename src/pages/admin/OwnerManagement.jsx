@@ -298,7 +298,7 @@ const OwnerManagement = () => {
                     handleSearch={handleSearch}
                     setActualSearchTerm={setActualSearchTerm}
                 />
-                <button
+                {/* <button
                     onClick={() => setIsModalOpen(true)}
                     className="px-6 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-all duration-200"
                 >
@@ -306,7 +306,7 @@ const OwnerManagement = () => {
                         <IoPersonAddSharp />
                         Thêm chủ nhà
                     </p>
-                </button>
+                </button> */}
             </motion.div>
 
             {/* Modal for Creating Owner */}

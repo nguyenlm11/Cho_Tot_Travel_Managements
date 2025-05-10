@@ -45,15 +45,23 @@ const EditPolicyModal = ({ onClose, isOpen, cancelPolicy, fetchHomestay }) => {
 
     const validateForm = () => {
         const newErrors = {};
+
+        // Validate dayBeforeCancel
         if (!formData.dayBeforeCancel) {
             newErrors.dayBeforeCancel = "Hủy trước là bắt buộc";
         }
+
+        // Validate refundPercentage
+        const percentage = Number(formData.refundPercentage);
         if (!formData.refundPercentage) {
             newErrors.refundPercentage = "Tỉ lệ hoàn trả là bắt buộc";
+        } else if (isNaN(percentage) || percentage < 80 || percentage > 100) {
+            newErrors.refundPercentage = "Tỉ lệ hoàn trả phải nằm trong khoảng 80-100%";
         }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }
+    };
 
     return (
         <AnimatePresence>
@@ -129,15 +137,15 @@ const EditPolicyModal = ({ onClose, isOpen, cancelPolicy, fetchHomestay }) => {
                                             <div className="relative">
                                                 <input
                                                     type='number'
-                                                    min={0}
+                                                    min={80}
+                                                    max={100}
                                                     value={formData.refundPercentage}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
-                                                        if (value >= 0) {
-                                                            setFormData({ ...formData, refundPercentage: value });
-                                                        }
+                                                        setFormData({ ...formData, refundPercentage: value });
                                                     }}
                                                     className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
+
                                                 >
 
                                                 </input>
