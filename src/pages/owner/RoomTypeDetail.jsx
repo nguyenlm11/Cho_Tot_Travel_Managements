@@ -112,7 +112,7 @@ const RoomTypeDetail = () => {
                     fetchRoomTypeDetail();
                 } else {
                     toast.error('Không thể cập nhật giá thuê: ' + res.message);
-                }
+                }   
             } catch (error) {
                 console.error('Error updating pricing:', error);
                 toast.error('Không thể cập nhật giá thuê: ' + error.message);
@@ -329,7 +329,7 @@ const RoomTypeDetail = () => {
                                                 <FaBed className="text-blue-500 dark:text-blue-300 w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-sm text-blue-700 dark:text-blue-300">Phòng ngủ</p>
+                                                <p className="text-sm text-blue-700 dark:text-blue-300">Giường ngủ</p>
                                                 <p className="text-lg font-bold text-blue-900 dark:text-blue-100">{roomTypeDetailData?.numberBedRoom}</p>
                                             </div>
                                         </motion.div>
@@ -582,7 +582,7 @@ const RoomTypeDetail = () => {
                                                 </div>
 
                                                 <div className='flex flex-col gap-2'>
-                                                    <div className="space-y-4">
+                                                    {/* <div className="space-y-4">
                                                         <div className="flex justify-between items-center">
                                                             <span className="text-gray-600 dark:text-gray-400">Đơn giá:</span>
                                                             <motion.span
@@ -592,7 +592,7 @@ const RoomTypeDetail = () => {
                                                                 {formatPrice(pricing?.unitPrice)}
                                                             </motion.span>
                                                         </div>
-                                                    </div>
+                                                    </div> */}
 
                                                     <div className="space-y-4">
                                                         <div className="flex justify-between items-center">

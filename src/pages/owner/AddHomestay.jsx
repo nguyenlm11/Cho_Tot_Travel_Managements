@@ -62,7 +62,7 @@ const AddHomestay = () => {
     MaxPeople: 2,
     Images: [],
     pricingEntries: [{
-      unitPrice: 0,
+      // unitPrice: 0,
       rentPrice: 0,
       startDate: "",
       endDate: "",
@@ -286,7 +286,7 @@ const AddHomestay = () => {
         Pricing: rentalData.pricingEntries[0],
         PricingJson: JSON.stringify(
           rentalData.pricingEntries.map(entry => ({
-            unitPrice: entry.unitPrice,
+            // unitPrice: entry.unitPrice,
             rentPrice: entry.rentPrice,
             isDefault: entry.isDefault,
             isActive: entry.isActive,
@@ -420,7 +420,8 @@ const AddHomestay = () => {
       const updatedPricingEntries = [...prev.pricingEntries];
       updatedPricingEntries[index] = {
         ...updatedPricingEntries[index],
-        [field]: field === "unitPrice" || field === "rentPrice" || field === "dayType" ? Number(value) : value
+        [field]: field === "rentPrice" || field === "dayType" ? Number(value) : value
+        // [field]: field === "unitPrice" || field === "rentPrice" || field === "dayType" ? Number(value) : value
       };
       return { ...prev, pricingEntries: updatedPricingEntries };
     });
@@ -454,9 +455,9 @@ const AddHomestay = () => {
   const validatePricingForm = () => {
     const newErrors = {};
     rentalData.pricingEntries.forEach((entry, index) => {
-      if (entry.unitPrice <= 0) {
-        newErrors[`unitPrice_${index}`] = 'Đơn giá phải lớn hơn 0';
-      }
+      // if (entry.unitPrice <= 0) {
+      //   newErrors[`unitPrice_${index}`] = 'Đơn giá phải lớn hơn 0';
+      // }
       if (entry.rentPrice <= 0) {
         newErrors[`rentPrice_${index}`] = 'Giá thuê phải lớn hơn 0';
       }
@@ -1087,7 +1088,7 @@ const AddHomestay = () => {
                 <div className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Unit Price */}
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         <FaMoneyBillWave className="inline mr-1 text-gray-400" />
                         Đơn giá <span className="text-red-500">*</span>
@@ -1113,7 +1114,7 @@ const AddHomestay = () => {
                           <FaInfoCircle className="mr-1" /> {errors[`unitPrice_${index}`]}
                         </p>
                       )}
-                    </div>
+                    </div> */}
 
                     {/* Rent Price */}
                     <div>

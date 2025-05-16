@@ -391,7 +391,7 @@ const ReportHomestay = () => {
     //     { label: 'Giao dịch thành công', value: successfulTransactions, color: 'bg-indigo-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
     //     { label: 'Đang xử lý', value: pendingTransactions, color: 'bg-yellow-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> }
     // ], [totalTransactions, totalAmount, successfulTransactions, pendingTransactions]);
-
+    const homestayName = localStorage.getItem('homestayName')
     return (
         <motion.div
             variants={pageVariants}
@@ -407,7 +407,7 @@ const ReportHomestay = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Báo cáo giao dịch Homestay
+                            Báo cáo giao dịch của {homestayName}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Xem và quản lý tất cả các giao dịch liên quan đến Homestay

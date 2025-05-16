@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { IoClose } from 'react-icons/io5';
 // import pricingAPI from '../../services/api/pricingAPI';
-import { FaCalendarAlt, FaDollarSign, FaEdit, FaInfoCircle, FaMoneyBillWave, FaTag, FaPercentage } from 'react-icons/fa';
+import { FaCalendarAlt, FaDollarSign, FaEdit, FaInfoCircle, FaMoneyBillWave, FaTag, FaPercentage, FaPlus } from 'react-icons/fa';
 import commissionRateAPI from '../../services/api/commissionRateAPI';
 
 
@@ -19,10 +19,11 @@ const AddCommissionRateModal = ({ onClose, isOpen, homeStayID, fetchHomestays })
     const handleSave = async (e) => {
         e.preventDefault();
 
-        const formatData = { ...formData, platformShare: formData.platformShare / 100, hostShare: (100 - formData.platformShare) / 100 }
+        const formatData = { ...formData, platformShare: Number(formData.platformShare)/100, hostShare: (100 - formData.platformShare)/100}
         if (!validateForm()) {
             return;
         }
+        // console.log(formatData);
         try {
             const response = await commissionRateAPI.addCommissionRate(formatData);
             if (response.statusCode === 201) {
@@ -39,7 +40,13 @@ const AddCommissionRateModal = ({ onClose, isOpen, homeStayID, fetchHomestays })
     const validateForm = () => {
         const newErrors = {};
         if (!formData.platformShare) {
-            newErrors.platformShare = "Tỉ lệ hoàn trả là bắt buộc";
+            newErrors.platformShare = "Tỉ lệ hoa hồng là bắt buộc";
+        }
+        const percentage = Number(formData.platformShare);
+        if (!formData.platformShare) {
+            newErrors.platformShare = "Tỉ lệ hoa hồng là bắt buộc";
+        } else if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+            newErrors.platformShare = "Tỉ lệ hoa hồng phải nằm trong khoảng 0-100%";
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -64,7 +71,7 @@ const AddCommissionRateModal = ({ onClose, isOpen, homeStayID, fetchHomestays })
                     >
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                Thêm tỉ lệ ăn chia
+                                Thêm tỉ lệ hoa hồng
                             </h2>
                             <button
                                 onClick={onClose}
@@ -88,18 +95,16 @@ const AddCommissionRateModal = ({ onClose, isOpen, homeStayID, fetchHomestays })
                                                 Tỉ lệ hoa hồng của Admin (%) <span className="text-red-500">*</span>
                                             </label>
                                             <div className="relative">
-                                                <select
+                                                <input
+                                                    type='number'
+                                                    min={0}
+                                                    max={100}
                                                     value={formData.platformShare}
                                                     onChange={(e) => setFormData({ ...formData, platformShare: e.target.value })}
                                                     className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                 >
-                                                    <option value="">Chọn phần trăm</option>
-                                                    {[10, 20, 30, 40, 50].map((percent) => (
-                                                        <option key={percent} value={percent}>
-                                                            {percent}%
-                                                        </option>
-                                                    ))}
-                                                </select>
+
+                                                </input>
                                                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                                                     <FaPercentage />
                                                 </span>
@@ -119,7 +124,7 @@ const AddCommissionRateModal = ({ onClose, isOpen, homeStayID, fetchHomestays })
                                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors
                        flex items-center gap-2"
                                 >
-                                    <FaEdit className="w-4 h-4" />
+                                    <FaPlus className="w-4 h-4" />
                                     Thêm
                                 </button>
                             </div>

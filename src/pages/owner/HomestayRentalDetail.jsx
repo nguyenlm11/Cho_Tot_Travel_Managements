@@ -478,7 +478,7 @@ const HomestayRentalDetail = () => {
                                                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Mô tả</h2>
                                                         <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
                                                             <FaRegClock className="mr-1" />
-                                                            Cập nhật: {formatDate(rental?.updateAt !== "0001-01-01T00:00:00" ? rental?.updateAt : rental?.createAt)}
+                                                            Cập nhật: {formatDate(rental?.updateAt !== "0001-01-01T00:00:00.000" ? rental?.updateAt : rental?.createAt)}
                                                         </span>
                                                     </div>
                                                     <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg">
@@ -701,7 +701,7 @@ const HomestayRentalDetail = () => {
                                                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                                                                                 <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
                                                                                     <FaBed className="text-primary" />
-                                                                                    <span>{roomType.numberBedRoom} phòng</span>
+                                                                                    <span>{roomType.numberBedRoom} giường</span>
                                                                                 </div>
                                                                                 <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
                                                                                     <FaBath className="text-primary" />
@@ -1052,7 +1052,7 @@ const HomestayRentalDetail = () => {
                                             </div>
 
                                             <div className='flex flex-col gap-4'>
-                                                <div className="flex justify-between items-center">
+                                                {/* <div className="flex justify-between items-center">
                                                     <span className="text-gray-600 dark:text-gray-400">Đơn giá:</span>
                                                     <motion.span
                                                         whileHover={{ scale: 1.05 }}
@@ -1060,7 +1060,7 @@ const HomestayRentalDetail = () => {
                                                     >
                                                         {formatPrice(pricing?.unitPrice)}
                                                     </motion.span>
-                                                </div>
+                                                </div> */}
 
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-gray-600 dark:text-gray-400">Giá thuê:</span>

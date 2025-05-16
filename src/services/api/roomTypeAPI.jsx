@@ -26,7 +26,7 @@ const roomTypeAPI = {
 
             formData.append('Name', roomTypeData.Name);
             formData.append('Description', roomTypeData.Description);
-            formData.append('numberBedRoom', roomTypeData.numberBedRoom);
+            formData.append('numberBed', roomTypeData.numberBed);
             formData.append('numberBathRoom', roomTypeData.numberBathRoom);
             formData.append('numberWifi', roomTypeData.numberWifi);
             formData.append('Status', roomTypeData.Status);

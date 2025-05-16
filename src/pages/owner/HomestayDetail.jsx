@@ -4,7 +4,8 @@ import {
     FaMapMarkerAlt, FaStar, FaBed, FaShower, FaWifi, FaParking, FaSwimmingPool, FaUtensils,
     FaEdit, FaChartLine, FaCalendarAlt, FaImages, FaChevronLeft, FaChevronRight, FaRegClock,
     FaClock,
-    FaTag
+    FaTag,
+    FaCheck
 } from 'react-icons/fa';
 import { HiOutlineReceiptRefund } from "react-icons/hi";
 import { IoPricetag } from 'react-icons/io5';
@@ -17,6 +18,7 @@ import AddpolicyModal from '../../components/modals/AddPolicyModal';
 import EditPolicyModal from '../../components/modals/EditPolicyModal';
 import toast, { Toaster } from 'react-hot-toast';
 import CountUp from 'react-countup';
+import AcceptCommissionRateByOwnerModal from '../../components/modals/AcceptCommissionRateByOwnerModal';
 
 const HomestayDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0);
@@ -29,6 +31,7 @@ const HomestayDetail = () => {
     const [isAddPolicyModalOpen, setIsAddPolicyModalOpen] = useState(false);
     const [isEditPolicyModalOpen, setIsEditPolicyModalOpen] = useState(false);
     const user = JSON.parse(localStorage.getItem('userInfo'));
+    const [isAcceptCommissionRateModalOpen, setIsAcceptCommissionRateModalOpen] = useState(false);
 
     useEffect(() => {
         if (id)
@@ -182,6 +185,9 @@ const HomestayDetail = () => {
     const handleViewDashboard = () => {
         navigate(`/owner/homestays/${homestayData?.homeStayID}/reports`);
     }
+    // const handleAcceptCommissionRate = async () => {
+    //     console.log(); 
+    // }
 
     if (!homestay) {
         return (
@@ -383,31 +389,7 @@ const HomestayDetail = () => {
                             </p>
 
                         </motion.div>)}
-                        {/* Amenities */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
-                        >
-                            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
-                                Tiện nghi
-                            </h2>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                {homestay.amenities.map((amenity, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center gap-3 text-gray-600 dark:text-gray-300"
-                                    >
-                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center 
-                                            justify-center text-primary">
-                                            {amenity.icon}
-                                        </div>
-                                        <span>{amenity.name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
                     </div>
-
                     {/* Right Column - Quick Actions */}
                     <motion.div
                         variants={itemVariants}
@@ -447,18 +429,41 @@ const HomestayDetail = () => {
                                     Xem dịch vụ
                                 </button>
                                 {user?.role === "Owner" && (
-                                    <button
-                                        onClick={() => homestayData?.cancelPolicy ? setIsEditPolicyModalOpen(true) : setIsAddPolicyModalOpen(true)}
-                                        className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
+                                    <>
+                                        <button
+                                            onClick={() => homestayData?.cancelPolicy ? setIsEditPolicyModalOpen(true) : setIsAddPolicyModalOpen(true)}
+                                            className="w-full py-3 px-4 bg-primary/10 text-primary rounded-lg
                                     font-medium hover:bg-primary/20 transition-colors flex items-center gap-2">
-                                        <HiOutlineReceiptRefund />
-                                        {homestayData?.cancelPolicy ? "Cập nhật chính sách hoàn trả" : "Thêm chính sách hoàn trả"}
-                                    </button>
+                                            <HiOutlineReceiptRefund />
+                                            {homestayData?.cancelPolicy ? "Cập nhật chính sách hoàn trả" : "Thêm chính sách hoàn trả"}
+                                        </button>
+                                        {!(homestayData?.commissionRate?.isAccepted == true && (homestayData?.commissionRate?.ownerAccepted == homestayData?.commissionRate?.isAccepted)) && (
+                                            <button
+                                                onClick={() => {
+                                                    setIsAcceptCommissionRateModalOpen(true)
+                                                }}
+                                                className="w-full py-3 px-4 bg-red-600 text-white rounded-lg
+                                font-medium hover:bg-red-800 transition-colors flex items-center gap-2">
+                                                <FaCheck />
+                                                Xác nhận tỉ lệ hoa hồng
+                                            </button>
+                                        )}
+                                    </>
                                 )}
+
+
                             </div>
                         </div>
                     </motion.div>
                 </div>
+                {isAcceptCommissionRateModalOpen && (
+                    <AcceptCommissionRateByOwnerModal
+                        isOpen={isAcceptCommissionRateModalOpen}
+                        onClose={() => setIsAcceptCommissionRateModalOpen(false)}
+                        homeStayID={homestayData?.homeStayID}
+                        fetchHomestays={fectchHomestayDetail}
+                    />
+                )}
             </div>
 
             {/* Gallery Modal */}

@@ -372,7 +372,7 @@ const RatingList = () => {
     // useEffect(() => {
     //     console.log("Rating API Data:", ratingApi);
     // }, [ratingApi]);
-
+    const homestayName = localStorage.getItem('homestayName')
     return (
         <motion.div
             variants={pageVariants}
@@ -389,7 +389,7 @@ const RatingList = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Đánh giá từ khách hàng
+                            Đánh giá từ khách hàng về {homestayName}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Quản lý đánh giá và phản hồi khách hàng

@@ -235,6 +235,7 @@ export default function AdminHomestay() {
             toast.success(`${newStatus === 1 ? 'Kích hoạt' : 'Dừng hoạt động'} homestay thành công`);
             await fetchHomeStays();
         } catch (error) {
+            console.log(error);
             toast.error('Không thể cập nhật trạng thái homestay');
         } finally {
             setConfirmModal({ isOpen: false, type: '', homestayId: null, currentStatus: null });

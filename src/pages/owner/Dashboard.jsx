@@ -11,6 +11,7 @@ import { HiMiniReceiptRefund } from "react-icons/hi2";
 import WeekSelectorModal from '../../components/modals/WeekSelectorModal';
 import YearSelectorModal from '../../components/modals/YearSelectorModal';
 import { getWeekdaysFromRange } from '../../utils/utils';
+import homestayAPI from '../../services/api/homestayAPI';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 
@@ -154,48 +155,21 @@ const Dashboard = () => {
         }
     };
 
-    // const statsCards = [
-    //     {
-    //         title: 'Tổng doanh thu',
-    //         value: 550000000,
-    //         suffix: 'đ',
-    //         icon: <FaMoneyBillWave className="w-6 h-6" />,
-    //         color: 'from-green-400 to-green-600'
-    //     },
-    //     {
-    //         title: 'Tổng đặt phòng',
-    //         value: 128,
-    //         icon: <FaCalendarCheck className="w-6 h-6" />,
-    //         color: 'from-blue-400 to-blue-600'
-    //     },
-    //     {
-    //         title: 'Tổng khách hàng',
-    //         value: 85,
-    //         icon: <FaUsers className="w-6 h-6" />,
-    //         color: 'from-purple-400 to-purple-600'
-    //     },
-    //     {
-    //         title: 'Tỷ lệ lấp đầy',
-    //         value: 75,
-    //         suffix: '%',
-    //         icon: <FaBed className="w-6 h-6" />,
-    //         color: 'from-orange-400 to-orange-600'
-    //     }
-    // ];
+    //API để gọi lấy name homestay
 
-    // Chart data cho doanh thu tuần
-    // const weeklyRevenueData = {
-    //     labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
-    //     datasets: [{
-    //         label: 'Doanh thu (triệu VNĐ)',
-    //         data: [15, 18, 22, 25, 30, 35, 28],
-    //         backgroundColor: 'rgba(54, 162, 235, 0.8)',
-    //         borderColor: 'rgba(54, 162, 235, 1)',
-    //         borderWidth: 2,
-    //         tension: 0.4,
-    //         fill: true
-    //     }]
-    // };
+    useEffect(() => {
+        fetchHomestayByIdForName();
+        // console.log(homestayName);
+    }, [])
+    const fetchHomestayByIdForName = async () => {
+        const respone = await homestayAPI.getHomestaysById(homestayId);
+        if (respone?.statusCode === 200) {
+            const homestayName = respone?.data?.name
+            localStorage.setItem("homestayName", homestayName)
+        }
+    }
+    const homestayName = localStorage.getItem('homestayName')
+
 
     // Chart data cho thống kê dịch vụ
     const [serviceData, setServiceData] = useState({
@@ -544,6 +518,11 @@ const Dashboard = () => {
             className="w-full bg-gray-50 dark:bg-gray-900"
         >
             <div className="space-y-6">
+                <div className="flex justify-between items-center mb-6 ml-2 pt-6">
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+                        Trang quản lý doanh thu của {homestayName}
+                    </h1>
+                </div>
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {staticBooking.map((stat, index) => (
