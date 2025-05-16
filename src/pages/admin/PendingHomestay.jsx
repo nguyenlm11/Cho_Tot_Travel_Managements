@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock, FaPlus, FaEdit } from 'react-icons/fa';
 import { TbHomePlus } from "react-icons/tb";
 import { IoClose } from 'react-icons/io5';
 import { toast, Toaster } from 'react-hot-toast';
 import adminAPI from '../../services/api/adminAPI';
 import AddCommissionRateModal from '../../components/modals/AddCommissionRateModal';
 import { BsThreeDots } from 'react-icons/bs';
+import EditCommissionRateByAdminModal from '../../components/modals/EditCommissionRateByAdminModal';
 
 const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
     const searchInputRef = useRef(null);
@@ -96,6 +97,7 @@ export default function PendingHomestay() {
     const [isAddCommissionRateModalOpen, setIsAddCommissionRateModalOpen] = useState(false);
     const [openDropdownId, setOpenDropdownId] = useState(null);
     const [homestayIdSelected, setHomestayIdSelected] = useState(null);
+    const [isEditCommissionRateModalOpen, setIsEditCommissionRateModalOpen] = useState(false)
 
     useEffect(() => {
         fetchHomeStays();
@@ -435,9 +437,9 @@ export default function PendingHomestay() {
                                                 </button>
 
                                                 {openDropdownId === homeStay?.homeStayID && (
-                                                    <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 dropdown-menu z-50">
+                                                    <div className="absolute top-0 right-5 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 dropdown-menu">
                                                         <div className="py-1">
-                                                            {homeStay?.commissionRateID ? (
+                                                            {(homeStay?.commissionRate?.isAccepted == true && homeStay?.commissionRate?.ownerAccepted == true) ? (
                                                                 <>
                                                                     <button
                                                                         onClick={() => {
@@ -460,23 +462,38 @@ export default function PendingHomestay() {
                                                                         <FaTimes className="w-4 h-4 text-red-500" />
                                                                         Từ chối
                                                                     </button>
+
                                                                 </>
                                                             ) : (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setIsAddCommissionRateModalOpen(true)
-                                                                        setHomestayIdSelected(homeStay?.homeStayID)
+                                                                <>
+                                                                    {((homeStay?.commissionRate?.hostShare === 0 && homeStay?.commissionRate?.platformShare === 0) || (homeStay?.commissionRate == null)) && (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setIsAddCommissionRateModalOpen(true);
+                                                                                setHomestayIdSelected(homeStay?.homeStayID);
+                                                                            }}
+                                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                        >
+                                                                            <FaPlus className="w-4 h-4 text-green-500" />
+                                                                            Thêm tỉ lệ hoa hồng
+                                                                        </button>
+                                                                    )}
+                                                                </>
+                                                            )}
 
+                                                            {((homeStay?.commissionRate?.ownerAccepted == null || homeStay?.commissionRate?.ownerAccepted == false) && (homeStay?.commissionRate?.isAccepted == true || homeStay?.commissionRate?.isAccepted == false)) && (
+                                                                <button
+                                                                    key={index}
+                                                                    onClick={() => {
+                                                                        setIsEditCommissionRateModalOpen(true);
+                                                                        setHomestayIdSelected(homeStay?.homeStayID);
                                                                     }}
                                                                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                                                                 >
-                                                                    <FaPlus className="w-4 h-4 text-green-500" />
-                                                                    Thêm tỉ lệ ăn chia
+                                                                    <FaEdit className="w-4 h-4 text-green-500" />
+                                                                    Cập nhật tỉ lệ hoa hồng
                                                                 </button>
                                                             )}
-
-
-
                                                         </div>
                                                     </div>
                                                 )}
@@ -594,6 +611,17 @@ export default function PendingHomestay() {
                     <AddCommissionRateModal
                         isOpen={isAddCommissionRateModalOpen}
                         onClose={() => setIsAddCommissionRateModalOpen(false)}
+                        homeStayID={homestayIdSelected}
+                        fetchHomestays={fetchHomeStays}
+                    />
+                )
+            }
+            {
+                isEditCommissionRateModalOpen && (
+                    <EditCommissionRateByAdminModal
+                        isOpen={isEditCommissionRateModalOpen}
+                        onClose={() => setIsEditCommissionRateModalOpen(false)}
+                        commissionRateID={currentItems?.commissionRateID}
                         homeStayID={homestayIdSelected}
                         fetchHomestays={fetchHomeStays}
                     />

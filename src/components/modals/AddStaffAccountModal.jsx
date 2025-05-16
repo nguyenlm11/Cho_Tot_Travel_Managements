@@ -167,7 +167,7 @@ export const AddStaffAccountModal = ({ fetchStaffs, isOpen, onClose }) => {
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">Chọn Homestay</option>
-                  {homestays?.map((homestay) => (
+                  {homestays?.filter((homestay) => homestay?.staffID === null)?.map((homestay) => (
                     <option key={homestay.homeStayID} value={homestay.homeStayID}>
                       {homestay.name}
                     </option>

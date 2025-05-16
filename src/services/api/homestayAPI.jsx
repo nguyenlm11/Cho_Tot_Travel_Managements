@@ -47,7 +47,7 @@ const homestayAPI = {
             return response.data;
         } catch (error) {
             console.log(error);
-            throw error;
+            return error;
         }
     },
     getTotalBookingsAndAmountForHomeStayByHomestayID: async (homeStayID) => {
@@ -168,7 +168,7 @@ const homestayAPI = {
             console.error('Error fetching customers:', error);
             throw error;
         }
-    }
+    },
 };
 
 

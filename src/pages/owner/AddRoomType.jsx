@@ -36,7 +36,7 @@ const AddRoomType = () => {
         Name: '',
         Description: '',
         homeStayRentalId: parseInt(rentalId),
-        numberBedRoom: 1,
+        numberBed: 1,
         numberBathRoom: 1,
         numberWifi: 1,
         Status: true,
@@ -81,8 +81,8 @@ const AddRoomType = () => {
         if (!formData.Description.trim()) {
             newErrors.Description = 'Mô tả là bắt buộc';
         }
-        if (formData.numberBedRoom < 0) {
-            newErrors.numberBedRoom = 'Số giường không thể là số âm';
+        if (formData.numberBed < 0) {
+            newErrors.numberBed = 'Số giường không thể là số âm';
         }
         if (formData.numberBathRoom < 0) {
             newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
@@ -172,11 +172,11 @@ const AddRoomType = () => {
     const validateStep2 = () => {
         const newErrors = {};
         formData.pricingEntries.forEach((entry, index) => {
-            if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá phải lớn hơn 0 VNĐ`;
-            if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê phải lớn hơn 0 VNĐ`;
-            if (entry.unitPrice > entry.rentPrice) {
-                newErrors[`unitPrice_${index}`] = `Đơn giá không được lớn hơn giá thuê`;
-            }
+            // if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá phải lớn hơn 0 VNĐ`;
+            // if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê phải lớn hơn 0 VNĐ`;
+            // if (entry.unitPrice > entry.rentPrice) {
+            //     newErrors[`unitPrice_${index}`] = `Đơn giá không được lớn hơn giá thuê`;
+            // }
             if (!entry.description.trim()) newErrors[`description_${index}`] = `Vui lòng nhập mô tả giá`;
         });
         setErrors(newErrors);
@@ -247,7 +247,7 @@ const AddRoomType = () => {
             const roomTypeData = {
                 Name: formData.Name,
                 Description: formData.Description,
-                numberBedRoom: formData.numberBedRoom,
+                numberBed: formData.numberBed,
                 numberBathRoom: formData.numberBathRoom,
                 numberWifi: formData.numberWifi,
                 Status: formData.Status,
@@ -258,7 +258,7 @@ const AddRoomType = () => {
                 Images: formData.Images,
                 PricingJson: JSON.stringify(
                     formData.pricingEntries.map(entry => ({
-                        unitPrice: entry.unitPrice,
+                        // unitPrice: entry.unitPrice,
                         rentPrice: entry.rentPrice,
                         startDate: entry.startDate || null,
                         endDate: entry.endDate || null,
@@ -269,6 +269,7 @@ const AddRoomType = () => {
                     }))
                 )
             };
+            console.log(roomTypeData);
 
             const response = await roomTypeAPI.createRoomType(roomTypeData, rentalId);
             if (response.statusCode === 201) {
@@ -428,16 +429,16 @@ const AddRoomType = () => {
                                                         </label>
                                                         <input
                                                             type="number"
-                                                            name="numberBedRoom"
-                                                            value={formData.numberBedRoom}
+                                                            name="numberBed"
+                                                            value={formData.numberBed}
                                                             onChange={handleInputChange}
                                                             min="0"
                                                             max="50"
                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                         />
-                                                        {errors.numberBedRoom && (
+                                                        {errors.numberBed && (
                                                             <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                                <FaInfoCircle className="mr-1" /> {errors.numberBedRoom}
+                                                                <FaInfoCircle className="mr-1" /> {errors.numberBed}
                                                             </p>
                                                         )}
                                                     </div>
@@ -666,7 +667,7 @@ const AddRoomType = () => {
                                                         {/* Unit Price */}
 
 
-                                                        <div>
+                                                        {/* <div>
                                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                                 Đơn giá <span className="text-red-500">*</span>
                                                             </label>
@@ -689,7 +690,7 @@ const AddRoomType = () => {
                                                             {errors[`unitPrice_${index}`] && (
                                                                 <p className="mt-1 text-sm text-red-500">{errors[`unitPrice_${index}`]}</p>
                                                             )}
-                                                        </div>
+                                                        </div> */}
 
 
 

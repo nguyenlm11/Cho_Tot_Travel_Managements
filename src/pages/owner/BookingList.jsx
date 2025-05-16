@@ -641,7 +641,7 @@ const BookingList = () => {
         { label: 'Đã xác nhận', value: bookings.filter(b => b.status === BookingStatus.Confirmed).length, color: 'bg-indigo-500', icon: <FaCheck className="w-6 h-6" /> },
         { label: 'Chờ xác nhận', value: bookings.filter(b => b.status === BookingStatus.Pending).length, color: 'bg-yellow-500', icon: <FaCalendarAlt className="w-6 h-6" /> }
     ], [bookings]);
-
+    const homestayName = localStorage.getItem('homestayName')
     return (
         <motion.div
             variants={pageVariants}
@@ -659,7 +659,7 @@ const BookingList = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Quản lý đặt phòng
+                            Quản lý đặt phòng {homestayName}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Quản lý tất cả các đặt phòng của khách hàng

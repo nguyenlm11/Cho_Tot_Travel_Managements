@@ -182,7 +182,7 @@ const EditPricingRoomTypeModal = ({ pricing, onClose, onSave, isOpen, roomType }
                                         {/* Unit Price */}
                                         {pricing?.dayType === 0 ? (
                                             <>
-                                                <div>
+                                                {/* <div>
                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                         <FaMoneyBillWave className="inline mr-1 text-gray-400" />
                                                         Đơn giá <span className="text-red-500">*</span>
@@ -208,7 +208,7 @@ const EditPricingRoomTypeModal = ({ pricing, onClose, onSave, isOpen, roomType }
                                                             <FaInfoCircle className="mr-1" /> {errors[`unitPrice`]}
                                                         </p>
                                                     )}
-                                                </div>
+                                                </div> */}
 
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -261,7 +261,7 @@ const EditPricingRoomTypeModal = ({ pricing, onClose, onSave, isOpen, roomType }
                                                         >
 
                                                         </input>
-                                                        <div className="pointer-events-none absolute inset-y-0 right-[455px] flex items-center px-2 text-gray-500">
+                                                        <div className="pointer-events-none absolute inset-y-0 right-[430px] flex items-center px-2 text-gray-500">
                                                             <FaPercent className="h-4 w-4" />
                                                         </div>
                                                     </div>

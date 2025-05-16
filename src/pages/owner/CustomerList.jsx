@@ -246,7 +246,7 @@ const CustomerList = () => {
             </div>
         );
     }
-
+    const homestayName = localStorage.getItem('homestayName')
     return (
         <motion.div
             variants={pageVariants}
@@ -263,7 +263,7 @@ const CustomerList = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Danh sách khách hàng
+                            Danh sách khách hàng của {homestayName}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Quản lý tất cả các khách hàng của bạn tại đây

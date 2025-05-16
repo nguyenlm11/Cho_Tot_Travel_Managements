@@ -129,6 +129,7 @@ export const StaffList = () => {
 
     useEffect(() => {
         fetchStaffs();
+
     }, []);
 
     const fetchStaffs = async () => {
@@ -140,7 +141,9 @@ export const StaffList = () => {
             }
             // Thay thế bằng API call thực tế của bạn
             const response = await staffAPI.getAllStaffsByOwner(userInfo.AccountID);
-            setStaffs(response.data);
+            setStaffs(response?.data);
+            console.log(response?.data);
+
             // setLoading(false);
         } catch (error) {
             console.error("Error fetching staffs:", error);
@@ -303,6 +306,7 @@ export const StaffList = () => {
                                 <TableHeader label="Email" sortKey="email" />
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
+                                <TableHeader label="Quản lý căn" />
                                 <th className="px-6 py-3 text-left">Thao tác</th>
                             </tr>
                         </thead>
@@ -339,6 +343,11 @@ export const StaffList = () => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-gray-500 dark:text-gray-400">
                                                 {staff.address}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                {staff?.homeStay?.name}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

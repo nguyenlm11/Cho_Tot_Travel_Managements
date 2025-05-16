@@ -180,7 +180,7 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
                                         {/* Unit Price */}
                                         {pricing?.dayType === 0 ? (
                                             <>
-                                                <div>
+                                                {/* <div>
                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                         <FaMoneyBillWave className="inline mr-1 text-gray-400" />
                                                         Đơn giá <span className="text-red-500">*</span>
@@ -206,7 +206,7 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
                                                             <FaInfoCircle className="mr-1" /> {errors[`unitPrice`]}
                                                         </p>
                                                     )}
-                                                </div>
+                                                </div> */}
 
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -259,7 +259,7 @@ const EditPricingModal = ({ pricing, onClose, onSave, isOpen, rental }) => {
                                                             }}
                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-primary/50 appearance-none"
                                                         />
-                                                        <div className="pointer-events-none absolute inset-y-0 right-[450px] flex items-center px-2 text-gray-500">
+                                                        <div className="pointer-events-none absolute inset-y-0 right-[430px] flex items-center px-2 text-gray-500">
                                                             <FaPercent className="h-4 w-4" />
                                                         </div>
                                                     </div>

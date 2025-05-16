@@ -91,11 +91,11 @@ const AddHomestayRental = () => {
         const newErrors = {};
         // if (formData.RentWhole) {
         formData.pricingEntries.forEach((entry, index) => {
-            if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá phải lớn hơn 0 VNĐ`;
-            if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê phải lớn hơn 0 VNĐ`;
-            if (entry.unitPrice > entry.rentPrice) {
-                newErrors[`unitPrice_${index}`] = `Đơn giá không được lớn hơn giá thuê`;
-            }
+            // if (entry.unitPrice <= 0) newErrors[`unitPrice_${index}`] = `Đơn giá phải lớn hơn 0 VNĐ`;
+            // if (entry.rentPrice <= 0) newErrors[`rentPrice_${index}`] = `Giá thuê phải lớn hơn 0 VNĐ`;
+            // if (entry.unitPrice > entry.rentPrice) {
+            //     newErrors[`unitPrice_${index}`] = `Đơn giá không được lớn hơn giá thuê`;
+            // }
             if (!entry.description.trim()) newErrors[`description_${index}`] = `Vui lòng nhập mô tả giá`;
 
             if (parseInt(entry.dayType) === 2) {
@@ -257,7 +257,7 @@ const AddHomestayRental = () => {
                 Images: formData.Images,
                 PricingJson: JSON.stringify(
                     formData.pricingEntries.map(entry => ({
-                        unitPrice: entry.unitPrice,
+                        // unitPrice: entry.unitPrice,
                         rentPrice: entry.rentPrice,
                         startDate: entry.startDate || null,
                         endDate: entry.endDate || null,
@@ -274,14 +274,14 @@ const AddHomestayRental = () => {
             const response = await homestayRentalAPI.createHomestayRental(rentalData);
             if (response.statusCode === 201) {
                 toast.dismiss(loadingToast);
-                toast.success('Thêm phòng thuê thành công!');
+                toast.success('Thêm căn thuê thành công!');
                 navigate(`/owner/homestays/${homestayId}/homestay-rental`);
             } else {
-                throw new Error(response.message || "Thêm phòng thuê thất bại");
+                throw new Error(response.message || "Thêm căn thuê thất bại");
             }
         } catch (error) {
             toast.dismiss(loadingToast);
-            toast.error(error.message || 'Có lỗi xảy ra khi thêm phòng thuê');
+            toast.error(error.message || 'Có lỗi xảy ra khi thêm căn thuê');
         } finally {
             setLoading(false);
         }
@@ -327,8 +327,8 @@ const AddHomestayRental = () => {
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">
                         {step === 1 ?
-                            'Nhập thông tin cơ bản về phòng thuê của bạn.' :
-                            'Thiết lập giá cho phòng thuê của bạn.'}
+                            'Nhập thông tin cơ bản về căn thuê của bạn.' :
+                            'Thiết lập giá cho căn thuê của bạn.'}
                     </p>
                 </div>
             </div>
@@ -726,7 +726,7 @@ const AddHomestayRental = () => {
                                                         {/* Unit Price */}
                                                         {entry.dayType === 0 ? (
                                                             <>
-                                                                <div>
+                                                                {/* <div>
                                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                                         <FaMoneyBillWave className="inline mr-1 text-gray-400" />
                                                                         Đơn giá <span className="text-red-500">*</span>
@@ -752,7 +752,7 @@ const AddHomestayRental = () => {
                                                                             <FaInfoCircle className="mr-1" /> {errors[`unitPrice_${index}`]}
                                                                         </p>
                                                                     )}
-                                                                </div>
+                                                                </div> */}
 
                                                                 <div>
                                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

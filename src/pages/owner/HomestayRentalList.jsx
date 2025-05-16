@@ -474,7 +474,7 @@ const HomestayRentalList = () => {
             icon: <FaBed className="w-6 h-6" />
         }
     ];
-
+    const homestayName = localStorage.getItem('homestayName')
     return (
         <>
             <Toaster />
@@ -491,14 +491,18 @@ const HomestayRentalList = () => {
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8"
                 >
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+
                         <div>
                             <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                                Danh sách căn thuê
+                                Danh sách căn thuê của {homestayName}
+
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
                                 Quản lý tất cả các căn thuê của bạn tại đây
                             </p>
                         </div>
+
+
                         {user?.role === "Owner" && (
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
