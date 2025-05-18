@@ -74,7 +74,16 @@ const roomTypeAPI = {
         } catch (error) {
             throw error;
         }
-    }
+    },
+    getRoomsByHomestayRentalID: async (homestayRentalID, startDate = null, endDate = null) => {
+        try {
+            const response = await axiosInstance.get(`/rooms/FilterAllRoomsByHomeStayRental?homeStayRentalID=${homestayRentalID}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate} ` : ''}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },
 };
 
 export default roomTypeAPI; 

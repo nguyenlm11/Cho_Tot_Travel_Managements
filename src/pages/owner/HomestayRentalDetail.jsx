@@ -978,6 +978,16 @@ const HomestayRentalDetail = () => {
                                                     variants={buttonVariants}
                                                     whileHover="hover"
                                                     whileTap="tap"
+                                                    onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomRental`)}
+                                                    className="w-full py-3 bg-orange-400 hover:bg-orange-500 text-white rounded-lg flex items-center justify-center"
+                                                >
+                                                    <FaHome className="mr-2" /> Danh sách phòng
+                                                </motion.button>
+
+                                                <motion.button
+                                                    variants={buttonVariants}
+                                                    whileHover="hover"
+                                                    whileTap="tap"
                                                     onClick={() => setShowDeleteModal(true)}
                                                     className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center"
                                                 >
