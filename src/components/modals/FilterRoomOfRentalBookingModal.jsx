@@ -78,9 +78,9 @@ const FilterRoomOfRentalBookingModal = ({ onClose, onSave, isOpen }) => {
         // if (formData.startDate && new Date(formData.startDate) < currentDate) {
         //     newErrors[`startDate`] = `Ngày bắt đầu không thể là ngày trong quá khứ`;
         // }
-        if (formData.endDate && new Date(formData.endDate) < currentDate) {
-            newErrors[`endDate`] = `Ngày kết thúc không thể là ngày trong quá khứ`;
-        }
+        // if (formData.endDate && new Date(formData.endDate) < currentDate) {
+        //     newErrors[`endDate`] = `Ngày kết thúc không thể là ngày trong quá khứ`;
+        // }
         if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
             newErrors[`startDate`] = `Ngày bắt đầu không thể sau ngày kết thúc`;
         }
