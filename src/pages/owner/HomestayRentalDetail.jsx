@@ -701,7 +701,7 @@ const HomestayRentalDetail = () => {
                                                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                                                                                 <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
                                                                                     <FaBed className="text-primary" />
-                                                                                    <span>{roomType.numberBedRoom} giường</span>
+                                                                                    <span>{roomType?.numberBedRoom} giường</span>
                                                                                 </div>
                                                                                 <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
                                                                                     <FaBath className="text-primary" />

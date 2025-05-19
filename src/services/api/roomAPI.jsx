@@ -46,9 +46,9 @@ const roomAPI = {
             throw error;
         }
     },
-    getBookingsByRoomID: async (roomId) => {
+    getBookingsByRoomID: async (roomId, startDate = null, endDate = null) => {
         try {
-            const response = await axiosInstance.get(`/booking-bookingservices/GetBookingByRoomID/${roomId}`);
+            const response = await axiosInstance.get(`/booking-bookingservices/GetBookingByRoomID/${roomId}${startDate ? `?startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate} ` : ''}`);
             return response.data;
         } catch (error) {
             console.log(error);

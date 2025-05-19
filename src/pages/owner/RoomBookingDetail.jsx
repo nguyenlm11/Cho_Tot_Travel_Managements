@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import bookingAPI from '../../services/api/bookingAPI';
-import { FaUser, FaMoneyBillWave, FaInfoCircle, FaHotel, FaBed, FaReceipt, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaUser, FaMoneyBillWave, FaInfoCircle, FaHotel, FaBed, FaReceipt, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp, FaSearch, FaTimes, FaFilter } from 'react-icons/fa';
 import { formatPrice, formatDate } from '../../utils/utils';
 import { FaHouse } from 'react-icons/fa6';
 import roomAPI from '../../services/api/roomAPI';
 import { FaCalendarAlt } from 'react-icons/fa';
 import { IoRefresh } from 'react-icons/io5';
+import FilterRoomOfRentalBookingModal from '../../components/modals/FilterRoomOfRentalBookingModal';
 
 
 const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, NoShow: 5, Refund: 6 };
@@ -41,29 +42,29 @@ export default function RoomBookingDetail() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [isFilterRoomBookingOpen, setIsFilterRoomBookingOpen] = useState(false)
 
   useEffect(() => {
-    const fetchBooking = async () => {
-      setIsLoading(true);
-      try {
-        const response = await roomAPI.getBookingsByRoomID(roomID);
-        const formatData = response.data.map(booking => {
-          let data = { account: booking?.account, bookingID: booking?.bookingID };
-          booking?.bookingDetails?.forEach(bd => {
-            data = { ...data, ...bd };
-          });
-          return data;
-        });
-        setBooking(formatData);
-      } catch (error) {
-        console.error('Error fetching room booking:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchBooking();
   }, [roomID]);
+  const fetchBooking = async (startDate = null, endDate = null) => {
+    setIsLoading(true);
+    try {
+      const response = await roomAPI.getBookingsByRoomID(roomID, startDate, endDate);
+      const formatData = response.data.map(booking => {
+        let data = { account: booking?.account, bookingID: booking?.bookingID };
+        booking?.bookingDetails?.forEach(bd => {
+          data = { ...data, ...bd };
+        });
+        return data;
+      });
+      setBooking(formatData);
+    } catch (error) {
+      console.error('Error fetching room booking:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = () => {
     setActualSearchTerm(searchTerm);
@@ -161,6 +162,14 @@ export default function RoomBookingDetail() {
   const handlePageClick = (page) => {
     setCurrentPage(page);
   };
+
+  const handleClickFilter = (data) => {
+    // log 2 ngày start và end đã format
+    // console.log(data);
+
+    fetchBooking(data.startDate, data.endDate);
+
+  }
 
   const TableHeader = ({ label, sortKey }) => (
     <th
@@ -296,6 +305,17 @@ export default function RoomBookingDetail() {
                   <IoRefresh className="w-4 h-4" />
                   Làm mới
                 </button>
+                <button
+                  onClick={() => setIsFilterRoomBookingOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 
+                    text-white font-medium rounded-lg transition-all duration-300 ease-in-out 
+                    shadow-sm hover:shadow-md hover:-translate-y-0.5 focus:outline-none 
+                    focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-sm"
+                  aria-label="Làm mới danh sách"
+                >
+                  <FaFilter className="w-4 h-4" />
+                  Filter booking of room
+                </button>
               </div>
               {/* Search Term Display */}
               {actualSearchTerm && (
@@ -316,6 +336,13 @@ export default function RoomBookingDetail() {
                 </motion.div>
               )}
             </div>
+            {isFilterRoomBookingOpen && (
+              <FilterRoomOfRentalBookingModal
+                isOpen={isFilterRoomBookingOpen}
+                onClose={() => setIsFilterRoomBookingOpen(false)}
+                onSave={handleClickFilter}
+              />
+            )}
           </div>
 
           {/* Table */}
