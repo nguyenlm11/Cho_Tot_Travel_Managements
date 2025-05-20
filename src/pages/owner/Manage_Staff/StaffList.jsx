@@ -306,7 +306,7 @@ export const StaffList = () => {
                                 <TableHeader label="Email" sortKey="email" />
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
-                                <TableHeader label="Quản lý căn" />
+                                <TableHeader label="Quản lý" />
                                 <th className="px-6 py-3 text-left">Thao tác</th>
                             </tr>
                         </thead>

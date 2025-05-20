@@ -10,13 +10,30 @@ const roomAPI = {
         }
     },
 
-    createRoom: async (roomData) => {
+    createRoom: async (dataToSubmit) => {
         try {
-            const response = await axiosInstance.post('/rooms/CreateRoom', roomData);
+            const formData = new FormData();
+            formData.append('roomNumber', dataToSubmit.roomNumber);
+            formData.append('isUsed', dataToSubmit.isUsed);
+            formData.append('isActive', dataToSubmit.isActive);
+            formData.append('RoomTypesID', dataToSubmit.RoomTypesID);
+            if (dataToSubmit.Images && dataToSubmit.Images.length > 0) {
+                dataToSubmit.Images.forEach(image => {
+                    formData.append('Images', image);
+                });
+            }
+
+            // console.log(formData.getAll());
+            const response = await axiosInstance.post('/rooms/CreateRoom', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
             return response.data;
         } catch (error) {
             console.error("Error creating room:", error);
-            throw error;
+            return error;
         }
     },
     getRoomsByRoomId: async (roomId) => {

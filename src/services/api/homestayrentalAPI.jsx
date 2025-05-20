@@ -15,7 +15,7 @@ const homestayRentalAPI = {
             const response = await axiosInstance.get(`/homestayrental/GetHomeStayRentalDetail/${rentalId}`);
             return response.data;
         } catch (error) {
-            throw error;
+            return error;
         }
     },
 

@@ -366,10 +366,10 @@ export default function RoomBookingDetail() {
                       <TableHeader label="Số phòng" sortKey="roomNumber" />
                       <TableHeader label="Tên khách hàng" sortKey="accountName" />
                       <TableHeader label="Tên căn thuê" sortKey="homeStayName" />
-                      <TableHeader label="Loại thuê" sortKey="rentType" />
+                      {/* <TableHeader label="Loại thuê" sortKey="rentType" /> */}
                       <TableHeader label="Ngày check-in" sortKey="checkInDate" />
                       <TableHeader label="Ngày check-out" sortKey="checkOutDate" />
-                      <TableHeader label="Tổng giá thuê" sortKey="rentPrice" />
+                      {/* <TableHeader label="Tổng giá thuê" sortKey="rentPrice" /> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -382,12 +382,12 @@ export default function RoomBookingDetail() {
                         <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{infor?.rooms?.roomNumber || '-'}</td>
                         <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{infor?.account?.name || '-'}</td>
                         <td className="px-4 py-3 text-gray-900 dark:text-white">{infor?.homeStayRentals?.name || '-'}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white">
+                        {/* <td className="px-4 py-3 text-gray-900 dark:text-white">
                           {infor?.homeStayRentals?.rentWhole ? "Nguyên căn" : "Theo phòng"}
-                        </td>
+                        </td> */}
                         <td className="px-4 py-3 text-gray-900 dark:text-white">{formatDate(infor?.checkInDate)}</td>
                         <td className="px-4 py-3 text-gray-900 dark:text-white">{formatDate(infor?.checkOutDate)}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white">{formatPrice(infor?.rentPrice)}</td>
+                        {/* <td className="px-4 py-3 text-gray-900 dark:text-white">{formatPrice(infor?.rentPrice)}</td> */}
                       </motion.tr>
                     ))}
                   </tbody>

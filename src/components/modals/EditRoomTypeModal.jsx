@@ -10,7 +10,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
     const [formData, setFormData] = useState({
         name: roomType?.name,
         description: roomType?.description,
-        numberBedRoom: roomType?.numberBedRoom,
+        numberBed: roomType?.numberBed,
         numberBathRoom: roomType?.numberBathRoom,
         numberWifi: roomType?.numberWifi,
         status: roomType?.status,
@@ -34,8 +34,8 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
         if (!formData.description.trim()) {
             newErrors.description = 'Mô tả là bắt buộc';
         }
-        if (formData.numberBedRoom < 0) {
-            newErrors.numberBedRoom = 'Số giường không thể là số âm';
+        if (formData.numberBed < 0) {
+            newErrors.numberBed = 'Số giường không thể là số âm';
         }
         if (formData.numberBathRoom < 0) {
             newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
@@ -98,6 +98,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
         if (validateForm()) {
             setLoading(true);
             const loadingToast = toast.loading('Đang cập nhật loại phòng...');
+            // console.log(formData);
 
             try {
                 const response = await roomTypeAPI.updateRoomType(roomType?.roomTypesID, formData);
@@ -220,16 +221,16 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                         </label>
                                                         <input
                                                             type="number"
-                                                            name="numberBedRoom"
-                                                            value={formData.numberBedRoom}
+                                                            name="numberBed"
+                                                            value={formData.numberBed}
                                                             onChange={handleInputChange}
                                                             min="0"
                                                             max="50"
                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                         />
-                                                        {errors.numberBedRoom && (
+                                                        {errors.numberBed && (
                                                             <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                                <FaInfoCircle className="mr-1" /> {errors.numberBedRoom}
+                                                                <FaInfoCircle className="mr-1" /> {errors.numberBed}
                                                             </p>
                                                         )}
                                                     </div>
