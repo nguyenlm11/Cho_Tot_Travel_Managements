@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaCheck, FaMoneyBillWave, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaTag } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaCheck, FaMoneyBillWave, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaTag, FaPlus } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -10,6 +10,8 @@ import FilterRoomStartAndEndDate from '../../components/modals/FilterRoomStartAn
 import { formatPrice } from '../../utils/utils';
 import roomTypeAPI from '../../services/api/roomTypeAPI';
 import FilterRoomByHomestayRentalStartAndEndDate from '../../components/modals/FilterRoomByHomestayRentalStartAndEndDate';
+import RoomAddByListHomestayRentalModal from '../../components/modals/RoomAddByListHomestayRentalModal';
+import homestayRentalAPI from '../../services/api/homestayrentalAPI';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -88,10 +90,22 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
         fetchRoomByHomestayRentalID(data.startDate, data.endDate);
 
     }
+    const handleRefresh = () => {
+        fetchRoomByHomestayRentalID();
+        toast.success('Đã làm mới danh sách phòng', {
+            id: 'refresh-success',
+            style: {
+                borderRadius: '10px',
+                background: '#ECFDF5',
+                color: '#065F46',
+                border: '1px solid #6EE7B7'
+            },
+        });
+    };
 
     return (
         <div className="mb-8 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-10">
+            <div className="flex flex-col sm:flex-row gap-5">
                 <div className="flex-1 relative group flex">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                         <FaSearch className="text-gray-400 group-hover:text-primary transition-colors duration-200" />
@@ -131,8 +145,14 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
                         Tìm kiếm
                     </button>
                 </div>
-
-                <div className="relative min-w-[220px]">
+                <button
+                    onClick={handleRefresh}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white 
+                            font-medium rounded-lg transition-colors shadow-sm hover:shadow-lg"
+                >
+                    <FaSync className="w-4 h-4" /> Làm mới
+                </button>
+                <div className="relative min-w-[200px]">
 
                     <motion.button
                         variants={buttonVariants}
@@ -145,6 +165,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
                     </motion.button>
 
                 </div>
+
             </div>
 
             {isFilterRoomOpen && (
@@ -168,7 +189,9 @@ const FilterRoomByHomestayRental = () => {
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: 'bookingServicesDate', direction: 'desc' });
-
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [allRoomTypeByHomestayRental, setIsAllRoomTypeByHomestayRental] = useState([])
+    const [homestayRentalData, setHomestayRentalData] = useState([])
     const itemsPerPage = 10;
     const navigate = useNavigate();
 
@@ -177,6 +200,8 @@ const FilterRoomByHomestayRental = () => {
 
         if (homestayRentalID) {
             fetchRoomByHomestayRentalID();
+            fetchAllRoomTypeByHomeStayRentalID();
+            fetchGetHomestayRentalDetail();
         } else {
             toast.error('Không tìm thấy thông tin homestayrental');
             navigate(`/owner/homestays${homestayId}/homestay-rental`);
@@ -195,7 +220,7 @@ const FilterRoomByHomestayRental = () => {
 
             if (response.statusCode === 200) {
                 setRooms(response.data || []);
-                // console.log(rooms);
+                // console.log(response?.data);
                 // toast.success(`Đã tìm thấy: ${response.data.length} phòng`)
             } else {
                 toast.error('Không thể tải danh sách phòng thuê');
@@ -207,7 +232,31 @@ const FilterRoomByHomestayRental = () => {
             setTimeout(() => setIsLoading(false), 1500);
         }
     };
+    const fetchAllRoomTypeByHomeStayRentalID = async () => {
+        try {
+            const respone = await roomTypeAPI.getAllRoomTypesByRentalId(homestayRentalID)
+            if (respone?.statusCode === 200) {
+                // console.log(respone?.data);
+                setIsAllRoomTypeByHomestayRental(respone?.data)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    console.log(homestayRentalData);
 
+
+    const fetchGetHomestayRentalDetail = async () => {
+        try {
+            const respone = await homestayRentalAPI.getHomeStayRentalDetail(homestayRentalID)
+            if (respone?.statusCode === 200) {
+                // console.log(respone?.data);
+                setHomestayRentalData(respone?.data)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
     const handleSearch = () => {
         setActualSearchTerm(searchTerm);
         setCurrentPage(1);
@@ -284,18 +333,7 @@ const FilterRoomByHomestayRental = () => {
         navigate(`/owner/homestays/${homestayId}/room-bookings-detail/${roomId}`);
     };
 
-    const handleRefresh = () => {
-        fetchRoomByHomestayRentalID();
-        toast.success('Đã làm mới danh sách phòng', {
-            id: 'refresh-success',
-            style: {
-                borderRadius: '10px',
-                background: '#ECFDF5',
-                color: '#065F46',
-                border: '1px solid #6EE7B7'
-            },
-        });
-    };
+
 
     const TableHeader = ({ label, sortKey }) => {
         const isSorted = sortConfig.key === sortKey;
@@ -345,7 +383,7 @@ const FilterRoomByHomestayRental = () => {
     }, []);
 
     // console.log(paginatedServiceBookings);
-
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     return (
         <motion.div
             variants={pageVariants}
@@ -363,21 +401,38 @@ const FilterRoomByHomestayRental = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Danh sách phòng thuê của {paginatedServiceBookings?.[0]?.homeStayRentalName}
+                            Danh sách phòng thuê của {homestayRentalData?.name}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Quản lý tất cả các phòng thuê
                         </p>
                     </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleRefresh}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white 
-                            font-medium rounded-lg transition-colors shadow-sm hover:shadow-lg"
-                        >
-                            <FaSync className="w-4 h-4" /> Làm mới
-                        </button>
-                    </div>
+                    {(homestayRentalData?.numberBedRoom !== paginatedServiceBookings.length) && (
+                        <div className="flex gap-2">
+                            {user?.role === "Owner" && (
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setIsAddModalOpen(true)}
+                                    className="bg-primary hover:bg-primary-dark text-white font-semibold 
+     px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300"
+                                >
+                                    <FaPlus className="w-5 h-5" />
+                                    Thêm phòng mới
+                                </motion.button>
+                            )}
+
+                        </div>
+                    )}
+
+                    <RoomAddByListHomestayRentalModal
+                        isOpen={isAddModalOpen}
+                        onClose={() => setIsAddModalOpen(false)}
+                        roomTypeId={allRoomTypeByHomestayRental}
+                        homeStayRentalName={homestayRentalData?.homeStayName}
+                        onSuccess={fetchRoomByHomestayRentalID}
+
+                    />
                 </div>
 
                 <motion.section

@@ -350,7 +350,7 @@ const EditHomestayRental = () => {
                         className="flex items-center text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light transition-colors py-2 px-4"
                     >
                         <FaArrowLeft className="mr-2" />
-                        <span>Quay lại danh sách phòng thuê</span>
+                        <span>Quay lại danh sách căn thuê</span>
                     </button>
 
                     <div className="hidden sm:flex items-center space-x-2 text-gray-500 dark:text-gray-400 text-sm">
@@ -364,12 +364,12 @@ const EditHomestayRental = () => {
 
                 <div className="mt-6">
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Chỉnh sửa phòng thuê
+                        Chỉnh sửa căn thuê
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">
                         {step === 1 ?
-                            'Nhập thông tin cơ bản về phòng thuê của bạn.' :
-                            'Thiết lập giá cho phòng thuê của bạn.'}
+                            'Nhập thông tin cơ bản về căn thuê của bạn.' :
+                            'Thiết lập giá cho căn thuê của bạn.'}
                     </p>
                 </div>
             </div>

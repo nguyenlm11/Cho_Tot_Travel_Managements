@@ -99,9 +99,9 @@ const AddRoomType = () => {
         if (formData.MaxPeople < 1) {
             newErrors.MaxPeople = 'Số người tối đa phải lớn hơn 0';
         }
-        if (formData.Images.length === 0) {
-            newErrors.Images = 'Vui lòng tải lên ít nhất một hình ảnh';
-        }
+        // if (formData.Images.length === 0) {
+        //     newErrors.Images = 'Vui lòng tải lên ít nhất một hình ảnh';
+        // }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -133,41 +133,41 @@ const AddRoomType = () => {
     };
 
     // Handle image upload
-    const handleImageUpload = (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length > 5) {
-            toast.error('Chỉ được tải lên tối đa 5 ảnh');
-            return;
-        }
-        setFormData(prev => ({
-            ...prev,
-            Images: files
-        }));
+    // const handleImageUpload = (e) => {
+    //     const files = Array.from(e.target.files);
+    //     if (files.length > 5) {
+    //         toast.error('Chỉ được tải lên tối đa 5 ảnh');
+    //         return;
+    //     }
+    //     setFormData(prev => ({
+    //         ...prev,
+    //         Images: files
+    //     }));
 
-        const newPreviews = [];
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                newPreviews.push(reader.result);
-                if (newPreviews.length === files.length) {
-                    setPreviewImages(newPreviews);
-                }
-            };
-            reader.readAsDataURL(file);
-        });
-    };
+    //     const newPreviews = [];
+    //     files.forEach(file => {
+    //         const reader = new FileReader();
+    //         reader.onload = () => {
+    //             newPreviews.push(reader.result);
+    //             if (newPreviews.length === files.length) {
+    //                 setPreviewImages(newPreviews);
+    //             }
+    //         };
+    //         reader.readAsDataURL(file);
+    //     });
+    // };
 
-    const removeImage = (index) => {
-        const newPreviews = [...previewImages];
-        newPreviews.splice(index, 1);
-        setPreviewImages(newPreviews);
-        const newImages = [...formData.Images];
-        newImages.splice(index, 1);
-        setFormData(prev => ({
-            ...prev,
-            Images: newImages
-        }));
-    };
+    // const removeImage = (index) => {
+    //     const newPreviews = [...previewImages];
+    //     newPreviews.splice(index, 1);
+    //     setPreviewImages(newPreviews);
+    //     const newImages = [...formData.Images];
+    //     newImages.splice(index, 1);
+    //     setFormData(prev => ({
+    //         ...prev,
+    //         Images: newImages
+    //     }));
+    // };
 
     const validateStep2 = () => {
         const newErrors = {};
@@ -255,7 +255,7 @@ const AddRoomType = () => {
                 MaxChildren: formData.MaxChildren,
                 MaxPeople: formData.MaxPeople,
                 homeStayRentalId: parseInt(rentalId),
-                Images: formData.Images,
+                // Images: formData.Images,
                 PricingJson: JSON.stringify(
                     formData.pricingEntries.map(entry => ({
                         // unitPrice: entry.unitPrice,
@@ -269,7 +269,7 @@ const AddRoomType = () => {
                     }))
                 )
             };
-            console.log(roomTypeData);
+            // console.log(roomTypeData);
 
             const response = await roomTypeAPI.createRoomType(roomTypeData, rentalId);
             if (response.statusCode === 201) {
@@ -560,12 +560,12 @@ const AddRoomType = () => {
                                             </div>
 
                                             {/* Images */}
-                                            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                            {/* <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
                                                 <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                                                     Hình ảnh
-                                                </h3>
+                                                </h3> */}
 
-                                                <div>
+                                            {/* <div>
                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                         Hình ảnh loại phòng <span className="text-red-500">*</span>
                                                     </label>
@@ -594,10 +594,10 @@ const AddRoomType = () => {
                                                             <FaInfoCircle className="mr-1" /> {errors.Images}
                                                         </p>
                                                     )}
-                                                </div>
+                                                </div> */}
 
-                                                {/* Preview Images */}
-                                                {previewImages.length > 0 && (
+                                            {/* Preview Images */}
+                                            {/* {previewImages.length > 0 && (
                                                     <div className="mt-4">
                                                         <div className="flex items-center justify-between mb-2">
                                                             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -628,8 +628,8 @@ const AddRoomType = () => {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                )}
-                                            </div>
+                                                )} */}
+                                            {/* </div> */}
                                         </div>
                                     </motion.div>
                                 ) : (

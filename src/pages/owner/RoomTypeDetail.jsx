@@ -330,7 +330,7 @@ const RoomTypeDetail = () => {
                                             </div>
                                             <div>
                                                 <p className="text-sm text-blue-700 dark:text-blue-300">Giường ngủ</p>
-                                                <p className="text-lg font-bold text-blue-900 dark:text-blue-100">{roomTypeDetailData?.numberBedRoom}</p>
+                                                <p className="text-lg font-bold text-blue-900 dark:text-blue-100">{roomTypeDetailData?.numberBed}</p>
                                             </div>
                                         </motion.div>
 

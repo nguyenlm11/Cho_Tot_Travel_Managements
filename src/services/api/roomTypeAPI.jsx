@@ -1,12 +1,12 @@
 import axiosInstance from "../config";
 
 const roomTypeAPI = {
-    getAllRoomTypesByRentalId: async (rentalId) => {
+    getAllRoomTypesByRentalId: async (homeStayRentalId) => {
         try {
-            const response = await axiosInstance.get(`/roomtype/GetAllRoomTypesByRentalId/${rentalId}`);
+            const response = await axiosInstance.get(`/RoomType/GetAllRoomTypeByHomeStayRentalID/${homeStayRentalId}`);
             return response.data;
         } catch (error) {
-            throw error;
+            return error;
         }
     },
 
@@ -54,7 +54,7 @@ const roomTypeAPI = {
 
             return response.data;
         } catch (error) {
-            throw error;
+            return error;
         }
     },
 

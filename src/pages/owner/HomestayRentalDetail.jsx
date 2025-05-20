@@ -735,7 +735,15 @@ const HomestayRentalDetail = () => {
                                                   p-2 rounded-lg"
                                                                                             >
                                                                                                 <span className="text-gray-600 dark:text-gray-400 text-sm">
-                                                                                                    {pricing.description || "Giá mặc định"}
+                                                                                                    {/* {pricing.description || "Giá mặc định"} */}
+                                                                                                    {console.log(pricing)}
+                                                                                                    {pricing?.dayType === 0
+                                                                                                        ? 'Ngày thường'
+                                                                                                        : pricing?.dayType === 1
+                                                                                                            ? 'Ngày cuối tuần'
+                                                                                                            : pricing?.dayType === 2
+                                                                                                                ? 'Ngày lễ'
+                                                                                                                : ''}
                                                                                                 </span>
                                                                                                 <span className="font-medium text-primary">
                                                                                                     {formatPrice(pricing.rentPrice)}
@@ -974,15 +982,17 @@ const HomestayRentalDetail = () => {
                                                     </motion.button>
                                                 )}
 
-                                                <motion.button
-                                                    variants={buttonVariants}
-                                                    whileHover="hover"
-                                                    whileTap="tap"
-                                                    onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomRental`)}
-                                                    className="w-full py-3 bg-orange-400 hover:bg-orange-500 text-white rounded-lg flex items-center justify-center"
-                                                >
-                                                    <FaHome className="mr-2" /> Danh sách phòng
-                                                </motion.button>
+                                                {rental?.rentWhole === false && (
+                                                    <motion.button
+                                                        variants={buttonVariants}
+                                                        whileHover="hover"
+                                                        whileTap="tap"
+                                                        onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomRental`)}
+                                                        className="w-full py-3 bg-orange-400 hover:bg-orange-500 text-white rounded-lg flex items-center justify-center"
+                                                    >
+                                                        <FaHome className="mr-2" /> Danh sách phòng
+                                                    </motion.button>
+                                                )}
 
                                                 <motion.button
                                                     variants={buttonVariants}
