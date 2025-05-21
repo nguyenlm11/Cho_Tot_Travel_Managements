@@ -118,8 +118,11 @@ export default function PendingHomestay() {
         try {
             const response = await adminAPI.getAllRegisterHomestay();
             if (response?.data) {
-                setHomeStays(response.data);
-                setOriginalData(response.data);
+                // Sắp xếp dữ liệu theo thứ tự mới nhất (dựa vào homeStayID)
+                const sortedData = response.data.sort((a, b) => b.homeStayID - a.homeStayID);
+                setHomeStays(sortedData);
+                setOriginalData(sortedData);
+                setCurrentPage(1); // Reset về trang 1 khi có dữ liệu mới
             } else {
                 toast.error('Không có dữ liệu homestay');
             }
@@ -137,7 +140,9 @@ export default function PendingHomestay() {
         setSortColumn(column);
 
         if (newDirection === null) {
-            setHomeStays([...originalData]);
+            // Khi không sắp xếp, trả về sắp xếp mặc định theo ID (mới nhất lên đầu)
+            const sortedData = [...originalData].sort((a, b) => b.homeStayID - a.homeStayID);
+            setHomeStays(sortedData);
             return;
         }
 

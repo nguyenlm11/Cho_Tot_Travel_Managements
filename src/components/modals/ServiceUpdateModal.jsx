@@ -24,7 +24,7 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
             setFormData({
                 servicesName: service.name,
                 description: service.description,
-                unitPrice: service.unitPrice,
+                // unitPrice: service.unitPrice,
                 servicesPrice: service.price,
                 status: service.status === 'active',
                 serviceType: service.serviceType,
@@ -40,7 +40,7 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
         const newErrors = {};
         if (!formData.servicesName.trim()) newErrors.servicesName = 'Tên dịch vụ là bắt buộc';
         if (!formData.description.trim()) newErrors.description = 'Mô tả là bắt buộc';
-        if (!formData.unitPrice || formData.unitPrice <= 0) newErrors.unitPrice = 'Đơn giá phải lớn hơn 0';
+        // if (!formData.unitPrice || formData.unitPrice <= 0) newErrors.unitPrice = 'Đơn giá phải lớn hơn 0';
         if (!formData.servicesPrice || formData.servicesPrice <= 0) newErrors.servicesPrice = 'Giá dịch vụ phải lớn hơn 0';
         if (!formData.quantity || formData.quantity <= 0) {
             newErrors.quantity = 'Số lượng phải lớn hơn 0';
@@ -182,8 +182,8 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                                 </div>
 
                                 {/* Giá với layout 2 cột */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <div>
+                                <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+                                    {/* <div>
                                         <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                                             Đơn giá (VNĐ) <span className="text-red-500">*</span>
                                         </label>
@@ -203,7 +203,7 @@ const ServiceUpdateModal = ({ isOpen, onClose, service, onSuccess }) => {
                                                 {errors.unitPrice}
                                             </p>
                                         )}
-                                    </div>
+                                    </div> */}
                                     <div>
                                         <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                                             Giá dịch vụ (VNĐ) <span className="text-red-500">*</span>
