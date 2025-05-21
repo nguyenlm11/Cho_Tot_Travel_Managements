@@ -167,8 +167,8 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
     );
 };
 
-const RoomCard = ({ room, homestayId, rentalId, roomTypeId, onDelete, setIsEditModalOpen }) => {
-    const navigate = useNavigate();
+const RoomCard = ({ room, onDelete, setIsEditModalOpen }) => {
+    // const navigate = useNavigate();
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const user = JSON.parse(localStorage.getItem('userInfo'));
 
@@ -270,7 +270,7 @@ const RoomList = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState({ isOpen: false, roomSelect: null });
     const [rental, setRental] = useState();
-    const user = JSON.parse(localStorage.getItem('userInfo'));
+    // const user = JSON.parse(localStorage.getItem('userInfo'));
     useEffect(() => {
         fetchRooms();
     }, [roomTypeId, rentalId]);
@@ -418,7 +418,7 @@ const RoomList = () => {
                                 </h1>
                             </div>
                         </div>
-                        {user?.role === "Owner" && (
+                        {/* {user?.role === "Owner" && (
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
@@ -429,7 +429,7 @@ const RoomList = () => {
                                 <FaPlus className="w-5 h-5" />
                                 Thêm phòng mới
                             </motion.button>
-                        )}
+                        )} */}
                     </div>
 
                     {/* Stats Cards */}
@@ -504,7 +504,7 @@ const RoomList = () => {
                                         ? `Không tìm thấy phòng nào phù hợp với "${actualSearchTerm}". Vui lòng thử tìm kiếm khác.`
                                         : 'Thêm phòng mới cho loại phòng này để khách hàng có thể đặt.'}
                                 </p>
-                                {!actualSearchTerm && (
+                                {/* {!actualSearchTerm && (
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
@@ -514,7 +514,7 @@ const RoomList = () => {
                                     >
                                         <FaPlus className="mr-2" /> Thêm phòng mới
                                     </motion.button>
-                                )}
+                                )} */}
                             </motion.div>
                         )}
 

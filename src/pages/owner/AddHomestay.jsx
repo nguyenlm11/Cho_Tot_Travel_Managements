@@ -72,6 +72,27 @@ const AddHomestay = () => {
       description: "",
     }],
   });
+  const [roomTypesData, setRoomTypesData] = useState({
+    name: '',
+    description: '',
+    numberBed: 1,
+    numberBathRoom: 1,
+    numberWifi: 1,
+    status: true,
+    maxAdults: 2,
+    maxChildren: 0,
+    maxPeople: 2,
+    pricingEntries: [{
+      // unitPrice: 0,
+      rentPrice: 0,
+      startDate: "",
+      endDate: "",
+      isDefault: true,
+      isActive: true,
+      dayType: 0,
+      description: "",
+    }],
+  });
 
   const stepVariants = {
     hidden: { opacity: 0, x: 20 },
@@ -111,6 +132,23 @@ const AddHomestay = () => {
     }
 
     setRentalData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+  const handleInputChangeStep4 = (e) => {
+    let { name, value } = e.target;
+
+    if (name === 'RentWhole') {
+      value = value === "true" ? true : false;
+    }
+
+    // Convert number inputs to numbers
+    if (['numberBed', 'numberBathRoom', 'numberWifi', 'maxAdults', 'maxChildren', 'maxPeople'].includes(name)) {
+      value = parseInt(value) || 0;
+    }
+
+    setRoomTypesData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
     }
@@ -302,7 +340,59 @@ const AddHomestay = () => {
             dayType: entry.dayType,
             description: entry.description || ""
           }))
-        )
+        ),
+        // ...roomTypesData,
+        RoomTypes: {
+          name: roomTypesData.name,
+          description: roomTypesData.description,
+          numberBed: roomTypesData.numberBed,
+          numberBathRoom: roomTypesData.numberBathRoom,
+          numberWifi: roomTypesData.numberWifi,
+          status: true,
+          maxAdults: roomTypesData.maxAdults,
+          maxChildren: roomTypesData.maxChildren,
+          maxPeople: roomTypesData.maxPeople,
+          PricingJson: null,
+          Pricing: rentalData.pricingEntries.map(entry => ({
+            // unitPrice: entry.unitPrice,
+            rentPrice: entry.rentPrice,
+            isDefault: entry.isDefault,
+            isActive: entry.isActive,
+            dayType: entry.dayType,
+            description: entry.description || ""
+          })),
+        },
+
+        RoomTypesJson: JSON.stringify([{
+          name: roomTypesData.name,
+          description: roomTypesData.description,
+          numberBed: roomTypesData.numberBed,
+          numberBathRoom: roomTypesData.numberBathRoom,
+          numberWifi: roomTypesData.numberWifi,
+          status: true,
+          maxAdults: roomTypesData.maxAdults,
+          maxChildren: roomTypesData.maxChildren,
+          maxPeople: roomTypesData.maxPeople,
+          Pricing: rentalData.pricingEntries.map(entry => ({
+            // unitPrice: entry.unitPrice,
+            rentPrice: entry.rentPrice,
+            isDefault: entry.isDefault,
+            isActive: entry.isActive,
+            dayType: entry.dayType,
+            description: entry.description || ""
+          })),
+          // PricingJson: JSON.stringify(
+          //   roomTypesData.pricingEntries.map(entry => ({
+          //     rentPrice: entry.rentPrice,
+          //     isDefault: entry.isDefault,
+          //     isActive: entry.isActive,
+          //     dayType: entry.dayType,
+          //     description: entry.description || ""
+          //   }))
+          // )
+          PricingJson: null
+        }])
+
         // }
         // )
       }
@@ -314,7 +404,7 @@ const AddHomestay = () => {
 
         setStep(3);
 
-        const formatData = handleFormatData();
+        // const formatData = handleFormatData();
         // console.log(formatData);
         // const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
         // if (response.statusCode === 201) {
@@ -332,7 +422,7 @@ const AddHomestay = () => {
 
       } else if (step === 3) {
         const formatData = handleFormatData();
-        // console.log(formatData);
+        console.log(formatData);
         const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
         if (response.statusCode === 201) {
           const dataPolicy = {
@@ -346,6 +436,10 @@ const AddHomestay = () => {
             navigate('/owner/homestays');
           }
         }
+      } else if (step === 4) {
+        // const formatData = handleFormatData();
+        // console.log(formatData);
+        setStep(3);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
@@ -1290,9 +1384,9 @@ const AddHomestay = () => {
                   <div className="relative">
                     <input
                       type="text"
-                      name="Name"
-                      value={formData.Name}
-                      onChange={handleInputChange}
+                      name="name"
+                      value={roomTypesData.name}
+                      onChange={handleInputChangeStep4}
                       placeholder="Nhập tên loại phòng (VD: Phòng Standard, Phòng Deluxe...)"
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                     />
@@ -1310,16 +1404,16 @@ const AddHomestay = () => {
                     Mô tả <span className="text-red-500">*</span>
                   </label>
                   <textarea
-                    name="Description"
-                    value={formData.Description}
-                    onChange={handleInputChange}
+                    name="description"
+                    value={roomTypesData.description}
+                    onChange={handleInputChangeStep4}
                     rows="3"
                     placeholder="Mô tả chi tiết về loại phòng này..."
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 resize-none"
                   />
-                  {errors.Description && (
+                  {errors.description && (
                     <p className="mt-1 text-sm text-red-500 flex items-center">
-                      <FaInfoCircle className="mr-1" /> {errors.Description}
+                      <FaInfoCircle className="mr-1" /> {errors.description}
                     </p>
                   )}
                 </div>
@@ -1340,8 +1434,8 @@ const AddHomestay = () => {
                     <input
                       type="number"
                       name="numberBed"
-                      value={formData.numberBed}
-                      onChange={handleInputChange}
+                      value={roomTypesData.numberBed}
+                      onChange={handleInputChangeStep4}
                       min="0"
                       max="50"
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
@@ -1361,8 +1455,8 @@ const AddHomestay = () => {
                     <input
                       type="number"
                       name="numberBathRoom"
-                      value={formData.numberBathRoom}
-                      onChange={handleInputChange}
+                      value={roomTypesData.numberBathRoom}
+                      onChange={handleInputChangeStep4}
                       min="0"
                       max="50"
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
@@ -1382,8 +1476,8 @@ const AddHomestay = () => {
                     <input
                       type="number"
                       name="numberWifi"
-                      value={formData.numberWifi}
-                      onChange={handleInputChange}
+                      value={roomTypesData.numberWifi}
+                      onChange={handleInputChangeStep4}
                       min="0"
                       max="50"
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
@@ -1403,7 +1497,7 @@ const AddHomestay = () => {
                   Sức chứa
                 </h3>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-4 pb-10">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                       <FaUser className="mr-1 text-gray-400" />
@@ -1411,16 +1505,16 @@ const AddHomestay = () => {
                     </label>
                     <input
                       type="number"
-                      name="MaxAdults"
-                      value={formData.MaxAdults}
-                      onChange={handleInputChange}
+                      name="maxAdults"
+                      value={roomTypesData.maxAdults}
+                      onChange={handleInputChangeStep4}
                       min="1"
                       max="10"
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                     />
-                    {errors.MaxAdults && (
+                    {errors.maxAdults && (
                       <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.MaxAdults}
+                        <FaInfoCircle className="mr-1" /> {errors.maxAdults}
                       </p>
                     )}
                   </div>
@@ -1432,16 +1526,16 @@ const AddHomestay = () => {
                     </label>
                     <input
                       type="number"
-                      name="MaxChildren"
-                      value={formData.MaxChildren}
-                      onChange={handleInputChange}
+                      name="maxChildren"
+                      value={roomTypesData.maxChildren}
+                      onChange={handleInputChangeStep4}
                       min="0"
                       max="10"
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                     />
-                    {errors.MaxChildren && (
+                    {errors.maxChildren && (
                       <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.MaxChildren}
+                        <FaInfoCircle className="mr-1" /> {errors.maxChildren}
                       </p>
                     )}
                   </div>
@@ -1453,16 +1547,16 @@ const AddHomestay = () => {
                     </label>
                     <input
                       type="number"
-                      name="MaxPeople"
-                      value={formData.MaxPeople}
-                      onChange={handleInputChange}
+                      name="maxPeople"
+                      value={roomTypesData.maxPeople}
+                      onChange={handleInputChangeStep4}
                       min="1"
                       max="20"
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                     />
-                    {errors.MaxPeople && (
+                    {errors.maxPeople && (
                       <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.MaxPeople}
+                        <FaInfoCircle className="mr-1" /> {errors.maxPeople}
                       </p>
                     )}
                   </div>
