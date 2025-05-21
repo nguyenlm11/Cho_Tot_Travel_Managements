@@ -64,7 +64,7 @@ const bookingAPI = {
             console.log('VNPay Refund URL:', response);
             return response.data;
         } catch (error) {
-            throw error;
+            return error;
         }
     },
 
@@ -75,7 +75,7 @@ const bookingAPI = {
             );
             return response.data;
         } catch (error) {
-            throw error;
+            return error;
         }
     },
 };

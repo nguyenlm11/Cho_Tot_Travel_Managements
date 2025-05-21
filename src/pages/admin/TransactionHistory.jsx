@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaMoneyBillWave, FaFileInvoiceDollar, FaSort, FaArrowDown, FaArrowUp, FaFilter, FaSync, FaSortAmountDown, FaSortAmountUp, FaChevronDown } from 'react-icons/fa';
+import { FaSearch, FaMoneyBillWave, FaFileInvoiceDollar, FaSort, FaArrowDown, FaArrowUp, FaFilter, FaSync, FaSortAmountDown, FaSortAmountUp, FaChevronDown, FaEllipsisV } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import reportHomestayApi from '../../services/api/reportHomestayAPI';
 import { toast } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import CountUp from 'react-countup';
 import adminAPI from '../../services/api/adminAPI';
+import bookingAPI from '../../services/api/bookingAPI';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -186,6 +187,98 @@ const TableHeader = ({ label, sortKey, sortConfig, onSort }) => {
     );
 };
 
+const ActionDropdown = ({ transaction, handleRefund }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    const toggleDropdown = () => setIsOpen(!isOpen);
+    const closeDropdown = () => setIsOpen(false);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                closeDropdown();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleActionClick = (action) => {
+        action();
+        closeDropdown();
+    };
+
+    return (
+        <div className="relative inline-block text-left" ref={dropdownRef}>
+            {transaction.transactionKind === 2 ? (
+                <button
+                    onClick={toggleDropdown}
+                    className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                    aria-haspopup="true"
+                    aria-expanded={isOpen}
+                >
+                    <FaEllipsisV className="w-5 h-5" />
+                </button>
+            ) : (
+                <button
+                    onClick={toggleDropdown}
+                    disabled
+                    className="inline-flex items-center justify-center p-2 text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                    aria-haspopup="true"
+                    aria-expanded={isOpen}
+                >
+                    <FaEllipsisV className="w-5 h-5" />
+                </button>
+            )}
+
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.1 }}
+                        className="
+        absolute -left-6 z-50 mt-2 w-40 origin-top-right 
+        rounded-md bg-white shadow-lg ring-1 ring-black 
+        ring-opacity-5 focus:outline-none
+      "
+                        role="menu"
+                        aria-orientation="vertical"
+                        aria-labelledby="options-menu"
+                    >
+                        <div className="py-1" role="none">
+                            {transaction.transactionKind === 2 ? (
+                                <button
+                                    onClick={() =>
+                                        handleActionClick(() =>
+                                            handleRefund(transaction.bookingID, transaction.homeStayID)
+                                        )
+                                    }
+                                    className="
+              flex w-full items-center px-4 py-2 text-sm 
+              text-gray-700 hover:bg-gray-100 hover:text-gray-900
+            "
+                                    role="menuitem"
+                                >
+                                    <FaMoneyBillWave
+                                        className="mr-3 w-4 h-4 text-gray-400"
+                                        aria-hidden="true"
+                                    />
+                                    Hoàn tiền
+                                </button>
+                            ) : (
+                                <span className="text-gray-500 text-sm px-2 text-center">Không có hành động !!!</span>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
 const TransactionHistory = () => {
     const [transactions, setTransactions] = useState([]);
     const [searchText, setSearchText] = useState('');
@@ -245,7 +338,7 @@ const TransactionHistory = () => {
         let filtered = [...transactions];
 
         // Lọc bỏ các giao dịch hoàn tiền
-        filtered = filtered.filter(transaction => transaction.transactionKind !== 2);
+        // filtered = filtered.filter(transaction => transaction.transactionKind !== 2);
 
         if (actualSearchTerm) {
             const searchLower = actualSearchTerm.toLowerCase();
@@ -395,6 +488,36 @@ const TransactionHistory = () => {
         { label: 'Đang xử lý', value: pendingTransactions, color: 'bg-yellow-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> }
     ], [totalTransactions, successfulTransactions, pendingTransactions]);
 
+
+    const handleRefund = async (bookingId, homestayId) => {
+        try {
+            const userInfoString = localStorage.getItem('userInfo');
+            let accountID;
+            if (userInfoString) {
+                const userInfo = JSON.parse(userInfoString);
+                accountID = userInfo.AccountID;
+            } else {
+                throw new Error('Không tìm thấy userInfo trong localStorage');
+            }
+            setLoading(true);
+            localStorage.setItem('currentBookingInfo', JSON.stringify({
+                bookingId,
+                homestayId
+            }));
+
+            const response = await bookingAPI.processVnPayRefund(bookingId, homestayId, accountID);
+            console.log('Response từ API VNPay:', response);
+            if (response) {
+                window.location.href = response;
+            }
+        } catch (error) {
+            console.error('Error processing VNPay refund:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     return (
         <motion.div
             variants={pageVariants}
@@ -507,9 +630,13 @@ const TransactionHistory = () => {
                                     <TableHeader label="Người thanh toán" sortKey="payerName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Loại giao dịch" sortKey="transactionKind" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Số tiền đơn" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
-                                    {/* <TableHeader label="Số tiền nhận" sortKey="amountOwner" sortConfig={sortConfig} onSort={handleSort} /> */}
                                     <TableHeader label="Phí hoa hồng" sortKey="amountAdmin" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Trạng thái" sortKey="status" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th className="px-6 py-3 text-left">
+                                        <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                            Hành động
+                                        </span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -558,6 +685,12 @@ const TransactionHistory = () => {
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(transaction.transactionStatus)}`}>
                                                 {getStatusText(transaction.transactionStatus)}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <ActionDropdown
+                                                transaction={transaction}
+                                                handleRefund={handleRefund}
+                                            />
                                         </td>
 
                                     </motion.tr>

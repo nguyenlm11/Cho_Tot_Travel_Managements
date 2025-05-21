@@ -106,7 +106,7 @@ const homestayAPI = {
     createHomestayWithRentalAndPricing: async (homestayData) => {
 
         try {
-            console.log(homestayData);
+            // console.log(homestayData);
             const formData = new FormData();
             formData.append('Name', homestayData.Name);
             formData.append('Description', homestayData.Description);
@@ -129,10 +129,14 @@ const homestayAPI = {
             formData.append('numberWifi', homestayData.numberWifi);
             formData.append('Status', homestayData.Status);
 
-            // if (homestayData.RentWhole) {
+
             formData.append('Pricing', homestayData.Pricing);
             formData.append('PricingJson', homestayData.PricingJson);
-            // }
+            if (homestayData.RentWhole === false) {
+                formData.append('RoomTypesJson', homestayData.RoomTypesJson);
+                formData.append('RoomTypes', homestayData.RoomTypes);
+            }
+
 
             if (homestayData.Images && homestayData.Images.length > 0) {
                 homestayData.Images.forEach(image => {
@@ -146,7 +150,7 @@ const homestayAPI = {
                 });
             }
 
-            console.log(formData);
+            // console.log(formData);
 
 
             const respone = await axiosInstance.post('/homestay/CreateWithRentalsAndPricing', formData, {

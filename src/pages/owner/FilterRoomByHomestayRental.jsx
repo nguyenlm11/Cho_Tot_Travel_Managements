@@ -243,7 +243,7 @@ const FilterRoomByHomestayRental = () => {
             console.log(error);
         }
     }
-    console.log(homestayRentalData);
+    console.log(homestayRentalData.name);
 
 
     const fetchGetHomestayRentalDetail = async () => {
@@ -429,7 +429,7 @@ const FilterRoomByHomestayRental = () => {
                         isOpen={isAddModalOpen}
                         onClose={() => setIsAddModalOpen(false)}
                         roomTypeId={allRoomTypeByHomestayRental}
-                        homeStayRentalName={homestayRentalData?.homeStayName}
+                        homeStayRentalName={homestayRentalData?.name}
                         onSuccess={fetchRoomByHomestayRentalID}
 
                     />
