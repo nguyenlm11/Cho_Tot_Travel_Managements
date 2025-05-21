@@ -66,6 +66,25 @@ const EditCommissionRateByAdminModal = ({ onClose, isOpen, commissionRateID, fet
         }
     }
 
+    // Thêm hàm xử lý thay đổi tỉ lệ
+    const handleShareChange = (type, value) => {
+        const numValue = Number(value);
+        if (numValue >= 0 && numValue <= 100) {
+            if (type === 'hostShare') {
+                setFormData({
+                    ...formData,
+                    hostShare: numValue,
+                    platformShare: 100 - numValue
+                });
+            } else {
+                setFormData({
+                    ...formData,
+                    platformShare: numValue,
+                    hostShare: 100 - numValue
+                });
+            }
+        }
+    };
 
     const validateForm = () => {
         const newErrors = {};
@@ -133,7 +152,7 @@ const EditCommissionRateByAdminModal = ({ onClose, isOpen, commissionRateID, fet
                                                     min={0}
                                                     max={100}
                                                     value={formData.platformShare}
-                                                    onChange={(e) => setFormData({ ...formData, platformShare: e.target.value })}
+                                                    onChange={(e) => handleShareChange('platformShare', e.target.value)}
                                                     className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                 >
 
@@ -159,7 +178,7 @@ const EditCommissionRateByAdminModal = ({ onClose, isOpen, commissionRateID, fet
                                                     min={0}
                                                     max={100}
                                                     value={formData.hostShare}
-                                                    onChange={(e) => setFormData({ ...formData, hostShare: e.target.value })}
+                                                    onChange={(e) => handleShareChange('hostShare', e.target.value)}
                                                     className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                 >
 

@@ -40,7 +40,8 @@ const ServiceBookingStatus = {
     InProgress: 2,
     Completed: 3,
     Cancelled: 4,
-    Refund: 5
+    Refund: 5,
+    AcceptRefund: 6
 };
 
 const serviceBookingStatusConfig = {
@@ -49,7 +50,8 @@ const serviceBookingStatusConfig = {
     [ServiceBookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang phục vụ' },
     [ServiceBookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã hoàn thành' },
     [ServiceBookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
-    [ServiceBookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' }
+    [ServiceBookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' },
+    [ServiceBookingStatus.AcceptRefund]: { color: 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-100', text: 'Chấp nhận hoàn tiền' }
 };
 
 const formatDate = (dateString) => {
@@ -73,7 +75,8 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
         { value: '2', label: 'Đang phục vụ', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
         { value: '3', label: 'Đã hoàn thành', icon: <div className="w-2 h-2 rounded-full bg-indigo-500" /> },
         { value: '4', label: 'Đã hủy', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> },
-        { value: '5', label: 'Yêu cầu hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-purple-500" /> }
+        { value: '5', label: 'Yêu cầu hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-purple-500" /> },
+        { value: '6', label: 'Chấp nhận hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-orange-500" /> }
     ];
 
     const handleSearchChange = (e) => {
@@ -251,7 +254,8 @@ const ServiceBookingList = () => {
             const searchLower = actualSearchTerm.toLowerCase();
             filtered = filtered.filter(booking =>
                 booking.account.name.toLowerCase().includes(searchLower) ||
-                booking.account.email.toLowerCase().includes(searchLower)
+                booking.account.email.toLowerCase().includes(searchLower) ||
+                booking.bookingServiceCode.toLowerCase().includes(searchLower)
             );
         }
         if (selectedStatus !== 'all') {
@@ -502,6 +506,7 @@ const ServiceBookingList = () => {
                             <thead className="bg-gray-50 dark:bg-gray-900/50">
                                 <tr>
                                     <TableHeader label="Ngày đặt" sortKey="bookingServicesDate" />
+                                    <TableHeader label="Mã giao dịch" />
                                     <TableHeader label="Khách hàng" sortKey="customerName" />
                                     <TableHeader label="Dịch vụ" sortKey="serviceName" />
                                     <TableHeader label="Số lượng" sortKey="quantity" />
@@ -532,6 +537,11 @@ const ServiceBookingList = () => {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="text-gray-600 dark:text-gray-400">
                                                     {formatDate(booking.bookingServicesDate)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-gray-600 dark:text-gray-400">
+                                                    {booking?.bookingServiceCode}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">

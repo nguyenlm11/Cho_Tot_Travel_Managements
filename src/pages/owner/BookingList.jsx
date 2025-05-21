@@ -46,7 +46,7 @@ const bookingStatusConfig = {
     [BookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang phục vụ' },
     [BookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã trả phòng' },
     [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
-    [BookingStatus.NoShow]: { color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-100', text: 'Không đến' },
+    [BookingStatus.NoShow]: { color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-100', text: 'Chấp nhận hoàn tiền' },
     [BookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' }
 };
 const paymentStatusConfig = {
@@ -409,12 +409,14 @@ const BookingList = () => {
 
     const filteredBookings = useMemo(() => {
         let filtered = [...bookings];
+        // console.log(actualSearchTerm);
 
         if (actualSearchTerm) {
             const searchLower = actualSearchTerm.toLowerCase();
             filtered = filtered.filter(booking =>
                 booking.account.name.toLowerCase().includes(searchLower) ||
-                booking.account.email.toLowerCase().includes(searchLower)
+                booking.account.email.toLowerCase().includes(searchLower) ||
+                booking.bookingCode.toLowerCase().includes(searchLower)
             );
         }
         if (selectedStatus !== 'all') {
@@ -757,6 +759,7 @@ const BookingList = () => {
                             <thead className="bg-gray-50 dark:bg-gray-900/50">
                                 <tr>
                                     <TableHeader label="Ngày đặt" sortKey="bookingDate" />
+                                    <TableHeader label="Mã giao dịch" />
                                     <TableHeader label="Khách hàng" sortKey="customerName" />
                                     <TableHeader label="Căn thuê" sortKey="homestayName" />
                                     <TableHeader label="Ngày nhận phòng" sortKey="checkInDate" />
@@ -787,6 +790,11 @@ const BookingList = () => {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="text-gray-600 dark:text-gray-400">
                                                     {formatDate(booking.bookingDate)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-gray-600 dark:text-gray-400">
+                                                    {booking?.bookingCode}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
