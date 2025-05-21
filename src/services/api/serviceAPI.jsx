@@ -7,7 +7,7 @@ const serviceAPI = {
 
             formData.append('servicesName', serviceData.servicesName);
             formData.append('description', serviceData.description);
-            formData.append('unitPrice', serviceData.unitPrice);
+            // formData.append('unitPrice', serviceData.unitPrice);
             formData.append('servicesPrice', serviceData.servicesPrice);
             formData.append('status', true);
             formData.append('homeStayID', serviceData.homeStayID);
