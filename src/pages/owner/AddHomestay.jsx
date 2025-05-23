@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaMapMarkerAlt, FaCloudUploadAlt, FaTrash, FaArrowLeft, FaCheck, FaBed, FaBath, FaUtensils, FaInfoCircle, FaUser, FaChild, FaUsers, FaTag, FaMoneyBillWave, FaDollarSign, FaCalendarAlt, FaPlus } from 'react-icons/fa';
+import { FaHome, FaMapMarkerAlt, FaCloudUploadAlt, FaTrash, FaArrowLeft, FaCheck, FaBed, FaBath, FaUtensils, FaInfoCircle, FaUser, FaChild, FaUsers, FaTag, FaMoneyBillWave, FaDollarSign, FaCalendarAlt, FaPlus, FaWifi } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import homestayAPI from '../../services/api/homestayAPI';
-// import homestayRentalAPI from '../../services/api/homestayrentalAPI';
-import { FaWifi } from 'react-icons/fa6';
 import axiosInstance from '../../services/config';
 import cancelPolicyAPI from '../../services/api/cancelPolicyAPI';
 
@@ -15,8 +13,6 @@ const BASE_URL = "https://mapapis.openmap.vn/v1/autocomplete";
 const PLACE_DETAIL_URL = "https://mapapis.openmap.vn/v1/place";
 
 const AddHomestay = () => {
-  // const [homestayId, setHomestayId] = useState(null);
-  // const [rentalId, setRentalId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
   const [previewImagesStep2, setPreviewImagesStep2] = useState([]);
@@ -33,7 +29,7 @@ const AddHomestay = () => {
     if (user?.role === 'Staff') {
       navigate(`/owner/homestays/${user?.homeStayID}/dashboard`, { replace: true });
     }
-  }, [location, navigate]);
+  }, [navigate]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -44,7 +40,7 @@ const AddHomestay = () => {
     rentalType: 1,
     area: '',
     accountId: '',
-    images: []
+    images: [],
   });
 
   const [rentalData, setRentalData] = useState({
@@ -62,7 +58,6 @@ const AddHomestay = () => {
     MaxPeople: 2,
     Images: [],
     pricingEntries: [{
-      // unitPrice: 0,
       rentPrice: 0,
       startDate: "",
       endDate: "",
@@ -72,41 +67,42 @@ const AddHomestay = () => {
       description: "",
     }],
   });
-  const [roomTypesData, setRoomTypesData] = useState({
-    name: '',
-    description: '',
-    numberBed: 1,
-    numberBathRoom: 1,
-    numberWifi: 1,
-    status: true,
-    maxAdults: 2,
-    maxChildren: 0,
-    maxPeople: 2,
-    pricingEntries: [{
-      // unitPrice: 0,
-      rentPrice: 0,
-      startDate: "",
-      endDate: "",
-      isDefault: true,
-      isActive: true,
-      dayType: 0,
-      description: "",
-    }],
-  });
+
+  const [roomTypesList, setRoomTypesList] = useState([
+    {
+      name: '',
+      description: '',
+      numberBed: 1,
+      numberBathRoom: 1,
+      numberWifi: 1,
+      status: true,
+      maxAdults: 2,
+      maxChildren: 0,
+      maxPeople: 2,
+      pricingRoom: [{
+        rentPrice: 0,
+        startDate: "",
+        endDate: "",
+        isDefault: true,
+        isActive: true,
+        dayType: 0,
+        description: "",
+      }],
+    },
+  ]);
 
   const stepVariants = {
     hidden: { opacity: 0, x: 20 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, x: -20, transition: { duration: 0.3 } }
+    exit: { opacity: 0, x: -20, transition: { duration: 0.3 } },
   };
-
 
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem('userInfo'));
     if (userInfo?.AccountID) {
       setFormData(prev => ({
         ...prev,
-        accountId: userInfo.AccountID
+        accountId: userInfo.AccountID,
       }));
     } else {
       toast.error('Không tìm thấy thông tin tài khoản');
@@ -124,33 +120,32 @@ const AddHomestay = () => {
       searchAddress(value);
     }
   };
+
   const handleInputChangeStep2 = (e) => {
     let { name, value } = e.target;
-
     if (name === 'RentWhole') {
-      value = value === "true" ? true : false;
+      value = value === "true";
     }
-
     setRentalData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
     }
   };
-  const handleInputChangeStep4 = (e) => {
-    let { name, value } = e.target;
 
-    if (name === 'RentWhole') {
-      value = value === "true" ? true : false;
-    }
+  const handleInputChangeStep4 = (roomIndex, e) => {
+    const { name, value } = e.target;
+    const parsedValue = ['numberBed', 'numberBathRoom', 'numberWifi', 'maxAdults', 'maxChildren', 'maxPeople'].includes(name)
+      ? parseInt(value) || 0
+      : value;
 
-    // Convert number inputs to numbers
-    if (['numberBed', 'numberBathRoom', 'numberWifi', 'maxAdults', 'maxChildren', 'maxPeople'].includes(name)) {
-      value = parseInt(value) || 0;
-    }
+    setRoomTypesList(prev =>
+      prev.map((roomType, index) =>
+        index === roomIndex ? { ...roomType, [name]: parsedValue } : roomType
+      )
+    );
 
-    setRoomTypesData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+    if (errors[`${name}_${roomIndex}`]) {
+      setErrors(prev => ({ ...prev, [`${name}_${roomIndex}`]: null }));
     }
   };
 
@@ -185,7 +180,7 @@ const AddHomestay = () => {
       return;
     }
     if (files.length > 0) {
-      setErrors(prev => ({ ...prev, images: null }));
+      setErrors(prev => ({ ...prev, Images: null }));
     }
     setRentalData(prev => ({ ...prev, Images: [...prev.Images, ...files] }));
 
@@ -202,7 +197,6 @@ const AddHomestay = () => {
     });
   };
 
-
   const removeImage = (index) => {
     const newPreviews = [...previewImages];
     newPreviews.splice(index, 1);
@@ -211,7 +205,7 @@ const AddHomestay = () => {
     newImages.splice(index, 1);
     setFormData(prev => ({
       ...prev,
-      images: newImages
+      images: newImages,
     }));
     if (newImages.length === 0) {
       setErrors(prev => ({ ...prev, images: 'Vui lòng tải lên ít nhất một hình ảnh' }));
@@ -226,7 +220,7 @@ const AddHomestay = () => {
     newImages.splice(index, 1);
     setRentalData(prev => ({
       ...prev,
-      Images: newImages
+      Images: newImages,
     }));
     if (newImages.length === 0) {
       setErrors(prev => ({ ...prev, Images: 'Vui lòng tải lên ít nhất một hình ảnh' }));
@@ -235,18 +229,87 @@ const AddHomestay = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name || !formData.name.trim()) {
+    if (!formData.name?.trim()) {
       newErrors.name = 'Tên homestay không được để trống';
     }
-    if (!formData.description || !formData.description.trim()) {
+    if (!formData.description?.trim()) {
       newErrors.description = 'Mô tả không được để trống';
     }
-    if (!formData.address || !formData.address.trim()) {
+    if (!formData.address?.trim()) {
       newErrors.address = 'Địa chỉ không được để trống';
     }
     if (formData.images.length === 0) {
       newErrors.images = 'Vui lòng tải lên ít nhất một hình ảnh';
     }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateRentalForm = () => {
+    const newErrors = {};
+    if (!rentalData.Name?.trim()) {
+      newErrors.Name = 'Tên phòng không được để trống';
+    }
+    if (!rentalData.Description?.trim()) {
+      newErrors.Description = 'Mô tả không được để trống';
+    }
+    if (rentalData.Images.length === 0) {
+      newErrors.Images = 'Vui lòng tải lên ít nhất một hình ảnh';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validatePricingForm = () => {
+    const newErrors = {};
+    rentalData.pricingEntries.forEach((entry, index) => {
+      if (entry.rentPrice <= 0) {
+        newErrors[`rentPrice_${index}`] = 'Giá thuê phải lớn hơn 0';
+      }
+      if (!entry.description?.trim()) {
+        newErrors[`description_${index}`] = 'Mô tả gói giá không được để trống';
+      }
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateRoomTypesForm = () => {
+    const newErrors = {};
+    roomTypesList.forEach((roomType, index) => {
+      if (!roomType.name?.trim()) {
+        newErrors[`name_${index}`] = 'Tên loại phòng không được để trống';
+      }
+      if (!roomType.description?.trim()) {
+        newErrors[`description_${index}`] = 'Mô tả không được để trống';
+      }
+      if (roomType.numberBed <= 0) {
+        newErrors[`numberBed_${index}`] = 'Số giường phải lớn hơn 0';
+      }
+      if (roomType.numberBathRoom <= 0) {
+        newErrors[`numberBathRoom_${index}`] = 'Số phòng tắm phải lớn hơn 0';
+      }
+      if (roomType.numberWifi < 0) {
+        newErrors[`numberWifi_${index}`] = 'Số wifi không được nhỏ hơn 0';
+      }
+      if (roomType.maxAdults <= 0) {
+        newErrors[`maxAdults_${index}`] = 'Số người lớn phải lớn hơn 0';
+      }
+      if (roomType.maxChildren < 0) {
+        newErrors[`maxChildren_${index}`] = 'Số trẻ em không được nhỏ hơn 0';
+      }
+      if (roomType.maxPeople <= 0) {
+        newErrors[`maxPeople_${index}`] = 'Tổng sức chứa phải lớn hơn 0';
+      }
+    });
+    rentalData.pricingEntries.forEach((entry, index) => {
+      if (entry.rentPrice <= 0) {
+        newErrors[`rentPrice_${index}`] = 'Giá thuê phải lớn hơn 0';
+      }
+      if (!entry.description?.trim()) {
+        newErrors[`description_${index}`] = 'Mô tả gói giá không được để trống';
+      }
+    });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -258,58 +321,31 @@ const AddHomestay = () => {
         toast.error('Vui lòng điền đầy đủ thông tin và không để trống');
         return;
       }
-      // setIsModalOpen(true);
       setStep(2);
     } else if (step === 2) {
-      if (!validateRentalForm()) { // Thêm hàm validate cho form rental
+      if (!validateRentalForm()) {
         toast.error('Vui lòng điền đầy đủ thông tin phòng');
         return;
       }
-      // Nếu chọn thuê nguyên căn thì chuyển sang step 3, nếu không thì submit luôn
-      if (rentalData.RentWhole) {
-        setStep(3);
-      } else {
-        // setIsModalOpen(true);
-        setStep(4)
-      }
+      setStep(3);
     } else if (step === 3) {
-      if (!validatePricingForm()) { // Thêm hàm validate cho form pricing
+      if (!validatePricingForm()) {
         toast.error('Vui lòng điền đầy đủ thông tin giá');
         return;
       }
-      setIsModalOpen(true);
+      if (rentalData.RentWhole) {
+        setIsModalOpen(true);
+      } else {
+        setStep(4);
+      }
     } else if (step === 4) {
-      // if (!validatePricingForm()) { // Thêm hàm validate cho form pricing
-      //   toast.error('Vui lòng điền đầy đủ thông tin giá');
-      //   return;
-      // }
-      setStep(3)
+      if (!validateRoomTypesForm()) {
+        toast.error('Vui lòng điền đầy đủ thông tin loại phòng và giá');
+        return;
+      }
+      setIsModalOpen(true);
     }
-
-
   };
-
-  // const confirmSubmit = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const sanitizedData = {
-  //       ...formData,
-  //       name: formData.name.trim(),
-  //       description: formData.description.trim(),
-  //       address: formData.address.trim(),
-  //     };
-
-  //     await homestayAPI.createHomestay(sanitizedData);
-  //     toast.success('Tạo homestay thành công!');
-  //     navigate('/owner/homestays');
-  //   } catch (error) {
-  //     toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo homestay');
-  //   } finally {
-  //     setLoading(false);
-  //     setIsModalOpen(false);
-  //   }
-  // };
-
 
   const confirmSubmit = async () => {
     setLoading(true);
@@ -329,74 +365,52 @@ const AddHomestay = () => {
         RentalName: rentalData.Name,
         RentalDescription: rentalData.Description,
         RentalImages: rentalData.Images,
-        // ...(rentalData.RentWhole && {
         Pricing: rentalData.pricingEntries[0],
         PricingJson: JSON.stringify(
           rentalData.pricingEntries.map(entry => ({
-            // unitPrice: entry.unitPrice,
             rentPrice: entry.rentPrice,
             isDefault: entry.isDefault,
             isActive: entry.isActive,
             dayType: entry.dayType,
-            description: entry.description || ""
+            description: entry.description || "",
           }))
         ),
-        // ...roomTypesData,
-        RoomTypes: {
-          name: roomTypesData.name,
-          description: roomTypesData.description,
-          numberBed: roomTypesData.numberBed,
-          numberBathRoom: roomTypesData.numberBathRoom,
-          numberWifi: roomTypesData.numberWifi,
+        RoomTypes: rentalData.RentWhole ? null : roomTypesList.map(roomType => ({
+          name: roomType.name,
+          description: roomType.description,
+          numberBed: roomType.numberBed,
+          numberBathRoom: roomType.numberBathRoom,
+          numberWifi: roomType.numberWifi,
           status: true,
-          maxAdults: roomTypesData.maxAdults,
-          maxChildren: roomTypesData.maxChildren,
-          maxPeople: roomTypesData.maxPeople,
-          PricingJson: null,
-          Pricing: rentalData.pricingEntries.map(entry => ({
-            // unitPrice: entry.unitPrice,
-            rentPrice: entry.rentPrice,
-            isDefault: entry.isDefault,
-            isActive: entry.isActive,
-            dayType: entry.dayType,
-            description: entry.description || ""
-          })),
-        },
+          maxAdults: roomType.maxAdults,
+          maxChildren: roomType.maxChildren,
+          maxPeople: roomType.maxPeople,
+          Pricing: roomType.pricingRoom,
+        })),
+        RoomTypesJson: rentalData.RentWhole ? null : JSON.stringify(
+          roomTypesList.map(roomType => ({
+            name: roomType.name,
+            description: roomType.description,
+            numberBed: roomType.numberBed,
+            numberBathRoom: roomType.numberBathRoom,
+            numberWifi: roomType.numberWifi,
+            status: true,
+            maxAdults: roomType.maxAdults,
+            maxChildren: roomType.maxChildren,
+            maxPeople: roomType.maxPeople,
+            Pricing: roomType.pricingRoom.map(entry => ({
+              rentPrice: entry.rentPrice,
+              isDefault: entry.isDefault,
+              isActive: entry.isActive,
+              dayType: entry.dayType,
+              description: entry.description || "",
+            })),
+            PricingJson: null,
+          }))
+        ),
+      };
+    };
 
-        RoomTypesJson: JSON.stringify([{
-          name: roomTypesData.name,
-          description: roomTypesData.description,
-          numberBed: roomTypesData.numberBed,
-          numberBathRoom: roomTypesData.numberBathRoom,
-          numberWifi: roomTypesData.numberWifi,
-          status: true,
-          maxAdults: roomTypesData.maxAdults,
-          maxChildren: roomTypesData.maxChildren,
-          maxPeople: roomTypesData.maxPeople,
-          Pricing: rentalData.pricingEntries.map(entry => ({
-            // unitPrice: entry.unitPrice,
-            rentPrice: entry.rentPrice,
-            isDefault: entry.isDefault,
-            isActive: entry.isActive,
-            dayType: entry.dayType,
-            description: entry.description || ""
-          })),
-          // PricingJson: JSON.stringify(
-          //   roomTypesData.pricingEntries.map(entry => ({
-          //     rentPrice: entry.rentPrice,
-          //     isDefault: entry.isDefault,
-          //     isActive: entry.isActive,
-          //     dayType: entry.dayType,
-          //     description: entry.description || ""
-          //   }))
-          // )
-          PricingJson: null
-        }])
-
-        // }
-        // )
-      }
-    }
     try {
       if (step === 1) {
         setStep(2);
@@ -404,25 +418,9 @@ const AddHomestay = () => {
 
         setStep(3);
 
-        // const formatData = handleFormatData();
-        // console.log(formatData);
-        // const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
-        // if (response.statusCode === 201) {
-        //   const dataPolicy = {
-        //     dayBeforeCancel: 7,
-        //     refundPercentage: 1,
-        //     homeStayID: response?.data?.homeStay?.homeStayID
-        //   }
-        //   const responsePolicy = await cancelPolicyAPI.addCancelPolicy(dataPolicy);
-        //   if (responsePolicy.statusCode === 201) {
-        //     toast.success('Tạo homestay thành công!');
-        //     navigate('/owner/homestays');
-        //   }
-        // }
-
       } else if (step === 3) {
         const formatData = handleFormatData();
-        console.log(formatData);
+        // console.log(formatData);
         const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
         if (response.statusCode === 201) {
           const dataPolicy = {
@@ -437,9 +435,21 @@ const AddHomestay = () => {
           }
         }
       } else if (step === 4) {
-        // const formatData = handleFormatData();
+        const formatData = handleFormatData();
         // console.log(formatData);
-        setStep(3);
+        const response = await homestayAPI.createHomestayWithRentalAndPricing(formatData);
+        if (response.statusCode === 201) {
+          const dataPolicy = {
+            dayBeforeCancel: 7,
+            refundPercentage: 1,
+            homeStayID: response?.data?.homeStay?.homeStayID
+          }
+          const responsePolicy = await cancelPolicyAPI.addCancelPolicy(dataPolicy);
+          if (responsePolicy.statusCode === 201) {
+            toast.success('Tạo homestay thành công!');
+            navigate('/owner/homestays');
+          }
+        }
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
@@ -448,7 +458,6 @@ const AddHomestay = () => {
       setIsModalOpen(false);
     }
   };
-
 
   const cancelSubmit = () => {
     setIsModalOpen(false);
@@ -464,7 +473,7 @@ const AddHomestay = () => {
     searchTimeout.current = setTimeout(async () => {
       try {
         const response = await axios.get(BASE_URL, {
-          params: { text: query, apikey: API_KEY, size: 6 }
+          params: { text: query, apikey: API_KEY, size: 6 },
         });
         setSearchResults(response.data.features || []);
         setShowSuggestions(true);
@@ -482,7 +491,7 @@ const AddHomestay = () => {
           format: 'osm',
           ids: id,
           apikey: API_KEY,
-        }
+        },
       });
       const detail = detailResponse.data?.features?.[0];
       if (!detail) {
@@ -512,8 +521,8 @@ const AddHomestay = () => {
       ...prev,
       pricingEntries: [
         ...prev.pricingEntries,
-        { unitPrice: 0, rentPrice: 0, startDate: "", endDate: "", isDefault: true, isActive: true, dayType: 0, description: "" }
-      ]
+        { rentPrice: 0, startDate: "", endDate: "", isDefault: true, isActive: true, dayType: 0, description: "" },
+      ],
     }));
     toast.success('Đã thêm gói giá mới!');
   };
@@ -523,12 +532,25 @@ const AddHomestay = () => {
       const updatedPricingEntries = [...prev.pricingEntries];
       updatedPricingEntries[index] = {
         ...updatedPricingEntries[index],
-        [field]: field === "rentPrice" || field === "dayType" ? Number(value) : value
-        // [field]: field === "unitPrice" || field === "rentPrice" || field === "dayType" ? Number(value) : value
+        [field]: field === "rentPrice" || field === "dayType" ? Number(value) : value,
       };
       return { ...prev, pricingEntries: updatedPricingEntries };
     });
   };
+
+  const handlePricingChangeRoomTypePricing = (index, field, value) => {
+
+    setRoomTypesList(prev => {
+      const updatedPricingEntries = [...prev[index].pricingRoom];
+      updatedPricingEntries[0] = {
+        ...updatedPricingEntries[0],
+        [field]: field === "rentPrice" || field === "dayType" ? Number(value) : value,
+      };
+      prev[index].pricingRoom = updatedPricingEntries;
+      return [...prev];
+    });
+  };
+
   const removePricingEntry = (index) => {
     if (rentalData.pricingEntries.length === 1) {
       toast.error('Phải có ít nhất một mục giá.');
@@ -536,47 +558,52 @@ const AddHomestay = () => {
     }
     setRentalData(prev => ({
       ...prev,
-      pricingEntries: prev.pricingEntries.filter((_, i) => i !== index)
+      pricingEntries: prev.pricingEntries.filter((_, i) => i !== index),
     }));
     toast.success('Đã xóa gói giá!');
   };
 
-  // Thêm các hàm validate cho từng form
-  const validateRentalForm = () => {
-    const newErrors = {};
-    if (!rentalData.Name?.trim()) {
-      newErrors.Name = 'Tên phòng không được để trống';
-    }
-    if (!rentalData.Description?.trim()) {
-      newErrors.Description = 'Mô tả không được để trống';
-    }
-    // Thêm các validation khác cho rental form
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const addNewRoomType = () => {
+    setRoomTypesList(prev => [
+      ...prev,
+      {
+        name: '',
+        description: '',
+        numberBed: 1,
+        numberBathRoom: 1,
+        numberWifi: 1,
+        status: true,
+        maxAdults: 2,
+        maxChildren: 0,
+        maxPeople: 2,
+        pricingRoom: [{
+          rentPrice: 0,
+          startDate: "",
+          endDate: "",
+          isDefault: true,
+          isActive: true,
+          dayType: 0,
+          description: "",
+        }],
+      },
+    ]);
+    toast.success('Đã thêm loại phòng mới!');
   };
 
-  const validatePricingForm = () => {
-    const newErrors = {};
-    rentalData.pricingEntries.forEach((entry, index) => {
-      // if (entry.unitPrice <= 0) {
-      //   newErrors[`unitPrice_${index}`] = 'Đơn giá phải lớn hơn 0';
-      // }
-      if (entry.rentPrice <= 0) {
-        newErrors[`rentPrice_${index}`] = 'Giá thuê phải lớn hơn 0';
-      }
-      // Thêm các validation khác cho pricing form
-    });
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  // New function to remove a room type
+  const removeRoomType = (roomIndex) => {
+    if (roomTypesList.length === 1) {
+      toast.error('Phải có ít nhất một loại phòng.');
+      return;
+    }
+    setRoomTypesList(prev => prev.filter((_, index) => index !== roomIndex));
+    toast.success('Đã xóa loại phòng!');
   };
-
-
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
       <Toaster position="top-right" />
 
-      {/* Back button and title section */}
       <div className="max-w-7xl mx-auto mb-6">
         <div className="flex items-center justify-between">
           <button
@@ -586,29 +613,23 @@ const AddHomestay = () => {
             <FaArrowLeft className="mr-2" />
             <span>Quay lại danh sách homestay</span>
           </button>
-          {/* Progress bar */}
           <div className="hidden sm:flex items-center space-x-2 text-gray-500 dark:text-gray-400 text-sm">
             <span className={`w-3 h-3 rounded-full ${step === 1 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
             <span>Thông tin Homestay</span>
             <span className="w-5 h-px bg-gray-300 dark:bg-gray-600"></span>
             <span className={`w-3 h-3 rounded-full ${step === 2 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
             <span>Thông tin căn thuê</span>
-
-            {rentalData?.RentWhole == false && (
+            <span className="w-5 h-px bg-gray-300 dark:bg-gray-600"></span>
+            <span className={`w-3 h-3 rounded-full ${step === 3 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
+            <span>Thông tin gói thuê của homestay</span>
+            {!rentalData.RentWhole && (
               <>
                 <span className="w-5 h-px bg-gray-300 dark:bg-gray-600"></span>
                 <span className={`w-3 h-3 rounded-full ${step === 4 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
-                <span>Thông tin loại phòng</span>
-                {/* <span className="w-5 h-px bg-gray-300 dark:bg-gray-600"></span>
-                <span className={`w-3 h-3 rounded-full ${step === 5 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
-                <span>Thông tin gói thuê theo loại phòng</span> */}
+                <span>Thông tin loại phòng và gói thuê</span>
               </>
             )}
-            <span className="w-5 h-px bg-gray-300 dark:bg-gray-600"></span>
-            <span className={`w-3 h-3 rounded-full ${step === 3 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></span>
-            <span>Thông tin gói thuê</span>
           </div>
-
         </div>
 
         <div className="mt-6">
@@ -621,7 +642,6 @@ const AddHomestay = () => {
         </div>
       </div>
 
-      {/* Main form */}
       <div className="max-w-7xl mx-auto">
         {step === 1 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -635,13 +655,11 @@ const AddHomestay = () => {
             <form onSubmit={handleSubmit}>
               <div className="p-6">
                 <div className="space-y-6">
-                  {/* Basic Information */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                       Thông tin cơ bản
                     </h3>
 
-                    {/* Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Tên homestay <span className="text-red-500">*</span>
@@ -659,7 +677,6 @@ const AddHomestay = () => {
                       )}
                     </div>
 
-                    {/* Description */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Mô tả <span className="text-red-500">*</span>
@@ -678,13 +695,11 @@ const AddHomestay = () => {
                     </div>
                   </div>
 
-                  {/* Location Information */}
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
                     <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                       Thông tin vị trí
                     </h3>
 
-                    {/* Address */}
                     <div className="relative">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                         <FaMapMarkerAlt className="mr-1 text-gray-400" />
@@ -702,7 +717,6 @@ const AddHomestay = () => {
                         <p className="mt-1 text-sm text-red-500">{errors.address}</p>
                       )}
 
-                      {/* Address suggestions */}
                       <AnimatePresence>
                         {showSuggestions && searchResults.length > 0 && (
                           <motion.div
@@ -729,7 +743,6 @@ const AddHomestay = () => {
                     </div>
                   </div>
 
-                  {/* Images */}
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
                     <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                       Hình ảnh
@@ -764,7 +777,6 @@ const AddHomestay = () => {
                       )}
                     </div>
 
-                    {/* Preview Images */}
                     {previewImages.length > 0 && (
                       <div className="mt-4">
                         <div className="flex items-center justify-between mb-2">
@@ -799,36 +811,11 @@ const AddHomestay = () => {
                     )}
                   </div>
 
-                  <div className='text-red-500 text-sm  italic'>
+                  <div className='text-red-500 text-sm italic'>
                     Mặc định chính sách hoàn trả khi tạo homestay là 100% trong vòng 7 ngày
                   </div>
                 </div>
               </div>
-
-              {/* Form Actions */}
-              {/* <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center justify-end gap-4">
-                <button
-                  type="button"
-                  onClick={() => navigate('/owner/homestays')}
-                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  ) : (
-                    <>
-                      <FaCheck className="mr-2" />
-                      <span>Thêm homestay</span>
-                    </>
-                  )}
-                </button>
-              </div> */}
             </form>
           </div>
         )}
@@ -842,13 +829,11 @@ const AddHomestay = () => {
             exit="exit"
             className="space-y-6"
           >
-            {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                 Thông tin cơ bản
               </h3>
 
-              {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Tên căn thuê <span className="text-red-500">*</span>
@@ -870,7 +855,6 @@ const AddHomestay = () => {
                 )}
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Mô tả <span className="text-red-500">*</span>
@@ -890,7 +874,6 @@ const AddHomestay = () => {
                 )}
               </div>
 
-              {/* RentWhole Option */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Loại thuê <span className="text-red-500">*</span>
@@ -930,7 +913,6 @@ const AddHomestay = () => {
               </div>
             </div>
 
-            {/* Room Facilities */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
               <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                 Tiện nghi riêng của căn
@@ -940,7 +922,7 @@ const AddHomestay = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <FaBed className="mr-1 text-gray-400" />
-                    Phòng ngủ <span className="text-red-500">*</span>
+                    Phòng ngủ <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="number"
@@ -961,7 +943,7 @@ const AddHomestay = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <FaBath className="mr-1 text-gray-400" />
-                    Phòng tắm <span className="text-red-500">*</span>
+                    Phòng tắm <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="number"
@@ -982,7 +964,7 @@ const AddHomestay = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <FaUtensils className="mr-1 text-gray-400" />
-                    Phòng bếp <span className="text-red-500">*</span>
+                    Phòng bếp <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="number"
@@ -1003,7 +985,7 @@ const AddHomestay = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <FaWifi className="mr-1 text-gray-400" />
-                    Wifi <span className="text-red-500">*</span>
+                    Wifi <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="number"
@@ -1023,7 +1005,6 @@ const AddHomestay = () => {
               </div>
             </div>
 
-            {/* Guest Capacity */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
               <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                 Sức chứa
@@ -1033,7 +1014,7 @@ const AddHomestay = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <FaUser className="mr-1 text-gray-400" />
-                    Người lớn <span className="text-red-500">*</span>
+                    Người lớn <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="number"
@@ -1054,7 +1035,7 @@ const AddHomestay = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <FaChild className="mr-1 text-gray-400" />
-                    Trẻ em <span className="text-red-500">*</span>
+                    Trẻ em <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="number"
@@ -1075,7 +1056,7 @@ const AddHomestay = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <FaUsers className="mr-1 text-gray-400" />
-                    Tổng <span className="text-red-500">*</span>
+                    Tổng <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="number"
@@ -1095,7 +1076,6 @@ const AddHomestay = () => {
               </div>
             </div>
 
-            {/* Images */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
               <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                 Hình ảnh
@@ -1132,7 +1112,6 @@ const AddHomestay = () => {
                 )}
               </div>
 
-              {/* Preview Images */}
               {previewImagesStep2.length > 0 && (
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
@@ -1183,54 +1162,15 @@ const AddHomestay = () => {
                 key={index}
                 className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 mb-6"
               >
-                {/* Header with pricing name and delete button */}
                 <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-base font-medium text-gray-700 dark:text-gray-300">
                     <FaTag className="text-primary inline mr-2" />
                     Gói giá {entry.dayType === 0 ? "ngày thường" : entry.dayType === 1 ? "ngày lễ" : "ngày cuối tuần"}
                   </h3>
-                  {/* <button
-                    type="button"
-                    onClick={() => removePricingEntry(index)}
-                    className="p-1 text-gray-400 hover:text-red-500"
-                  >
-                    <FaTrash className="w-4 h-4" />
-                  </button> */}
                 </div>
 
-                {/* Content with price settings */}
                 <div className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Unit Price */}
-                    {/* <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        <FaMoneyBillWave className="inline mr-1 text-gray-400" />
-                        Đơn giá <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={entry.unitPrice}
-                          onChange={(e) => handlePricingChange(index, "unitPrice", e.target.value)}
-                          min="0"
-                          className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                          placeholder="0"
-                        />
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                          <FaDollarSign />
-                        </span>
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                          VNĐ
-                        </span>
-                      </div>
-                      {errors[`unitPrice_${index}`] && (
-                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                          <FaInfoCircle className="mr-1" /> {errors[`unitPrice_${index}`]}
-                        </p>
-                      )}
-                    </div> */}
-
-                    {/* Rent Price */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         <FaMoneyBillWave className="inline mr-1 text-gray-400" />
@@ -1259,29 +1199,6 @@ const AddHomestay = () => {
                       )}
                     </div>
 
-                    {/* Day Type */}
-                    {/* <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        <FaCalendarAlt className="inline mr-1 text-gray-400" />
-                        Áp dụng cho loại ngày <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={entry.dayType}
-                          onChange={(e) => handlePricingChange(index, "dayType", e.target.value)}
-                          className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 appearance-none"
-                        >
-                          <option value="0">Ngày thường</option>
-                          <option value="1">Ngày cuối tuần (Thứ 6, Thứ 7, Chủ nhật)</option>
-                          <option value="2">Ngày đặc biệt (ngày lễ, sự kiện)</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                          <FaCalendarAlt className="h-4 w-4" />
-                        </div>
-                      </div>
-                    </div> */}
-
-                    {/* Special day date range */}
                     {parseInt(entry.dayType) === 2 && (
                       <div className="md:col-span-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                         <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1325,7 +1242,6 @@ const AddHomestay = () => {
                       </div>
                     )}
 
-                    {/* Description */}
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         <FaTag className="inline mr-1 text-gray-400" />
@@ -1348,19 +1264,9 @@ const AddHomestay = () => {
                 </div>
               </div>
             ))}
-
-            {/* Add new price button */}
-            {/* <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={addPricingEntry}
-                className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark flex items-center"
-              >
-                <FaPlus className="mr-2" /> Thêm gói giá mới
-              </button>
-            </div> */}
           </motion.div>
         )}
+
         {step === 4 && (
           <motion.div
             key="step4"
@@ -1368,314 +1274,306 @@ const AddHomestay = () => {
             initial="hidden"
             animate="visible"
             exit="exit"
+            className="w-full max-w-full"
           >
-            <div className="space-y-6">
-              {/* Basic Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                  Thông tin cơ bản
-                </h3>
+            <div className="space-y-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md">
+              {roomTypesList?.map((roomTypeData, roomIndex) => (
+                <div key={roomIndex} className="grid grid-cols-2 gap-6 border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
+                  {/* Left Column: Basic Info, Room Facilities, Guest Capacity */}
+                  <div className="space-y-6">
+                    {/* Basic Information */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          Thông tin cơ bản - Loại phòng {roomIndex + 1}
+                        </h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Tên loại phòng <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="name"
+                            value={roomTypeData.name}
+                            onChange={(e) => handleInputChangeStep4(roomIndex, e)}
+                            placeholder="VD: Phòng Standard, Deluxe..."
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                          />
+                          {errors[`name_${roomIndex}`] && (
+                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                              <FaInfoCircle className="mr-1" /> {errors[`name_${roomIndex}`]}
+                            </p>
+                          )}
+                        </div>
 
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Tên loại phòng <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="name"
-                      value={roomTypesData.name}
-                      onChange={handleInputChangeStep4}
-                      placeholder="Nhập tên loại phòng (VD: Phòng Standard, Phòng Deluxe...)"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                    />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Mô tả <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            name="description"
+                            value={roomTypeData.description}
+                            onChange={(e) => handleInputChangeStep4(roomIndex, e)}
+                            rows="3"
+                            placeholder="Mô tả chi tiết..."
+                            className="w-full h-[39px] px-2 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 resize-none transition-all duration-200 shadow-sm"
+                          />
+                          {errors[`description_${roomIndex}`] && (
+                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                              <FaInfoCircle className="mr-1" /> {errors[`description_${roomIndex}`]}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Room Facilities */}
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        Tiện nghi phòng
+                      </h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                            <FaBed className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                            Giường <span className="text-red-500 ml-1">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            name="numberBed"
+                            value={roomTypeData.numberBed}
+                            onChange={(e) => handleInputChangeStep4(roomIndex, e)}
+                            min="0"
+                            max="50"
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                          />
+                          {errors[`numberBed_${roomIndex}`] && (
+                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                              <FaInfoCircle className="mr-1" /> {errors[`numberBed_${roomIndex}`]}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                            <FaBath className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                            Phòng tắm <span className="text-red-500 ml-1">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            name="numberBathRoom"
+                            value={roomTypeData.numberBathRoom}
+                            onChange={(e) => handleInputChangeStep4(roomIndex, e)}
+                            min="0"
+                            max="50"
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                          />
+                          {errors[`numberBathRoom_${roomIndex}`] && (
+                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                              <FaInfoCircle className="mr-1" /> {errors[`numberBathRoom_${roomIndex}`]}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                            <FaWifi className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                            Wifi <span className="text-red-500 ml-1">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            name="numberWifi"
+                            value={roomTypeData.numberWifi}
+                            onChange={(e) => handleInputChangeStep4(roomIndex, e)}
+                            min="0"
+                            max="50"
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                          />
+                          {errors[`numberWifi_${roomIndex}`] && (
+                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                              <FaInfoCircle className="mr-1" /> {errors[`numberWifi_${roomIndex}`]}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Guest Capacity */}
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        Sức chứa
+                      </h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                            <FaUser className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                            Người lớn <span className="text-red-500 ml-1">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            name="maxAdults"
+                            value={roomTypeData.maxAdults}
+                            onChange={(e) => handleInputChangeStep4(roomIndex, e)}
+                            min="1"
+                            max="10"
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                          />
+                          {errors[`maxAdults_${roomIndex}`] && (
+                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                              <FaInfoCircle className="mr-1" /> {errors[`maxAdults_${roomIndex}`]}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                            <FaChild className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                            Trẻ em <span className="text-red-500 ml-1">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            name="maxChildren"
+                            value={roomTypeData.maxChildren}
+                            onChange={(e) => handleInputChangeStep4(roomIndex, e)}
+                            min="0"
+                            max="10"
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                          />
+                          {errors[`maxChildren_${roomIndex}`] && (
+                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                              <FaInfoCircle className="mr-1" /> {errors[`maxChildren_${roomIndex}`]}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                            <FaUsers className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                            Tổng <span className="text-red-500 ml-1">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            name="maxPeople"
+                            value={roomTypeData.maxPeople}
+                            onChange={(e) => handleInputChangeStep4(roomIndex, e)}
+                            min="1"
+                            max="20"
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                          />
+                          {errors[`maxPeople_${roomIndex}`] && (
+                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                              <FaInfoCircle className="mr-1" /> {errors[`maxPeople_${roomIndex}`]}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {errors.Name && (
-                    <p className="mt-1 text-sm text-red-500 flex items-center">
-                      <FaInfoCircle className="mr-1" /> {errors.Name}
-                    </p>
-                  )}
+
+                  {/* Right Column: Rental Price Packages */}
+                  <div className="space-y-6">
+                    <div className='flex justify-between items-center'>
+                      <>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          Gói giá thuê
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => removeRoomType(roomIndex)}
+                          className="flex items-center px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 focus:ring-2 focus:ring-red-500/50 transition-all duration-200 shadow-sm text-sm"
+                        >
+                          <FaTrash className="mr-1.5" />
+                          Xóa loại phòng
+                        </button>
+                      </>
+                    </div>
+
+                    <div className="space-y-4">
+                      {roomTypeData.pricingRoom.map((entry, pricingIndex) => (
+                        <div
+                          key={pricingIndex}
+                          className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                          <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
+                            <h4 className="text-base font-medium text-gray-700 dark:text-gray-300">
+                              <FaTag className="text-primary inline mr-2" />
+                              Gói giá {entry.dayType === 0 ? "ngày thường" : entry.dayType === 1 ? "ngày lễ" : "ngày cuối tuần"}
+                            </h4>
+                          </div>
+
+                          <div className="p-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                                  <FaMoneyBillWave className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                                  Giá thuê <span className="text-red-500 ml-1">*</span>
+                                </label>
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    value={entry.rentPrice}
+                                    onChange={(e) => handlePricingChangeRoomTypePricing(roomIndex, "rentPrice", e.target.value)}
+                                    min="0"
+                                    className="w-full pl-8 pr-12 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                                    placeholder="0"
+                                  />
+                                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                    <FaDollarSign />
+                                  </span>
+                                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                                    VNĐ
+                                  </span>
+                                </div>
+                                {errors[`rentPrice_${pricingIndex}`] && (
+                                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                                    <FaInfoCircle className="mr-1" /> {errors[`rentPrice_${pricingIndex}`]}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                                  <FaTag className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                                  Mô tả gói giá <span className="text-red-500 ml-1">*</span>
+                                </label>
+                                <textarea
+                                  value={entry.description}
+                                  onChange={(e) => handlePricingChangeRoomTypePricing(roomIndex, "description", e.target.value)}
+                                  rows="2"
+                                  className="w-full h-[39px] px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 resize-none text-sm transition-all duration-200 shadow-sm"
+                                  placeholder="Mô tả thêm về gói giá thuê này..."
+                                />
+                                {errors[`description_${pricingIndex}`] && (
+                                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                                    <FaInfoCircle className="mr-1" /> {errors[`description_${pricingIndex}`]}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+              ))}
 
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Mô tả <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    name="description"
-                    value={roomTypesData.description}
-                    onChange={handleInputChangeStep4}
-                    rows="3"
-                    placeholder="Mô tả chi tiết về loại phòng này..."
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 resize-none"
-                  />
-                  {errors.description && (
-                    <p className="mt-1 text-sm text-red-500 flex items-center">
-                      <FaInfoCircle className="mr-1" /> {errors.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Room Facilities */}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                  Tiện nghi phòng
-                </h3>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                      <FaBed className="mr-1 text-gray-400" />
-                      Giường <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="numberBed"
-                      value={roomTypesData.numberBed}
-                      onChange={handleInputChangeStep4}
-                      min="0"
-                      max="50"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                    />
-                    {errors.numberBed && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.numberBed}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                      <FaBath className="mr-1 text-gray-400" />
-                      Phòng tắm <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="numberBathRoom"
-                      value={roomTypesData.numberBathRoom}
-                      onChange={handleInputChangeStep4}
-                      min="0"
-                      max="50"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                    />
-                    {errors.numberBathRoom && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.numberBathRoom}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                      <FaWifi className="mr-1 text-gray-400" />
-                      Wifi <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="numberWifi"
-                      value={roomTypesData.numberWifi}
-                      onChange={handleInputChangeStep4}
-                      min="0"
-                      max="50"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                    />
-                    {errors.numberWifi && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.numberWifi}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Guest Capacity */}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                  Sức chứa
-                </h3>
-
-                <div className="grid grid-cols-3 gap-4 pb-10">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                      <FaUser className="mr-1 text-gray-400" />
-                      Người lớn <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="maxAdults"
-                      value={roomTypesData.maxAdults}
-                      onChange={handleInputChangeStep4}
-                      min="1"
-                      max="10"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                    />
-                    {errors.maxAdults && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.maxAdults}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                      <FaChild className="mr-1 text-gray-400" />
-                      Trẻ em <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="maxChildren"
-                      value={roomTypesData.maxChildren}
-                      onChange={handleInputChangeStep4}
-                      min="0"
-                      max="10"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                    />
-                    {errors.maxChildren && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.maxChildren}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                      <FaUsers className="mr-1 text-gray-400" />
-                      Tổng <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="maxPeople"
-                      value={roomTypesData.maxPeople}
-                      onChange={handleInputChangeStep4}
-                      min="1"
-                      max="20"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                    />
-                    {errors.maxPeople && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaInfoCircle className="mr-1" /> {errors.maxPeople}
-                      </p>
-                    )}
-                  </div>
-                </div>
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={addNewRoomType}
+                  className="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:ring-2 focus:ring-primary/50 transition-all duration-200 shadow-sm"
+                >
+                  <FaPlus className="mr-2" />
+                  Thêm loại phòng mới
+                </button>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* {step === 5 && (
-          <motion.div
-            key="step5"
-            variants={stepVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="space-y-6"
-          >
-            {formData?.pricingEntries?.map((entry, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 mb-6"
-              >
-              
-                <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-base font-medium text-gray-700 dark:text-gray-300">
-                    Gói giá {entry.dayType === 0 ? "ngày thường" : entry.dayType === 1 ? "ngày cuối tuần" : "ngày đặc biệt (lễ, tết)"}
-                  </h3>
-                </div>
-
-                
-                <div className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Giá thuê <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={entry.rentPrice}
-                          onChange={(e) => handlePricingChange(index, "rentPrice", e.target.value)}
-                          min="0"
-                          className="w-full pl-8 pr-12 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                          placeholder="0"
-                        />
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                          <FaDollarSign />
-                        </span>
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                          VNĐ
-                        </span>
-                      </div>
-                      {errors[`rentPrice_${index}`] && (
-                        <p className="mt-1 text-sm text-red-500">{errors[`rentPrice_${index}`]}</p>
-                      )}
-                    </div>
-
-
-                    
-                    {parseInt(entry.dayType) === 2 && (
-                      <div className="md:col-span-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Khoảng thời gian áp dụng
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                              Ngày bắt đầu <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="date"
-                              value={entry.startDate}
-                              onChange={(e) => handlePricingChange(index, "startDate", e.target.value)}
-                              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                              Ngày kết thúc <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="date"
-                              value={entry.endDate}
-                              onChange={(e) => handlePricingChange(index, "endDate", e.target.value)}
-                              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                   
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Mô tả gói giá <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        value={entry.description}
-                        onChange={(e) => handlePricingChange(index, "description", e.target.value)}
-                        rows="2"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 resize-none"
-                        placeholder="Mô tả thêm về gói giá thuê này..."
-                      />
-                      {errors[`description_${index}`] && (
-                        <p className="mt-1 text-sm text-red-500">{errors[`description_${index}`]}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </motion.div>
-        )} */}
-
-
-        {/* Navigation buttons */}
         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-end gap-4">
           {step === 2 && (
             <button
@@ -1690,7 +1588,7 @@ const AddHomestay = () => {
           {step === 3 && (
             <button
               type="button"
-              onClick={() => rentalData?.RentWhole == false ? (setStep(4)) : (setStep(2))}
+              onClick={() => setStep(2)}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
             >
               <FaArrowLeft className="mr-2" />
@@ -1700,7 +1598,7 @@ const AddHomestay = () => {
           {step === 4 && (
             <button
               type="button"
-              onClick={() => setStep(2)}
+              onClick={() => setStep(3)}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
             >
               <FaArrowLeft className="mr-2" />
@@ -1717,7 +1615,7 @@ const AddHomestay = () => {
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
             ) : (
               <>
-                {step != 3 ? "Tiếp tục" : (
+                {step !== 4 ? "Tiếp tục" : (
                   <>
                     <FaCheck className="mr-2" />
                     <span>Hoàn tất</span>
@@ -1729,7 +1627,6 @@ const AddHomestay = () => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div

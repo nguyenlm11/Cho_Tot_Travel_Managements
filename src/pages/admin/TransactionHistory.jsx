@@ -211,7 +211,7 @@ const ActionDropdown = ({ transaction, handleRefund }) => {
 
     return (
         <div className="relative inline-block text-left" ref={dropdownRef}>
-            {transaction.transactionKind === 2 ? (
+            {transaction.statusTransaction === 3 ? (
                 <button
                     onClick={toggleDropdown}
                     className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
@@ -249,11 +249,11 @@ const ActionDropdown = ({ transaction, handleRefund }) => {
                         aria-labelledby="options-menu"
                     >
                         <div className="py-1" role="none">
-                            {transaction.transactionKind === 2 ? (
+                            {transaction.statusTransaction === 3 ? (
                                 <button
                                     onClick={() =>
                                         handleActionClick(() =>
-                                            handleRefund(transaction.bookingID, transaction.homeStayID)
+                                            handleRefund(transaction)
                                         )
                                     }
                                     className="
@@ -434,6 +434,25 @@ const TransactionHistory = () => {
         }
     };
 
+    const getStatusTransactionText = (kind) => {
+        switch (kind) {
+            case 0:
+                return 'Đang xử lý';
+            case 1:
+                return 'Đã hoàn thành';
+            case 2:
+                return 'Đã hủy';
+            case 3:
+                return 'Yêu cầu hoàn tiền';
+            case 4:
+                return 'Đã hoàn tiền';
+            case 5:
+                return 'Yêu cầu hủy';
+            default:
+                return 'Không xác định';
+        }
+    };
+
     const getTransactionKindColor = (kind) => {
         switch (kind) {
             case 0:
@@ -489,7 +508,9 @@ const TransactionHistory = () => {
     ], [totalTransactions, successfulTransactions, pendingTransactions]);
 
 
-    const handleRefund = async (bookingId, homestayId) => {
+    const handleRefund = async (transaction) => {
+        console.log(transaction);
+
         try {
             const userInfoString = localStorage.getItem('userInfo');
             let accountID;
@@ -500,16 +521,46 @@ const TransactionHistory = () => {
                 throw new Error('Không tìm thấy userInfo trong localStorage');
             }
             setLoading(true);
-            localStorage.setItem('currentBookingInfo', JSON.stringify({
-                bookingId,
-                homestayId
-            }));
+            // localStorage.setItem('currentBookingInfo', JSON.stringify({
+            //     transaction?.bookingId
+            //     transaction?.homestayId
+            // }));
 
-            const response = await bookingAPI.processVnPayRefund(bookingId, homestayId, accountID);
+            const response = await bookingAPI.processVnPayRefund(transaction?.bookingId || transaction?.bookingServicesID, transaction?.homestayId, accountID, transaction?.bookingId
+                ? "Booking" : "Service"
+            );
             console.log('Response từ API VNPay:', response);
             if (response) {
                 window.location.href = response;
             }
+        } catch (error) {
+            console.error('Error processing VNPay refund:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRefundFull = async (transaction) => {
+        console.log(transaction);
+
+        try {
+            const userInfoString = localStorage.getItem('userInfo');
+            let accountID;
+            if (userInfoString) {
+                const userInfo = JSON.parse(userInfoString);
+                accountID = userInfo.AccountID;
+            } else {
+                throw new Error('Không tìm thấy userInfo trong localStorage');
+            }
+            setLoading(true);
+
+            // Gọi API
+            const response = await bookingAPI.processRefundFull(transaction?.bookingId, accountID)
+            if (response) {
+                window.location.href = response;
+            }
+
+
         } catch (error) {
             console.error('Error processing VNPay refund:', error);
         } finally {
@@ -629,9 +680,10 @@ const TransactionHistory = () => {
                                     <TableHeader label="Mã giao dịch" sortKey="txnRef" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Người thanh toán" sortKey="payerName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Loại giao dịch" sortKey="transactionKind" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Số tiền đơn" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Phí hoa hồng" sortKey="amountAdmin" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Trạng thái" sortKey="status" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Trạng thái đơn" sortKey="statusTransaction" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Tổng tiền" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Số tiền nhận" sortKey="amountAdmin" sortConfig={sortConfig} onSort={handleSort} />
+                                    {/* <TableHeader label="Trạng thái" sortKey="status" sortConfig={sortConfig} onSort={handleSort} /> */}
                                     <th className="px-6 py-3 text-left">
                                         <span className="font-semibold text-gray-700 dark:text-gray-300">
                                             Hành động
@@ -663,6 +715,11 @@ const TransactionHistory = () => {
                                                 {getTransactionKindText(transaction.transactionKind)}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTransactionKindColor(transaction.statusTransaction)}`}>
+                                                {getStatusTransactionText(transaction.statusTransaction)}
+                                            </span>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <span className={getTransactionKindColor(transaction.transactionKind)}>
                                                 {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}
@@ -681,11 +738,11 @@ const TransactionHistory = () => {
                                                 {formatAmount(transaction?.adminAmount)}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        {/* <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(transaction.transactionStatus)}`}>
                                                 {getStatusText(transaction.transactionStatus)}
                                             </span>
-                                        </td>
+                                        </td> */}
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <ActionDropdown
                                                 transaction={transaction}
