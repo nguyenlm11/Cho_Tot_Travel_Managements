@@ -61,7 +61,8 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanResult, handleStartChat }) => {
+const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, handleScanResult, handleStartChat }) => {
+
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const toggleDropdown = () => setIsOpen(!isOpen);
@@ -76,6 +77,7 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                 closeDropdown(); 2
             }
         };
+
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -119,7 +121,7 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                         aria-labelledby="options-menu"
                     >
                         <div className="py-1" role="none">
-                            {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
+                            {/* {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
                                 <button
                                     onClick={() => handleActionClick(() => handleRefund(booking.bookingID))}
                                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -127,6 +129,16 @@ const ActionDropdown = ({ booking, handleViewBooking, handleRefund, handleScanRe
                                 >
                                     <FaMoneyBillWave className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
                                     Hoàn tiền
+                                </button>
+                            )} */}
+
+                            {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
+                                <button
+                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.NoShow))}
+                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    role="menuitem"
+                                >
+                                    Chấp nhận hoàn tiền
                                 </button>
                             )}
                             {booking.status !== BookingStatus.Cancelled &&
@@ -519,7 +531,7 @@ const BookingList = () => {
                 bookingData.paymentStatus
             );
 
-            const messageStatus = { 1: "Xác nhận thành công", 2: "Check-in thành công", 3: "Check-out thành công", 4: "Hủy thành công" }
+            const messageStatus = { 1: "Xác nhận thành công", 2: "Check-in thành công", 3: "Check-out thành công", 4: "Hủy thành công", 5: "Chấp nhận hoàn tiền thành công" }
 
             toast.success(messageStatus?.[bookingStatus], {
                 id: 'check-in-success',
