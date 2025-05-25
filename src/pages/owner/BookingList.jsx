@@ -187,7 +187,7 @@ const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, 
                             {booking.status == BookingStatus.Confirmed && (
                                 <button
                                     // onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Cancelled))}
-                                    onClick={() => handleActionClick(() => handleRequestCancelToAdmin(booking.bookingID))}
+                                    onClick={() => handleActionClick(() => handleRequestCancelToAdmin(booking.bookingID, BookingStatus.RequestCancelled))}
                                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
                                 >
