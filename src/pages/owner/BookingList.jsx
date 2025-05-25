@@ -38,7 +38,7 @@ const cardVariants = {
     }
 };
 
-const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, NoShow: 5, Refund: 6 };
+const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, NoShow: 5, Refund: 6, RequestCancelled: 7 };
 const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
 const bookingStatusConfig = {
     [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chờ xác nhận' },
@@ -47,7 +47,8 @@ const bookingStatusConfig = {
     [BookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã trả phòng' },
     [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
     [BookingStatus.NoShow]: { color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-100', text: 'Chấp nhận hoàn tiền' },
-    [BookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' }
+    [BookingStatus.Refund]: { color: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-100', text: 'Yêu cầu hoàn tiền' },
+    [BookingStatus.RequestCancelled]: { color: 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-100', text: 'Yêu cầu hủy' }
 };
 const paymentStatusConfig = {
     [PaymentStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chưa thanh toán' },
@@ -61,7 +62,7 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, handleScanResult, handleStartChat }) => {
+const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, handleScanResult, handleStartChat, handleRequestCancelToAdmin }) => {
 
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -185,7 +186,8 @@ const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, 
 
                             {booking.status == BookingStatus.Confirmed && (
                                 <button
-                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Cancelled))}
+                                    // onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Cancelled))}
+                                    onClick={() => handleActionClick(() => handleRequestCancelToAdmin(booking.bookingID))}
                                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
                                 >
@@ -396,7 +398,7 @@ const BookingList = () => {
         try {
             setIsLoading(true);
             const response = await bookingAPI.getBookingsByHomeStay(homestayId);
-            console.log(response.data);
+            // console.log(response.data);
             setBookings(response.data || []);
         } catch (error) {
             toast.error('Không thể tải danh sách đặt phòng');
@@ -612,6 +614,23 @@ const BookingList = () => {
         });
     };
 
+    const handleRequestCancelToAdmin = async (bookingId) => {
+        // console.log(bookingId);
+
+        try {
+            const response = await bookingAPI.requestCancelToAdmin(bookingId);
+            if (response?.statusCode === 200) {
+                toast.success('Đã yêu cầu hủy')
+                fetchBookings();
+            } else {
+                toast.error('Hủy không thành công')
+            }
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+
     const handleStartChat = async (customerId, homestayId) => {
         try {
             const response = await chatAPI.createConversation(customerId, homestayId);
@@ -805,9 +824,9 @@ const BookingList = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-gray-600 dark:text-gray-400">
+                                                <p className="text-gray-600 dark:text-gray-400 w-40 truncate">
                                                     {booking?.bookingCode}
-                                                </span>
+                                                </p>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex flex-col">
@@ -856,6 +875,7 @@ const BookingList = () => {
                                                             homestayId={homestayId}
                                                             handleViewBooking={handleViewBooking}
                                                             handleRefund={handleRefund}
+                                                            handleRequestCancelToAdmin={handleRequestCancelToAdmin}
                                                             handleScanResult={handleScanResult}
                                                             handleStartChat={() => handleStartChat(booking.accountID, homestayId)}
                                                         />

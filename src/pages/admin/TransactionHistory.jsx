@@ -187,7 +187,7 @@ const TableHeader = ({ label, sortKey, sortConfig, onSort }) => {
     );
 };
 
-const ActionDropdown = ({ transaction, handleRefund }) => {
+const ActionDropdown = ({ transaction, handleRefund, handleRefundFull }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -211,7 +211,7 @@ const ActionDropdown = ({ transaction, handleRefund }) => {
 
     return (
         <div className="relative inline-block text-left" ref={dropdownRef}>
-            {transaction.statusTransaction === 3 ? (
+            {transaction.statusTransaction === 3 || transaction.statusTransaction === 5 ? (
                 <button
                     onClick={toggleDropdown}
                     className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
@@ -252,14 +252,12 @@ const ActionDropdown = ({ transaction, handleRefund }) => {
                             {transaction.statusTransaction === 3 ? (
                                 <button
                                     onClick={() =>
-                                        handleActionClick(() =>
-                                            handleRefund(transaction)
-                                        )
+                                        handleActionClick(() => handleRefund(transaction))
                                     }
                                     className="
-              flex w-full items-center px-4 py-2 text-sm 
-              text-gray-700 hover:bg-gray-100 hover:text-gray-900
-            "
+            flex w-full items-center px-4 py-2 text-sm 
+            text-gray-700 hover:bg-gray-100 hover:text-gray-900
+        "
                                     role="menuitem"
                                 >
                                     <FaMoneyBillWave
@@ -268,9 +266,26 @@ const ActionDropdown = ({ transaction, handleRefund }) => {
                                     />
                                     Hoàn tiền
                                 </button>
-                            ) : (
-                                <span className="text-gray-500 text-sm px-2 text-center">Không có hành động !!!</span>
-                            )}
+                            ) : transaction.statusTransaction === 5 ? (
+                                <button
+                                    onClick={() =>
+                                        handleActionClick(() => handleRefundFull(transaction))
+                                    }
+                                    className="
+            flex w-full items-center px-4 py-2 text-sm 
+            text-gray-700 hover:bg-gray-100 hover:text-gray-900
+        "
+                                    role="menuitem"
+                                >
+                                    <FaMoneyBillWave
+                                        className="mr-3 w-4 h-4 text-gray-400"
+                                        aria-hidden="true"
+                                    />
+                                    Hoàn tiền full
+                                </button>
+                            ) : null}
+
+
                         </div>
                     </motion.div>
                 )}
@@ -526,7 +541,7 @@ const TransactionHistory = () => {
             //     transaction?.homestayId
             // }));
 
-            const response = await bookingAPI.processVnPayRefund(transaction?.bookingId || transaction?.bookingServicesID, transaction?.homestayId, accountID, transaction?.bookingId
+            const response = await bookingAPI.processVnPayRefund(transaction?.bookingID || transaction?.bookingServicesID, transaction?.homestayId, accountID, transaction?.bookingID
                 ? "Booking" : "Service"
             );
             console.log('Response từ API VNPay:', response);
@@ -541,7 +556,7 @@ const TransactionHistory = () => {
     };
 
     const handleRefundFull = async (transaction) => {
-        console.log(transaction);
+        // console.log(transaction);
 
         try {
             const userInfoString = localStorage.getItem('userInfo');
@@ -555,7 +570,7 @@ const TransactionHistory = () => {
             setLoading(true);
 
             // Gọi API
-            const response = await bookingAPI.processRefundFull(transaction?.bookingId, accountID)
+            const response = await bookingAPI.processRefundFull(transaction?.bookingID, accountID)
             if (response) {
                 window.location.href = response;
             }
@@ -747,6 +762,7 @@ const TransactionHistory = () => {
                                             <ActionDropdown
                                                 transaction={transaction}
                                                 handleRefund={handleRefund}
+                                                handleRefundFull={handleRefundFull}
                                             />
                                         </td>
 

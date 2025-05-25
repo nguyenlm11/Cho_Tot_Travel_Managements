@@ -80,6 +80,16 @@ const bookingAPI = {
             return error;
         }
     },
+    requestCancelToAdmin: async (bookingId) => {
+        try {
+            const response = await axiosInstance.put(
+                `/booking-checkout/RequestCancelToAdmin?bookingId=${bookingId}`
+            );
+            return response.data;
+        } catch (error) {
+            return error;
+        }
+    },
 };
 
 export default bookingAPI; 
