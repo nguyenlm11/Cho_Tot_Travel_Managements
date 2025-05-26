@@ -339,6 +339,22 @@ const ServiceBookingList = () => {
         }
     };
 
+    const handleRequestRefundServiceToAdmin = async (bookingServiceId) => {
+        // console.log(bookingServiceId);
+
+        try {
+            const respone = await bookingAPI.requestRefundServiceToAdmin(bookingServiceId);
+            if (respone?.statusCode === 200) {
+                toast.success('Chấp nhận hoàn tiền thành công')
+                fetchServiceBookings();
+            } else {
+                toast.error('Chấp nhận hoàn tiền thất bại')
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     const handleRefresh = () => {
         fetchServiceBookings();
         toast.success('Đã làm mới danh sách đặt dịch vụ', {
@@ -570,8 +586,8 @@ const ServiceBookingList = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${serviceBookingStatusInfo.color}`}>
-                                                    {serviceBookingStatusInfo.text}
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${serviceBookingStatusInfo?.color}`}>
+                                                    {serviceBookingStatusInfo?.text}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -600,13 +616,13 @@ const ServiceBookingList = () => {
                                                             {booking.status === ServiceBookingStatus.Refund && (
                                                                 <button
                                                                     onClick={(e) => {
-                                                                        handleRefund(booking.bookingServicesID);
+                                                                        handleRequestRefundServiceToAdmin(booking.bookingServicesID);
                                                                         e.currentTarget.parentElement.parentElement.classList.add('hidden');
                                                                     }}
-                                                                    className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                                    className="flex w-full items-center px-4 py-2 text-sm text-green-600 hover:bg-red-50"
                                                                 >
-                                                                    <FaMoneyBillWave className="mr-3 w-4 h-4" />
-                                                                    Hoàn tiền
+                                                                    <FaCheck className="mr-3 w-4 h-4" />
+                                                                    Chấp nhận hoàn tiền
                                                                 </button>
                                                             )}
                                                         </div>

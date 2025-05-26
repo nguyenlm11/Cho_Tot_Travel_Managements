@@ -550,12 +550,12 @@ const RoomListFilterByHomestay = () => {
                     <FaSearch className="mx-auto w-16 h-16" />
                   </div>
                   <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                    Không tìm thấy đặt dịch vụ
+                    Không tìm thấy phòng
                   </h3>
                   <p className="text-gray-500 dark:text-gray-400 mb-6">
                     {actualSearchTerm || selectedStatus !== 'all'
-                      ? 'Không có đặt dịch vụ nào phù hợp với bộ lọc của bạn'
-                      : 'Chưa có đặt dịch vụ nào được tạo cho homestay này'}
+                      ? 'Không có đặt phòng nào phù hợp với bộ lọc của bạn'
+                      : 'Chưa có đặt phòng nào được tạo cho homestay này'}
                   </p>
                 </motion.div>
               )}

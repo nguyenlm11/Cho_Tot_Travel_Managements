@@ -42,7 +42,7 @@ const BookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, C
 const PaymentStatus = { Pending: 0, Deposited: 1, FullyPaid: 2, Refunded: 3 };
 const bookingStatusConfig = {
     [BookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chờ xác nhận' },
-    [BookingStatus.Confirmed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã xác nhận' },
+    [BookingStatus.Confirmed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Chờ nhận phòng' },
     [BookingStatus.InProgress]: { color: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-100', text: 'Đang phục vụ' },
     [BookingStatus.Completed]: { color: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-100', text: 'Đã trả phòng' },
     [BookingStatus.Cancelled]: { color: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100', text: 'Đã hủy' },
@@ -62,7 +62,7 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, handleScanResult, handleStartChat, handleRequestCancelToAdmin }) => {
+const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, handleScanResult, handleStartChat, handleRequestCancelToAdmin, handleRequestRefundToAdmin }) => {
 
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -135,7 +135,7 @@ const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, 
 
                             {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
                                 <button
-                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.NoShow))}
+                                    onClick={() => handleActionClick(() => handleRequestRefundToAdmin(booking.bookingID, BookingStatus.NoShow))}
                                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     role="menuitem"
                                 >
@@ -196,13 +196,18 @@ const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, 
                                 </button>
                             )}
 
-                            {booking.status !== BookingStatus.Cancelled &&
+                            {booking.bookingDetails?.some(item => item.roomID != null) &&
+                                booking.status !== BookingStatus.Cancelled &&
                                 booking.status !== BookingStatus.NoShow &&
-                                booking.status === BookingStatus.InProgress &&
                                 booking.status !== BookingStatus.Completed &&
                                 booking.paymentStatus !== 0 && (
                                     <button
-                                        onClick={() => handleActionClick(() => { setIsChangeRoomModal(true); setSelectBooking(booking) })}
+                                        onClick={() => {
+                                            handleActionClick(() => {
+                                                setIsChangeRoomModal(true);
+                                                setSelectBooking(booking);
+                                            });
+                                        }}
                                         className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                         role="menuitem"
                                     >
@@ -213,7 +218,10 @@ const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, 
                                             Change room
                                         </span>
                                     </button>
-                                )}
+                                )
+                            }
+
+
 
                             <button
                                 onClick={() => handleActionClick(() => handleViewBooking(booking.bookingID))}
@@ -250,11 +258,13 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
     const statusOptions = [
         { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
         { value: '0', label: 'Chờ xác nhận', icon: <div className="w-2 h-2 rounded-full bg-yellow-500" /> },
-        { value: '1', label: 'Đã xác nhận', icon: <div className="w-2 h-2 rounded-full bg-blue-500" /> },
+        { value: '1', label: 'Chờ nhận phòng', icon: <div className="w-2 h-2 rounded-full bg-blue-500" /> },
         { value: '2', label: 'Đang ở', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
         { value: '3', label: 'Đã trả phòng', icon: <div className="w-2 h-2 rounded-full bg-indigo-500" /> },
         { value: '4', label: 'Đã hủy', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> },
-        { value: '5', label: 'Không đến', icon: <div className="w-2 h-2 rounded-full bg-gray-500" /> }
+        { value: '5', label: 'Chấp nhận hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-gray-500" /> },
+        { value: '6', label: 'Yêu cầu hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-gray-500" /> },
+        { value: '7', label: 'Yêu cầu hủy', icon: <div className="w-2 h-2 rounded-full bg-gray-500" /> }
     ];
 
     const handleSearchChange = (e) => {
@@ -631,6 +641,22 @@ const BookingList = () => {
 
     }
 
+    const handleRequestRefundToAdmin = async (bookingId) => {
+        // console.log(bookingId);
+
+        try {
+            const response = await bookingAPI.requestRefundToAdmin(bookingId)
+            if (response?.statusCode === 200) {
+                toast.success('Chấp nhận hoàn tiền thành công')
+                fetchBookings();
+            } else {
+                toast.error('Chấp nhận hoàn tiền thất bại')
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     const handleStartChat = async (customerId, homestayId) => {
         try {
             const response = await chatAPI.createConversation(customerId, homestayId);
@@ -671,7 +697,7 @@ const BookingList = () => {
     const statsData = useMemo(() => [
         { label: 'Tổng số đặt phòng', value: bookings.length, color: 'bg-blue-500', icon: <FaCalendarAlt className="w-6 h-6" /> },
         // { label: 'Đang ở', value: bookings.filter(b => b.status === BookingStatus.InProgress).length, color: 'bg-green-500', icon: <FaUser className="w-6 h-6" /> },
-        { label: 'Đã xác nhận', value: bookings.filter(b => b.status === BookingStatus.Confirmed).length, color: 'bg-indigo-500', icon: <FaCheck className="w-6 h-6" /> },
+        { label: 'Chờ nhận phòng', value: bookings.filter(b => b.status === BookingStatus.Confirmed).length, color: 'bg-indigo-500', icon: <FaCheck className="w-6 h-6" /> },
         { label: 'Chờ xác nhận', value: bookings.filter(b => b.status === BookingStatus.Pending).length, color: 'bg-yellow-500', icon: <FaCalendarAlt className="w-6 h-6" /> }
     ], [bookings]);
     const homestayName = localStorage.getItem('homestayName')
@@ -876,6 +902,7 @@ const BookingList = () => {
                                                             handleViewBooking={handleViewBooking}
                                                             handleRefund={handleRefund}
                                                             handleRequestCancelToAdmin={handleRequestCancelToAdmin}
+                                                            handleRequestRefundToAdmin={handleRequestRefundToAdmin}
                                                             handleScanResult={handleScanResult}
                                                             handleStartChat={() => handleStartChat(booking.accountID, homestayId)}
                                                         />
