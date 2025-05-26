@@ -482,7 +482,9 @@ const TransactionHistory = () => {
 
     const formatAmount = (amount, kind) => {
         const formattedAmount = formatCurrency(amount);
+        // return kind === 2 ? `-${formattedAmount}` : formattedAmount;
         return kind === 2 ? `-${formattedAmount}` : formattedAmount;
+
     };
 
     const handleSearch = () => {
@@ -739,6 +741,7 @@ const TransactionHistory = () => {
                                             <span className={getTransactionKindColor(transaction.transactionKind)}>
                                                 {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}
                                                 {formatAmount(transaction.amount)}
+                                                {/* {transaction.amount} */}
                                             </span>
                                         </td>
                                         {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -751,6 +754,7 @@ const TransactionHistory = () => {
                                             <span className={getTransactionKindColor(transaction.transactionKind)}>
                                                 {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}
                                                 {formatAmount(transaction?.adminAmount)}
+                                                {/* {transaction?.adminAmount} */}
                                             </span>
                                         </td>
                                         {/* <td className="px-6 py-4 whitespace-nowrap">

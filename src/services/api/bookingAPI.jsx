@@ -90,6 +90,32 @@ const bookingAPI = {
             return error;
         }
     },
+    requestRefundToAdmin: async (bookingId) => {
+        try {
+            // const response = await axiosInstance.put(
+            //     `/booking-checkout/RequestRefundToAdmin?bookingId=${bookingId}&bookingServiceId=${bookingServiceId}`
+            // );
+            const response = await axiosInstance.put(
+                `/booking-checkout/RequestRefundToAdmin?bookingId=${bookingId}`
+            );
+            return response.data;
+        } catch (error) {
+            return error;
+        }
+    },
+    requestRefundServiceToAdmin: async (bookingServiceId) => {
+        try {
+            // const response = await axiosInstance.put(
+            //     `/booking-checkout/RequestRefundToAdmin?bookingId=${bookingId}&bookingServiceId=${bookingServiceId}`
+            // );
+            const response = await axiosInstance.put(
+                `/booking-checkout/RequestRefundToAdmin?bookingServiceId=${bookingServiceId}`
+            );
+            return response.data;
+        } catch (error) {
+            return error;
+        }
+    },
 };
 
 export default bookingAPI; 
