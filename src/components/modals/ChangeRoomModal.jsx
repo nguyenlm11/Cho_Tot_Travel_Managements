@@ -12,6 +12,7 @@ export const ChangeRoomModal = ({ booking, isOpen, onClose }) => {
     const [selectRoomChangeTo, setSelectRoomChangeTo] = useState('0');
     const [selectRoomChangeFrom, setSelectRoomChangeFrom] = useState('0');
     const [roomAvailableList, setRoomAvailableList] = useState([]);
+    // const [roomList, setRoomList] = useState([]);
 
     useEffect(() => {
         if (isOpen) {
@@ -32,6 +33,7 @@ export const ChangeRoomModal = ({ booking, isOpen, onClose }) => {
         const bookingDetail = booking?.bookingDetails?.find(bd => bd?.roomID == selectRoomChangeTo);
         const response = await roomAPI.getRoomsByHomestayID(homestayId, bookingDetail?.checkInDate, bookingDetail?.checkOutDate);
         setRoomAvailableList(response?.data?.filter(room => room?.isActive && !room?.isUsed));
+        // setRoomList(response?.data)
     }
 
     const handleChangeRoom = () => {
@@ -50,6 +52,8 @@ export const ChangeRoomModal = ({ booking, isOpen, onClose }) => {
     const handleConfirmChange = async () => {
         const loadingToast = toast.loading('Đang chuyển phòng...');
         const roomChange = roomAvailableList.find(room => room?.roomID == selectRoomChangeFrom);
+        // console.log(booking?.bookingDetails);
+
         const bookingDetails = booking?.bookingDetails?.map(bd => {
             const bookingDetail = {
                 bookingDetailID: bd?.bookingDetailID,
@@ -60,7 +64,8 @@ export const ChangeRoomModal = ({ booking, isOpen, onClose }) => {
                 checkOutDate: bd?.checkOutDate,
             }
             if (bd?.roomID == selectRoomChangeTo) {
-                return { ...bookingDetail, roomTypeID: roomChange?.roomTypesID, roomID: roomChange?.roomID }
+                return { ...bookingDetail, roomTypeID: roomChange?.roomTypesID, roomID: roomChange?.roomID, homeStayTypeID: roomChange?.homeStayRentalID }
+                // return { ...bookingDetail, roomTypeID: roomChange?.roomTypesID, roomID: roomChange?.roomID }
             }
             return bookingDetail;
         });
@@ -71,8 +76,12 @@ export const ChangeRoomModal = ({ booking, isOpen, onClose }) => {
             accountID: booking?.accountID,
             bookingDetails: bookingDetails
         }
+        // console.log(bookingDetails);
         // console.log(data);
-        // console.log(booking);
+        // console.log(roomList.find(room => room?.roomID == selectRoomChangeTo));
+        // console.log(roomChange);
+
+
 
         const response = await changeRoomAPI.changeRoom(booking?.bookingID, data);
         if (response.statusCode === 200) {
