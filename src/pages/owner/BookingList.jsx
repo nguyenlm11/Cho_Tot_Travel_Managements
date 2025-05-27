@@ -83,15 +83,17 @@ const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, 
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    useState(() => {
-        // console.log(booking);
+    useEffect(() => {
         const currentDate = new Date();
-        const formattedCurrentDate = currentDate.toLocaleDateString('vi-VN');
         const bookingDate = new Date(booking?.bookingDetails?.[0]?.checkInDate);
-        const formattedBookingDate = bookingDate.toLocaleDateString('vi-VN');
 
-        setIsSameCheckinDate(formattedBookingDate == formattedCurrentDate)
-    })
+        // Reset time part to compare only dates
+        currentDate.setHours(0, 0, 0, 0);
+        bookingDate.setHours(0, 0, 0, 0);
+
+        // Allow check-in if current date is equal to or after booking date
+        setIsSameCheckinDate(currentDate >= bookingDate);
+    }, [booking]);
 
     const handleActionClick = (action) => {
         action();
@@ -515,11 +517,14 @@ const BookingList = () => {
                 }
                 const bookingCheckInDate = new Date(currentBooking.bookingDetails[0]?.checkInDate);
                 const today = new Date();
-                const bookingDateString = bookingCheckInDate.toISOString().split('T')[0];
-                const todayString = today.toISOString().split('T')[0];
 
-                if (bookingDateString !== todayString) {
-                    throw new Error('Chỉ có thể check-in vào đúng ngày nhận phòng');
+                // Reset time part to compare only dates
+                bookingCheckInDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+
+                // Allow check-in if today is equal to or after check-in date
+                if (today < bookingCheckInDate) {
+                    throw new Error('Chỉ có thể check-in từ ngày nhận phòng trở đi');
                 }
             }
 

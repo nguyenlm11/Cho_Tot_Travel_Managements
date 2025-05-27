@@ -73,7 +73,7 @@ const AddHomestay = () => {
       name: '',
       description: '',
       numberBed: 1,
-      numberBathRoom: 1,
+      numberBathRoom: 0,
       numberWifi: 1,
       status: true,
       maxAdults: 2,
@@ -286,8 +286,8 @@ const AddHomestay = () => {
       if (roomType.numberBed <= 0) {
         newErrors[`numberBed_${index}`] = 'Số giường phải lớn hơn 0';
       }
-      if (roomType.numberBathRoom <= 0) {
-        newErrors[`numberBathRoom_${index}`] = 'Số phòng tắm phải lớn hơn 0';
+      if (roomType.numberBathRoom < 0) {
+        newErrors[`numberBathRoom_${index}`] = 'Số phòng tắm phải lớn hơn hoặc bằng 0';
       }
       if (roomType.numberWifi < 0) {
         newErrors[`numberWifi_${index}`] = 'Số wifi không được nhỏ hơn 0';
@@ -570,7 +570,7 @@ const AddHomestay = () => {
         name: '',
         description: '',
         numberBed: 1,
-        numberBathRoom: 1,
+        numberBathRoom: 0,
         numberWifi: 1,
         status: true,
         maxAdults: 2,
