@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaCheck, FaMoneyBillWave, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaTag, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaCheck, FaMoneyBillWave, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaTag, FaPlus, FaBath, FaWifi, FaEdit } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -12,6 +12,7 @@ import roomTypeAPI from '../../services/api/roomTypeAPI';
 import FilterRoomByHomestayRentalStartAndEndDate from '../../components/modals/FilterRoomByHomestayRentalStartAndEndDate';
 import RoomAddByListHomestayRentalModal from '../../components/modals/RoomAddByListHomestayRentalModal';
 import homestayRentalAPI from '../../services/api/homestayrentalAPI';
+import RoomEditByListHomestayRentalModal from '../../components/modals/RoomEditByListHomestayRentalModal';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -192,11 +193,17 @@ const FilterRoomByHomestayRental = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [allRoomTypeByHomestayRental, setIsAllRoomTypeByHomestayRental] = useState([])
     const [homestayRentalData, setHomestayRentalData] = useState([])
+    const [facilitiesData, setFacilitiesData] = useState([])
+    const [editRoomOpenModal, setIsEditRoomOpenModal] = useState(false)
+    const [selectedRoomId, setSelectedRoomId] = useState(null)
     const itemsPerPage = 10;
     const navigate = useNavigate();
 
+
+
+
     useEffect(() => {
-        // console.log(homestayRentalID);
+        // console.log(rooms);
 
         if (homestayRentalID) {
             fetchRoomByHomestayRentalID();
@@ -210,6 +217,7 @@ const FilterRoomByHomestayRental = () => {
 
     // console.log(homestayRentalID);
     // console.log(homestayId);
+    // console.log(rooms);
 
 
     const fetchRoomByHomestayRentalID = async (startDate = null, endDate = null) => {
@@ -219,8 +227,8 @@ const FilterRoomByHomestayRental = () => {
             // console.log(response);
 
             if (response.statusCode === 200) {
-                setRooms(response.data || []);
-                // console.log(response?.data);
+                setRooms(response?.data?.rooms || []);
+                setFacilitiesData(response?.data);
                 // toast.success(`Đã tìm thấy: ${response.data.length} phòng`)
             } else {
                 toast.error('Không thể tải danh sách phòng thuê');
@@ -243,7 +251,7 @@ const FilterRoomByHomestayRental = () => {
             console.log(error);
         }
     }
-    console.log(homestayRentalData.name);
+    // console.log(homestayRentalData.name);
 
 
     const fetchGetHomestayRentalDetail = async () => {
@@ -268,6 +276,7 @@ const FilterRoomByHomestayRental = () => {
             direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
         }));
     };
+    // console.log(rooms);
 
     const filteredServiceBookings = useMemo(() => {
         let filtered = [...rooms];
@@ -359,12 +368,18 @@ const FilterRoomByHomestayRental = () => {
         );
     };
 
-    const statsData = useMemo(() => [
-        { label: 'Tổng phòng', value: rooms.length, color: 'bg-blue-500', icon: <FaTag className="w-6 h-6" /> },
-        { label: 'Đang hoạt động', value: rooms.filter(b => b.isActive === ServiceBookingStatus.isActive).length, color: 'bg-green-500', icon: <FaCheck className="w-6 h-6" /> },
-        //   { label: 'Phòng đang thuê', value: rooms?.isUsed === true, color: 'bg-indigo-500', icon: <FaCheck className="w-6 h-6" /> },
-        // { label: 'Phòng đang trống', value: rooms.filter(b => b.isUsed === ServiceBookingStatus.isUsed).length, color: 'bg-yellow-500', icon: <FaCalendarAlt className="w-6 h-6" /> }
-    ], [rooms]);
+    const statsData = useMemo(() => {
+        // Tính tổng số phòng tắm và wifi từ rooms
+        const totalBathRooms = rooms.reduce((sum, room) => sum + (room.numberBathRoom || 0), 0);
+        const totalWifis = rooms.reduce((sum, room) => sum + (room.numberWifi || 0), 0);
+
+        return [
+            { label: 'Tổng phòng', value: rooms.length, color: 'bg-blue-500', icon: <FaTag className="w-6 h-6" /> },
+            { label: 'Đang hoạt động', value: rooms.filter(b => b.isActive === ServiceBookingStatus.isActive).length, color: 'bg-green-500', icon: <FaCheck className="w-6 h-6" /> },
+            { label: 'Tổng phòng tắm', value: totalBathRooms, color: 'bg-purple-500', icon: <FaBath className="w-6 h-6" /> },
+            { label: 'Tổng Wifi', value: totalWifis, color: 'bg-yellow-500', icon: <FaWifi className="w-6 h-6" /> }
+        ];
+    }, [rooms]);
     // console.log(rooms);
 
     useEffect(() => {
@@ -383,6 +398,10 @@ const FilterRoomByHomestayRental = () => {
     }, []);
 
     // console.log(paginatedServiceBookings);
+    // console.log(allRoomTypeByHomestayRental);
+    const totalBathRooms = rooms.reduce((sum, room) => sum + (room.numberBathRoom || 0), 0);
+    const totalWifis = rooms.reduce((sum, room) => sum + (room.numberWifi || 0), 0);
+
     const user = JSON.parse(localStorage.getItem('userInfo'));
     return (
         <motion.div
@@ -431,6 +450,10 @@ const FilterRoomByHomestayRental = () => {
                         roomTypeId={allRoomTypeByHomestayRental}
                         homeStayRentalName={homestayRentalData?.name}
                         onSuccess={fetchRoomByHomestayRentalID}
+                        totalBathRoomsRental={facilitiesData?.totalBathRooms}
+                        totalWifisRental={facilitiesData?.totalWifis}
+                        totalBathRooms={totalBathRooms}
+                        totalWifis={totalWifis}
 
                     />
                 </div>
@@ -442,7 +465,7 @@ const FilterRoomByHomestayRental = () => {
                         hidden: { opacity: 0, scale: 0.8 },
                         visible: { opacity: 1, scale: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } }
                     }}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                         {statsData.map((stat, index) => (
                             <motion.div
                                 key={stat.label}
@@ -511,7 +534,9 @@ const FilterRoomByHomestayRental = () => {
                                 <tr>
                                     <TableHeader label="Số phòng" sortKey="roomNumber" />
                                     <TableHeader label="Loại phòng" sortKey="roomTypeName" />
-                                    <TableHeader label="Tên căn thuê" sortKey="homeStayRentalName" />
+                                    <TableHeader label="Số giường" sortKey="numberBed" />
+                                    <TableHeader label="Phòng tắm" sortKey="numberBathRoom" />
+                                    <TableHeader label="Wifi" sortKey="numberWifi" />
                                     <TableHeader label="Giá thuê" sortKey="rentPrice" />
                                     <TableHeader label="Trạng thái" sortKey="status" />
                                     <th className="px-6 py-3 text-left">
@@ -546,7 +571,17 @@ const FilterRoomByHomestayRental = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="text-gray-600 dark:text-gray-400">
-                                                    {booking?.homeStayRentalName}
+                                                    {booking?.numberBed}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-gray-600 dark:text-gray-400">
+                                                    {booking?.numberBathRoom}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-gray-600 dark:text-gray-400">
+                                                    {booking?.numberWifi}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -590,6 +625,22 @@ const FilterRoomByHomestayRental = () => {
                                                                 Xem chi tiết
                                                             </button>
                                                         </div>
+                                                        <div className="py-1">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    console.log(booking);
+                                                                    // console.log(booking?.roomID);
+                                                                    setIsEditRoomOpenModal(true)
+                                                                    setSelectedRoomId(booking?.roomID)
+                                                                    // handleViewRoomBooking(booking.roomID);
+                                                                    e.currentTarget.parentElement.parentElement.classList.add('hidden');
+                                                                }}
+                                                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                            >
+                                                                <FaEdit className="mr-3 w-4 h-4" />
+                                                                Cập nhật
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -598,6 +649,24 @@ const FilterRoomByHomestayRental = () => {
                                 })}
                             </tbody>
                         </table>
+
+                        {editRoomOpenModal && (
+                            <RoomEditByListHomestayRentalModal
+                                isOpen={editRoomOpenModal}
+                                onClose={() => setIsEditRoomOpenModal(false)}
+                                roomID={selectedRoomId}
+                                roomTypeId={allRoomTypeByHomestayRental}
+                                homeStayRentalName={homestayRentalData?.name}
+                                onSuccess={fetchRoomByHomestayRentalID}
+                                totalBathRoomsRental={facilitiesData?.totalBathRooms}
+                                totalWifisRental={facilitiesData?.totalWifis}
+                                totalBathRooms={totalBathRooms}
+                                totalWifis={totalWifis}
+                            />
+                        )}
+
+
+
 
                         {/* Empty State */}
                         <AnimatePresence>

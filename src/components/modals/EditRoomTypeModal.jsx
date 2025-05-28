@@ -10,9 +10,9 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
     const [formData, setFormData] = useState({
         name: roomType?.name,
         description: roomType?.description,
-        numberBed: roomType?.numberBed,
-        numberBathRoom: roomType?.numberBathRoom,
-        numberWifi: roomType?.numberWifi,
+        // numberBed: roomType?.numberBed,
+        // numberBathRoom: roomType?.numberBathRoom,
+        // numberWifi: roomType?.numberWifi,
         status: roomType?.status,
         maxAdults: roomType?.maxAdults,
         maxChildren: roomType?.maxChildren,
@@ -22,7 +22,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        console.log(roomType);
+        // console.log(roomType);
 
     }, [roomType])
 
@@ -34,23 +34,23 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
         if (!formData.description.trim()) {
             newErrors.description = 'Mô tả là bắt buộc';
         }
-        if (formData.numberBed < 0) {
-            newErrors.numberBed = 'Số giường không thể là số âm';
-        }
-        if (formData.numberBathRoom < 0) {
-            newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
-        }
-        if (formData.numberWifi < 0) {
-            newErrors.numberWifi = 'Số Wifi không thể là số âm';
-        }
+        // if (formData.numberBed < 0) {
+        //     newErrors.numberBed = 'Số giường không thể là số âm';
+        // }
+        // if (formData.numberBathRoom < 0) {
+        //     newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
+        // }
+        // if (formData.numberWifi < 0) {
+        //     newErrors.numberWifi = 'Số Wifi không thể là số âm';
+        // }
         if (formData.maxAdults < 1) {
             newErrors.maxAdults = 'Số người lớn tối thiểu là 1';
         }
         if (formData.maxChildren < 0) {
             newErrors.maxChildren = 'Số trẻ em không thể là số âm';
         }
-        if (formData.maxPeople < 1) {
-            newErrors.maxPeople = 'Số người tối đa phải lớn hơn 0';
+        if (formData.maxPeople < formData.maxAdults) {
+            newErrors.maxPeople = 'Số người tối đa phải lớn hơn số người lớn';
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -208,7 +208,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                             </div>
 
                                             {/* Room Facilities */}
-                                            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                            {/* <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
                                                 <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                                                     Tiện nghi phòng
                                                 </h3>
@@ -277,7 +277,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                         )}
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> */}
 
                                             {/* Guest Capacity */}
                                             <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
@@ -331,7 +331,7 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaUsers className="mr-1 text-gray-400" />
-                                                            Tổng <span className="text-red-500 ml-1">*</span>
+                                                            Giới hạn <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -342,9 +342,9 @@ const EditRoomTypeModal = ({ roomType, onClose, isOpen, fetchRoomType }) => {
                                                             max="20"
                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                         />
-                                                        {errors.MaxPeople && (
+                                                        {errors.maxPeople && (
                                                             <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                                <FaInfoCircle className="mr-1" /> {errors.MaxPeople}
+                                                                <FaInfoCircle className="mr-1" /> {errors.maxPeople}
                                                             </p>
                                                         )}
                                                     </div>

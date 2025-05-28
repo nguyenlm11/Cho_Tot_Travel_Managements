@@ -36,9 +36,9 @@ const AddRoomType = () => {
         Name: '',
         Description: '',
         homeStayRentalId: parseInt(rentalId),
-        numberBed: 1,
-        numberBathRoom: 1,
-        numberWifi: 1,
+        // numberBed: 1,
+        // numberBathRoom: 1,
+        // numberWifi: 1,
         Status: true,
         MaxAdults: 2,
         MaxChildren: 0,
@@ -81,23 +81,23 @@ const AddRoomType = () => {
         if (!formData.Description.trim()) {
             newErrors.Description = 'Mô tả là bắt buộc';
         }
-        if (formData.numberBed < 0) {
-            newErrors.numberBed = 'Số giường không thể là số âm';
-        }
-        if (formData.numberBathRoom < 0) {
-            newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
-        }
-        if (formData.numberWifi < 0) {
-            newErrors.numberWifi = 'Số Wifi không thể là số âm';
-        }
+        // if (formData.numberBed < 0) {
+        //     newErrors.numberBed = 'Số giường không thể là số âm';
+        // }
+        // if (formData.numberBathRoom < 0) {
+        //     newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
+        // }
+        // if (formData.numberWifi < 0) {
+        //     newErrors.numberWifi = 'Số Wifi không thể là số âm';
+        // }
         if (formData.MaxAdults < 1) {
             newErrors.MaxAdults = 'Số người lớn tối thiểu là 1';
         }
         if (formData.MaxChildren < 0) {
             newErrors.MaxChildren = 'Số trẻ em không thể là số âm';
         }
-        if (formData.MaxPeople < 1) {
-            newErrors.MaxPeople = 'Số người tối đa phải lớn hơn 0';
+        if (formData.MaxPeople < formData.MaxAdults) {
+            newErrors.MaxPeople = 'Số người tối đa phải lớn hơn số người lớn';
         }
         // if (formData.Images.length === 0) {
         //     newErrors.Images = 'Vui lòng tải lên ít nhất một hình ảnh';
@@ -111,12 +111,12 @@ const AddRoomType = () => {
         if (type === 'number') {
             const numValue = parseInt(value) || 0;
             if (name === 'MaxAdults' || name === 'MaxChildren') {
-                const otherField = name === 'MaxAdults' ? 'MaxChildren' : 'MaxAdults';
-                const totalPeople = numValue + (formData[otherField] || 0);
+                // const otherField = name === 'MaxAdults' ? 'MaxChildren' : 'MaxAdults';
+                // const totalPeople = numValue + (formData[otherField] || 0);
                 setFormData(prev => ({
                     ...prev,
                     [name]: numValue,
-                    MaxPeople: totalPeople
+                    // MaxPeople: totalPeople
                 }));
             } else {
                 setFormData(prev => ({
@@ -247,9 +247,9 @@ const AddRoomType = () => {
             const roomTypeData = {
                 Name: formData.Name,
                 Description: formData.Description,
-                numberBed: formData.numberBed,
-                numberBathRoom: formData.numberBathRoom,
-                numberWifi: formData.numberWifi,
+                // numberBed: formData.numberBed,
+                // numberBathRoom: formData.numberBathRoom,
+                // numberWifi: formData.numberWifi,
                 Status: formData.Status,
                 MaxAdults: formData.MaxAdults,
                 MaxChildren: formData.MaxChildren,
@@ -416,7 +416,7 @@ const AddRoomType = () => {
                                             </div>
 
                                             {/* Room Facilities */}
-                                            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                            {/* <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
                                                 <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                                                     Tiện nghi phòng
                                                 </h3>
@@ -485,7 +485,7 @@ const AddRoomType = () => {
                                                         )}
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> */}
 
                                             {/* Guest Capacity */}
                                             <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
@@ -497,7 +497,7 @@ const AddRoomType = () => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaUser className="mr-1 text-gray-400" />
-                                                            Người lớn <span className="text-red-500">*</span>
+                                                            Người lớn <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -518,7 +518,7 @@ const AddRoomType = () => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaChild className="mr-1 text-gray-400" />
-                                                            Trẻ em <span className="text-red-500">*</span>
+                                                            Trẻ em <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -539,7 +539,7 @@ const AddRoomType = () => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaUsers className="mr-1 text-gray-400" />
-                                                            Tổng <span className="text-red-500">*</span>
+                                                            Giới hạn <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"

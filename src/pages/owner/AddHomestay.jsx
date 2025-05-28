@@ -72,9 +72,9 @@ const AddHomestay = () => {
     {
       name: '',
       description: '',
-      numberBed: 1,
-      numberBathRoom: 0,
-      numberWifi: 1,
+      // numberBed: 1,
+      // numberBathRoom: 0,
+      // numberWifi: 1,
       status: true,
       maxAdults: 2,
       maxChildren: 0,
@@ -247,11 +247,32 @@ const AddHomestay = () => {
 
   const validateRentalForm = () => {
     const newErrors = {};
-    if (!rentalData.Name?.trim()) {
-      newErrors.Name = 'Tên phòng không được để trống';
+    if (!rentalData.Name.trim()) {
+      newErrors.Name = 'Tên phòng thuê là bắt buộc';
     }
-    if (!rentalData.Description?.trim()) {
-      newErrors.Description = 'Mô tả không được để trống';
+    if (!rentalData.Description.trim()) {
+      newErrors.Description = 'Mô tả là bắt buộc';
+    }
+    if (rentalData.numberBedRoom <= 0) {
+      newErrors.numberBedRoom = 'Số phòng ngủ không thể bé hơn 0';
+    }
+    if (rentalData.numberBathRoom <= 0) {
+      newErrors.numberBathRoom = 'Số phòng tắm không thể bé hơn 0';
+    }
+    if (rentalData.numberKitchen <= 0) {
+      newErrors.numberKitchen = 'Số bếp không thể bé hơn 0';
+    }
+    if (rentalData.numberWifi <= 0) {
+      newErrors.numberWifi = 'Số Wifi không thể bé hơn 0';
+    }
+    if (rentalData.MaxAdults < 1) {
+      newErrors.MaxAdults = 'Số người lớn tối thiểu là 1';
+    }
+    if (rentalData.MaxChildren < 0) {
+      newErrors.MaxChildren = 'Số trẻ em không thể là số âm';
+    }
+    if (rentalData.MaxPeople < rentalData.MaxAdults) {
+      newErrors.MaxPeople = 'Số người tối đa phải lớn hơn số người lớn';
     }
     if (rentalData.Images.length === 0) {
       newErrors.Images = 'Vui lòng tải lên ít nhất một hình ảnh';
@@ -283,23 +304,23 @@ const AddHomestay = () => {
       if (!roomType.description?.trim()) {
         newErrors[`description_${index}`] = 'Mô tả không được để trống';
       }
-      if (roomType.numberBed <= 0) {
-        newErrors[`numberBed_${index}`] = 'Số giường phải lớn hơn 0';
-      }
-      if (roomType.numberBathRoom < 0) {
-        newErrors[`numberBathRoom_${index}`] = 'Số phòng tắm phải lớn hơn hoặc bằng 0';
-      }
-      if (roomType.numberWifi < 0) {
-        newErrors[`numberWifi_${index}`] = 'Số wifi không được nhỏ hơn 0';
-      }
+      // if (roomType.numberBed <= 0) {
+      //   newErrors[`numberBed_${index}`] = 'Số giường phải lớn hơn 0';
+      // }
+      // if (roomType.numberBathRoom < 0) {
+      //   newErrors[`numberBathRoom_${index}`] = 'Số phòng tắm phải lớn hơn hoặc bằng 0';
+      // }
+      // if (roomType.numberWifi < 0) {
+      //   newErrors[`numberWifi_${index}`] = 'Số wifi không được nhỏ hơn 0';
+      // }
       if (roomType.maxAdults <= 0) {
         newErrors[`maxAdults_${index}`] = 'Số người lớn phải lớn hơn 0';
       }
       if (roomType.maxChildren < 0) {
         newErrors[`maxChildren_${index}`] = 'Số trẻ em không được nhỏ hơn 0';
       }
-      if (roomType.maxPeople <= 0) {
-        newErrors[`maxPeople_${index}`] = 'Tổng sức chứa phải lớn hơn 0';
+      if (roomType.maxPeople < roomType.maxAdults) {
+        newErrors[`maxPeople_${index}`] = 'Số người tối đa phải lớn hơn số người lớn';
       }
     });
     rentalData.pricingEntries.forEach((entry, index) => {
@@ -378,9 +399,9 @@ const AddHomestay = () => {
         RoomTypes: rentalData.RentWhole ? null : roomTypesList.map(roomType => ({
           name: roomType.name,
           description: roomType.description,
-          numberBed: roomType.numberBed,
-          numberBathRoom: roomType.numberBathRoom,
-          numberWifi: roomType.numberWifi,
+          // numberBed: roomType.numberBed,
+          // numberBathRoom: roomType.numberBathRoom,
+          // numberWifi: roomType.numberWifi,
           status: true,
           maxAdults: roomType.maxAdults,
           maxChildren: roomType.maxChildren,
@@ -391,9 +412,9 @@ const AddHomestay = () => {
           roomTypesList.map(roomType => ({
             name: roomType.name,
             description: roomType.description,
-            numberBed: roomType.numberBed,
-            numberBathRoom: roomType.numberBathRoom,
-            numberWifi: roomType.numberWifi,
+            // numberBed: roomType.numberBed,
+            // numberBathRoom: roomType.numberBathRoom,
+            // numberWifi: roomType.numberWifi,
             status: true,
             maxAdults: roomType.maxAdults,
             maxChildren: roomType.maxChildren,
@@ -569,13 +590,13 @@ const AddHomestay = () => {
       {
         name: '',
         description: '',
-        numberBed: 1,
-        numberBathRoom: 0,
-        numberWifi: 1,
+        // numberBed: 1,
+        // numberBathRoom: 0,
+        // numberWifi: 1,
         status: true,
         maxAdults: 2,
         maxChildren: 0,
-        maxPeople: 2,
+        // maxPeople: 2,
         pricingRoom: [{
           rentPrice: 0,
           startDate: "",
@@ -930,7 +951,7 @@ const AddHomestay = () => {
                     value={rentalData.numberBedRoom}
                     onChange={handleInputChangeStep2}
                     min="0"
-                    max="10"
+                    max="20"
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                   />
                   {errors.numberBedRoom && (
@@ -951,7 +972,7 @@ const AddHomestay = () => {
                     value={rentalData.numberBathRoom}
                     onChange={handleInputChangeStep2}
                     min="0"
-                    max="10"
+                    max="20"
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                   />
                   {errors.numberBathRoom && (
@@ -972,7 +993,7 @@ const AddHomestay = () => {
                     value={rentalData.numberKitchen}
                     onChange={handleInputChangeStep2}
                     min="0"
-                    max="10"
+                    max="5"
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                   />
                   {errors.numberKitchen && (
@@ -993,7 +1014,7 @@ const AddHomestay = () => {
                     value={rentalData.numberWifi}
                     onChange={handleInputChangeStep2}
                     min="0"
-                    max="5"
+                    max="20"
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                   />
                   {errors.numberWifi && (
@@ -1022,7 +1043,7 @@ const AddHomestay = () => {
                     value={rentalData.MaxAdults}
                     onChange={handleInputChangeStep2}
                     min="1"
-                    max="10"
+                    max="20"
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                   />
                   {errors.MaxAdults && (
@@ -1056,7 +1077,7 @@ const AddHomestay = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <FaUsers className="mr-1 text-gray-400" />
-                    Tổng <span className="text-red-500 ml-1">*</span>
+                    Giới hạn <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="number"
@@ -1064,7 +1085,7 @@ const AddHomestay = () => {
                     value={rentalData.MaxPeople}
                     onChange={handleInputChangeStep2}
                     min="1"
-                    max="20"
+                    max="30"
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                   />
                   {errors.MaxPeople && (
@@ -1330,7 +1351,7 @@ const AddHomestay = () => {
                     </div>
 
                     {/* Room Facilities */}
-                    <div className="space-y-3">
+                    {/* <div className="space-y-3">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         Tiện nghi phòng
                       </h3>
@@ -1398,7 +1419,7 @@ const AddHomestay = () => {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Guest Capacity */}
                     <div className="space-y-3">
@@ -1451,7 +1472,7 @@ const AddHomestay = () => {
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
                             <FaUsers className="mr-1.5 text-gray-500 dark:text-gray-400" />
-                            Tổng <span className="text-red-500 ml-1">*</span>
+                            Giới hạn <span className="text-red-500 ml-1">*</span>
                           </label>
                           <input
                             type="number"
@@ -1473,7 +1494,7 @@ const AddHomestay = () => {
                   </div>
 
                   {/* Right Column: Rental Price Packages */}
-                  <div className="space-y-6">
+                  <div className="space-y-11">
                     <div className='flex justify-between items-center'>
                       <>
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">

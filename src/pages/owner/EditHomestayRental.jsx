@@ -647,7 +647,7 @@ const EditHomestayRental = () => {
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                             <FaUsers className="mr-1 text-gray-400" />
-                                                            Tổng <span className="text-red-500 ml-1">*</span>
+                                                            Giới hạn <span className="text-red-500 ml-1">*</span>
                                                         </label>
                                                         <input
                                                             type="number"
@@ -656,7 +656,7 @@ const EditHomestayRental = () => {
                                                             onChange={handleInputChange}
                                                             readOnly
                                                             min="1"
-                                                            max="20"
+                                                            max="30"
                                                             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                         />
                                                         {errors.maxPeople && (

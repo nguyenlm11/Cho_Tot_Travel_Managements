@@ -17,6 +17,9 @@ const roomAPI = {
             formData.append('isUsed', dataToSubmit.isUsed);
             formData.append('isActive', dataToSubmit.isActive);
             formData.append('RoomTypesID', dataToSubmit.RoomTypesID);
+            formData.append('numberBed', dataToSubmit.numberBed);
+            formData.append('numberBathRoom', dataToSubmit.numberBathRoom);
+            formData.append('numberWifi', dataToSubmit.numberWifi);
             if (dataToSubmit.Images && dataToSubmit.Images.length > 0) {
                 dataToSubmit.Images.forEach(image => {
                     formData.append('Images', image);
@@ -42,7 +45,7 @@ const roomAPI = {
             return response.data;
         } catch (error) {
             console.log(error);
-            throw error;
+            return error;
         }
     },
     getRoomsByHomestayID: async (homeStayID, startDate = null, endDate = null) => {
@@ -60,7 +63,7 @@ const roomAPI = {
             return response.data;
         } catch (error) {
             console.log(error);
-            throw error;
+            return error;
         }
     },
     getBookingsByRoomID: async (roomId, startDate = null, endDate = null) => {

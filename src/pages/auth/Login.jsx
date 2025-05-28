@@ -83,9 +83,10 @@ const Login = () => {
                 navigate('/owner/homestays', { replace: true });
             }
         } catch (error) {
+
             toast.dismiss(loadingToast);
             toast.error(
-                error?.message || 'Email hoặc mật khẩu không chính xác!',
+                error?.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!',
                 API_CONFIG.TOAST_CONFIG.ERROR
             );
         } finally {
@@ -273,6 +274,7 @@ const Login = () => {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             type="submit"
+                            // onClick={() => handleSubmit()}
                             disabled={loading}
                             className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-primary to-primary-dark
                                 text-white font-medium transition-all duration-200
