@@ -202,13 +202,13 @@ const CustomerManagement = () => {
         },
         {
             label: 'Khách hàng hoạt động',
-            value: customers.filter(customer => customer.status === true).length,
+            value: customers.filter(customer => customer.isActive === true).length,
             icon: <FaUserCheck className="w-6 h-6 text-white" />,
             gradient: 'from-green-500 to-green-600'
         },
         {
             label: 'Khách hàng không hoạt động',
-            value: customers.filter(customer => customer.status === false).length,
+            value: customers.filter(customer => customer.isActive === false).length,
             icon: <FaUserTimes className="w-6 h-6 text-white" />,
             gradient: 'from-red-500 to-red-600'
         }
@@ -282,7 +282,7 @@ const CustomerManagement = () => {
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
                                 <TableHeader label="Trạng thái" sortKey="status" />
-                                <th className="px-6 py-3 text-left">Thao tác</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -332,7 +332,7 @@ const CustomerManagement = () => {
                                         </td>
                                         <td className="px-6 py-4 ">
                                             <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                                                Hoạt động
+                                                {customer.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">

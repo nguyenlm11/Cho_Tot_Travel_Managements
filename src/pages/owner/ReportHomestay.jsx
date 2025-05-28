@@ -251,7 +251,7 @@ const ReportHomestay = () => {
         if (actualSearchTerm) {
             const searchLower = actualSearchTerm.toLowerCase();
             filtered = filtered.filter(transaction =>
-                transaction.tmnCode?.toLowerCase().includes(searchLower) ||
+                transaction.transactionNo?.toLowerCase().includes(searchLower) ||
                 transaction.account?.name?.toLowerCase().includes(searchLower) ||
                 transaction.homeStay?.name?.toLowerCase().includes(searchLower)
             );
@@ -524,7 +524,7 @@ const ReportHomestay = () => {
                             <thead className="bg-gray-50 dark:bg-gray-900/50">
                                 <tr>
                                     <TableHeader label="Ngày thanh toán" sortKey="payDate" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Mã giao dịch" sortKey="tmnCode" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Mã giao dịch" sortKey="transactionNo" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Người thanh toán" sortKey="payerName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Loại giao dịch" sortKey="transactionKind" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Số tiền đơn" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
@@ -536,7 +536,7 @@ const ReportHomestay = () => {
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {paginatedTransactions.map((transaction) => (
                                     <motion.tr
-                                        key={transaction.tmnCode}
+                                        key={transaction.transactionNo}
                                         variants={cardVariants}
                                         initial="initial"
                                         animate="animate"
@@ -547,7 +547,7 @@ const ReportHomestay = () => {
                                             {formatDate(transaction.payDate)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                            {transaction.tmnCode}
+                                            {transaction.transactionNo}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                             {transaction.account?.name}

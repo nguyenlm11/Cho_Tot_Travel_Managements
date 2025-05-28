@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from "framer-motion";
 import { FaSearch, FaMoneyBillWave, FaFileInvoiceDollar, FaSort, FaArrowDown, FaArrowUp, FaFilter, FaSync, FaSortAmountDown, FaSortAmountUp, FaChevronDown, FaEllipsisV } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
-import reportHomestayApi from '../../services/api/reportHomestayAPI';
 import { toast } from 'react-hot-toast';
-import { useParams } from 'react-router-dom';
 import CountUp from 'react-countup';
 import adminAPI from '../../services/api/adminAPI';
 import bookingAPI from '../../services/api/bookingAPI';
+import ReactDOM from 'react-dom';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -193,32 +192,104 @@ const TableHeader = ({ label, sortKey, sortConfig, onSort }) => {
 
 const ActionDropdown = ({ transaction, handleRefund, handleRefundFull }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef(null);
+    const buttonRef = useRef(null);
+    const menuRef = useRef(null);
+    const [dropdownStyle, setDropdownStyle] = useState({});
 
-    const toggleDropdown = () => setIsOpen(!isOpen);
+    const toggleDropdown = () => {
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const dropdownWidth = 180; // ước lượng chiều rộng dropdown
+            const dropdownHeight = 100; // ước lượng chiều cao dropdown
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            let top = rect.bottom + window.scrollY;
+            let left = rect.left + window.scrollX;
+            let transform = '';
+            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+                top = rect.top + window.scrollY - dropdownHeight;
+                transform = 'translateY(-100%)';
+            }
+            if (left + dropdownWidth > window.innerWidth - 8) {
+                left = window.innerWidth - dropdownWidth - 30;
+            }
+
+            setDropdownStyle({
+                position: 'absolute',
+                top: top,
+                left: left,
+                zIndex: 100,
+                minWidth: dropdownWidth,
+                transform,
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
     const closeDropdown = () => setIsOpen(false);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target) &&
+                menuRef.current &&
+                !menuRef.current.contains(event.target)
+            ) {
                 closeDropdown();
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [isOpen]);
 
-    const handleActionClick = (action) => {
-        action();
-        closeDropdown();
-    };
+    // Dropdown content
+    const dropdownContent = (
+        <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            style={dropdownStyle}
+            className="rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="options-menu"
+        >
+            <div className="py-1" role="none">
+                {transaction.statusTransaction === 3 ? (
+                    <button
+                        onClick={() => handleRefund(transaction)}
+                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        role="menuitem"
+                    >
+                        <FaMoneyBillWave className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                        Hoàn tiền
+                    </button>
+                ) : transaction.statusTransaction === 5 ? (
+                    <button
+                        onClick={() => handleRefundFull(transaction)}
+                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        role="menuitem"
+                    >
+                        <FaMoneyBillWave className="mr-3 w-4 h-4 text-gray-400 z-10" aria-hidden="true" />
+                        Hoàn tiền full
+                    </button>
+                ) : null}
+            </div>
+        </motion.div>
+    );
 
     return (
-        <div className="relative inline-block text-left" ref={dropdownRef}>
+        <>
             {transaction.statusTransaction === 3 || transaction.statusTransaction === 5 ? (
                 <button
+                    ref={buttonRef}
                     onClick={toggleDropdown}
-                    className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                    className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-0"
                     aria-haspopup="true"
                     aria-expanded={isOpen}
                 >
@@ -226,75 +297,18 @@ const ActionDropdown = ({ transaction, handleRefund, handleRefundFull }) => {
                 </button>
             ) : (
                 <button
+                    ref={buttonRef}
                     onClick={toggleDropdown}
                     disabled
-                    className="inline-flex items-center justify-center p-2 text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                    className="inline-flex items-center justify-center p-2 text-gray-600 rounded-full focus:outline-none focus:ring-0"
                     aria-haspopup="true"
                     aria-expanded={isOpen}
                 >
                     <FaEllipsisV className="w-5 h-5" />
                 </button>
             )}
-
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.1 }}
-                        className="
-        absolute -left-6 z-50 mt-2 w-40 origin-top-right 
-        rounded-md bg-white shadow-lg ring-1 ring-black 
-        ring-opacity-5 focus:outline-none
-      "
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="options-menu"
-                    >
-                        <div className="py-1" role="none">
-                            {transaction.statusTransaction === 3 ? (
-                                <button
-                                    onClick={() =>
-                                        handleActionClick(() => handleRefund(transaction))
-                                    }
-                                    className="
-            flex w-full items-center px-4 py-2 text-sm 
-            text-gray-700 hover:bg-gray-100 hover:text-gray-900
-        "
-                                    role="menuitem"
-                                >
-                                    <FaMoneyBillWave
-                                        className="mr-3 w-4 h-4 text-gray-400"
-                                        aria-hidden="true"
-                                    />
-                                    Hoàn tiền
-                                </button>
-                            ) : transaction.statusTransaction === 5 ? (
-                                <button
-                                    onClick={() =>
-                                        handleActionClick(() => handleRefundFull(transaction))
-                                    }
-                                    className="
-            flex w-full items-center px-4 py-2 text-sm 
-            text-gray-700 hover:bg-gray-100 hover:text-gray-900
-        "
-                                    role="menuitem"
-                                >
-                                    <FaMoneyBillWave
-                                        className="mr-3 w-4 h-4 text-gray-400"
-                                        aria-hidden="true"
-                                    />
-                                    Hoàn tiền full
-                                </button>
-                            ) : null}
-
-
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+            {isOpen && ReactDOM.createPortal(dropdownContent, document.body)}
+        </>
     );
 };
 
@@ -335,16 +349,9 @@ const TransactionHistory = () => {
     };
 
     const totalTransactions = transactions.length;
-    // const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.adminAmount, 0);
-    // const totalAmount = transactions.reduce((sum, transaction) => {
-    //     const amount = transaction.amount / 100;
-    //     if (transaction.transactionKind === 2) {
-    //         return sum - amount; // Trừ đi số tiền hoàn
-    //     }
-    //     return sum + amount; // Cộng thêm số tiền đặt cọc và thanh toán đủ
-    // }, 0);
-    const successfulTransactions = transactions.filter(transaction => transaction.transactionStatus === '00').length;
-    const pendingTransactions = transactions.filter(transaction => transaction.transactionStatus === '01').length;
+    const successfulTransactions = transactions.filter(transaction => transaction.statusTransaction === 1).length;
+    const refundTransactions = transactions.filter(transaction => transaction.statusTransaction === 2).length;
+    const cancelTransactions = transactions.filter(transaction => transaction.statusTransaction === 4).length;
 
     const handleSort = (key) => {
         setSortConfig(current => ({
@@ -355,42 +362,39 @@ const TransactionHistory = () => {
 
     const filteredTransactions = useMemo(() => {
         let filtered = [...transactions];
-
-        // Lọc bỏ các giao dịch hoàn tiền
-        // filtered = filtered.filter(transaction => transaction.transactionKind !== 2);
-
         if (actualSearchTerm) {
             const searchLower = actualSearchTerm.toLowerCase();
             filtered = filtered.filter(transaction =>
-                transaction.txnRef?.toLowerCase().includes(searchLower) ||
+                transaction.transactionNo?.toLowerCase().includes(searchLower) ||
                 transaction.account?.name?.toLowerCase().includes(searchLower) ||
                 transaction.homeStay?.name?.toLowerCase().includes(searchLower)
             );
         }
-
         if (selectedStatus !== 'all') {
             filtered = filtered.filter(transaction =>
                 String(transaction.statusTransaction) === selectedStatus
             );
         }
-
         if (sortConfig.key) {
             filtered.sort((a, b) => {
-                if (sortConfig.key === 'payDate') {
-                    const dateA = new Date(a.payDate);
-                    const dateB = new Date(b.payDate);
-                    return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+                const { key, direction } = sortConfig;
+                let aValue = a[key];
+                let bValue = b[key];
+                if (key === 'payDate') {
+                    aValue = new Date(a.payDate);
+                    bValue = new Date(b.payDate);
                 }
-                if (sortConfig.key === 'amount') {
-                    return sortConfig.direction === 'asc'
-                        ? (a.amount / 100) - (b.amount / 100)
-                        : (b.amount / 100) - (a.amount / 100);
+                if (key === 'amount' || key === 'adminAmount') {
+                    aValue = Number(aValue);
+                    bValue = Number(bValue);
                 }
-                if (sortConfig.key === 'amountOwner') {
-                    return sortConfig.direction === 'asc'
-                        ? (a.amount / 100) - (b.amount / 100)
-                        : (b.amount / 100) - (a.amount / 100);
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    return direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
                 }
+                if (typeof aValue === 'number' && typeof bValue === 'number') {
+                    return direction === 'asc' ? aValue - bValue : bValue - aValue;
+                }
+                // fallback
                 return 0;
             });
         }
@@ -418,28 +422,6 @@ const TransactionHistory = () => {
             month: '2-digit',
             year: 'numeric'
         });
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case '00':
-                return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-            case '01':
-                return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-            default:
-                return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
-        }
-    };
-
-    const getStatusText = (status) => {
-        switch (status) {
-            case '00':
-                return 'Thành công';
-            case '01':
-                return 'Đang xử lý';
-            default:
-                return 'Không xác định';
-        }
     };
 
     const getTransactionKindText = (kind) => {
@@ -488,7 +470,6 @@ const TransactionHistory = () => {
 
     const formatAmount = (amount, kind) => {
         const formattedAmount = formatCurrency(amount);
-        // return kind === 2 ? `-${formattedAmount}` : formattedAmount;
         return kind === 2 ? `-${formattedAmount}` : formattedAmount;
 
     };
@@ -516,24 +497,16 @@ const TransactionHistory = () => {
         });
     };
 
-    // const statsData = useMemo(() => [
-    //     { label: 'Tổng số giao dịch', value: totalTransactions, color: 'bg-blue-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
-    //     { label: 'Tổng giá trị', value: totalAmount, color: 'bg-green-500', icon: <FaMoneyBillWave className="w-6 h-6" /> },
-    //     { label: 'Giao dịch thành công', value: successfulTransactions, color: 'bg-indigo-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
-    //     { label: 'Đang xử lý', value: pendingTransactions, color: 'bg-yellow-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> }
-    // ], [totalTransactions, totalAmount, successfulTransactions, pendingTransactions]);
-
     const statsData = useMemo(() => [
         { label: 'Tổng số giao dịch', value: totalTransactions, color: 'bg-blue-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
-        // { label: 'Tổng giá trị', value: totalAmount, color: 'bg-green-500', icon: <FaMoneyBillWave className="w-6 h-6" /> },
-        { label: 'Giao dịch thành công', value: successfulTransactions, color: 'bg-indigo-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
-        { label: 'Đang xử lý', value: pendingTransactions, color: 'bg-yellow-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> }
-    ], [totalTransactions, successfulTransactions, pendingTransactions]);
+        { label: 'Đã hoàn thành', value: successfulTransactions, color: 'bg-green-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
+        { label: 'Đã hủy', value: cancelTransactions, color: 'bg-red-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
+        { label: 'Đã hoàn tiền', value: refundTransactions, color: 'bg-indigo-500', icon: <FaFileInvoiceDollar className="w-6 h-6" /> },
+    ], [totalTransactions, successfulTransactions, cancelTransactions, refundTransactions]);
 
 
     const handleRefund = async (transaction) => {
         console.log(transaction);
-
         try {
             const userInfoString = localStorage.getItem('userInfo');
             let accountID;
@@ -544,11 +517,6 @@ const TransactionHistory = () => {
                 throw new Error('Không tìm thấy userInfo trong localStorage');
             }
             setLoading(true);
-            // localStorage.setItem('currentBookingInfo', JSON.stringify({
-            //     transaction?.bookingId
-            //     transaction?.homestayId
-            // }));
-
             const response = await bookingAPI.processVnPayRefund(transaction?.bookingID || transaction?.bookingServicesID, transaction?.homestayId, accountID, transaction?.bookingID
                 ? "Booking" : "Service"
             );
@@ -565,7 +533,6 @@ const TransactionHistory = () => {
 
     const handleRefundFull = async (transaction) => {
         // console.log(transaction);
-
         try {
             const userInfoString = localStorage.getItem('userInfo');
             let accountID;
@@ -629,7 +596,7 @@ const TransactionHistory = () => {
                         hidden: { opacity: 0, scale: 0.8 },
                         visible: { opacity: 1, scale: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } }
                     }}>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                         {statsData.map((stat, index) => (
                             <motion.div
                                 key={stat.label}
@@ -696,28 +663,24 @@ const TransactionHistory = () => {
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <table className="min-w-full w-full table-auto divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900/50">
                                 <tr>
                                     <TableHeader label="Ngày thanh toán" sortKey="payDate" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Mã giao dịch" sortKey="txnRef" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Mã giao dịch" sortKey="transactionNo" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Người thanh toán" sortKey="payerName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Nhà nghỉ" sortKey="homeStayName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Loại giao dịch" sortKey="transactionKind" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Trạng thái đơn" sortKey="statusTransaction" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Tổng tiền" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Số tiền nhận" sortKey="amountAdmin" sortConfig={sortConfig} onSort={handleSort} />
-                                    {/* <TableHeader label="Trạng thái" sortKey="status" sortConfig={sortConfig} onSort={handleSort} /> */}
-                                    <th className="px-6 py-3 text-left">
-                                        <span className="font-semibold text-gray-700 dark:text-gray-300">
-                                            Hành động
-                                        </span>
-                                    </th>
+                                    <TableHeader label="Số tiền nhận" sortKey="adminAmount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th className="px-6 py-3 text-lef"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {paginatedTransactions.map((transaction) => (
                                     <motion.tr
-                                        key={transaction.txnRef}
+                                        key={transaction.transactionNo}
                                         variants={cardVariants}
                                         initial="initial"
                                         animate="animate"
@@ -728,10 +691,13 @@ const TransactionHistory = () => {
                                             {formatDate(transaction.payDate)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                            {transaction.txnRef}
+                                            {transaction.transactionNo}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                             {transaction.account?.name}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {transaction.homeStay?.name}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTransactionKindColor(transaction.transactionKind)}`}>
@@ -745,30 +711,15 @@ const TransactionHistory = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <span className={getTransactionKindColor(transaction.transactionKind)}>
-                                                {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}
                                                 {formatAmount(transaction.amount)}
-                                                {/* {transaction.amount} */}
                                             </span>
                                         </td>
-                                        {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <span className={getTransactionKindColor(transaction.transactionKind)}>
-                                                {formatAmount(transaction.amount, transaction.transactionKind)}
-                                                {formatAmount(transaction?.ownerAmount)}
-                                            </span>
-                                        </td> */}
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <span className={getTransactionKindColor(transaction.transactionKind)}>
-                                                {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}
                                                 {formatAmount(transaction?.adminAmount)}
-                                                {/* {transaction?.adminAmount} */}
                                             </span>
                                         </td>
-                                        {/* <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(transaction.transactionStatus)}`}>
-                                                {getStatusText(transaction.transactionStatus)}
-                                            </span>
-                                        </td> */}
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
                                             <ActionDropdown
                                                 transaction={transaction}
                                                 handleRefund={handleRefund}

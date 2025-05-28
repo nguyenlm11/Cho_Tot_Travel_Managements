@@ -8,6 +8,7 @@ import adminAPI from '../../services/api/adminAPI';
 import AddCommissionRateModal from '../../components/modals/AddCommissionRateModal';
 import { BsThreeDots } from 'react-icons/bs';
 import EditCommissionRateByAdminModal from '../../components/modals/EditCommissionRateByAdminModal';
+import ReactDOM from 'react-dom';
 
 const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
     const searchInputRef = useRef(null);
@@ -75,6 +76,131 @@ const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
         </div>
     );
 };
+
+function ActionDropdown({ homeStay, onApprove, onReject, onAddCommission, onEditCommission }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const buttonRef = useRef(null);
+    const menuRef = useRef(null);
+    const [dropdownStyle, setDropdownStyle] = useState({});
+
+    const toggleDropdown = () => {
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const dropdownWidth = 180;
+            const dropdownHeight = 120;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            let top = rect.bottom + window.scrollY;
+            let left = rect.left + window.scrollX;
+            let transform = '';
+            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+                top = rect.top + window.scrollY - dropdownHeight;
+                transform = 'translateY(-100%)';
+            }
+            if (left + dropdownWidth > window.innerWidth - 8) {
+                left = window.innerWidth - dropdownWidth - 30;
+            }
+            setDropdownStyle({
+                position: 'absolute',
+                top: top,
+                left: left,
+                zIndex: 9999,
+                minWidth: dropdownWidth,
+                transform,
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
+    const closeDropdown = () => setIsOpen(false);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target) &&
+                menuRef.current &&
+                !menuRef.current.contains(event.target)
+            ) {
+                closeDropdown();
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
+
+    const dropdownContent = (
+        <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            style={dropdownStyle}
+            className="rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="options-menu"
+        >
+            <div className="py-1" role="none">
+                {(homeStay?.commissionRate?.isAccepted == true && homeStay?.commissionRate?.ownerAccepted == true) ? (
+                    <>
+                        <button
+                            onClick={() => { console.log('onApprove', homeStay?.homeStayID, homeStay?.commissionRateID); onApprove(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                        >
+                            <FaCheck className="w-4 h-4 text-green-500" />
+                            Phê duyệt
+                        </button>
+                        <button
+                            onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                        >
+                            <FaTimes className="w-4 h-4 text-red-500" />
+                            Từ chối
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        {((homeStay?.commissionRate?.hostShare === 0 && homeStay?.commissionRate?.platformShare === 0) || (homeStay?.commissionRate == null)) && (
+                            <button
+                                onClick={() => { console.log('onAddCommission', homeStay?.homeStayID); onAddCommission(homeStay?.homeStayID); closeDropdown(); }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                            >
+                                <FaPlus className="w-4 h-4 text-green-500" />
+                                Thêm tỉ lệ hoa hồng
+                            </button>
+                        )}
+                    </>
+                )}
+                {((homeStay?.commissionRate?.ownerAccepted == null || homeStay?.commissionRate?.ownerAccepted == false) && (homeStay?.commissionRate?.isAccepted == true || homeStay?.commissionRate?.isAccepted == false)) && (
+                    <button
+                        onClick={() => { console.log('onEditCommission', homeStay?.homeStayID); onEditCommission(homeStay?.homeStayID); closeDropdown(); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                    >
+                        <FaEdit className="w-4 h-4 text-green-500" />
+                        Cập nhật tỉ lệ
+                    </button>
+                )}
+            </div>
+        </motion.div>
+    );
+
+    return (
+        <>
+            <button
+                ref={buttonRef}
+                onClick={toggleDropdown}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors flex items-center justify-center"
+            >
+                <BsThreeDots className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
+            {isOpen && ReactDOM.createPortal(dropdownContent, document.body)}
+        </>
+    );
+}
 
 export default function PendingHomestay() {
     const [homeStays, setHomeStays] = useState([]);
@@ -381,19 +507,11 @@ export default function PendingHomestay() {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
-                                    <button
-                                        onClick={() => handleSort('name')}
-                                        className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Tên Homestay
-                                        {getSortIcon('name')}
-                                    </button>
-                                </th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">Chủ sở hữu</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">Địa chỉ</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">Trạng thái</th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">Thao tác</th>
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[18%] min-w-[100px]">Tên Homestay</th>
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[18%] min-w-[100px]">Chủ nhà</th>
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[34%] min-w-[160px]">Địa chỉ</th>
+                                <th className="py-3 px-4 text-center text-sm font-medium text-gray-900 dark:text-white w-[10%] min-w-[80px]">Trạng thái</th>
+                                <th className="py-3 px-2 text-center text-sm font-medium text-gray-900 dark:text-white w-[5%] min-w-[60px]">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -407,29 +525,16 @@ export default function PendingHomestay() {
                                         transition={{ delay: index * 0.05 }}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap relative group">
-                                            <p className='overflow-hidden truncate max-w-md'>{homeStay?.name}
-                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
-                                                    {homeStay?.name}
-                                                </span>
-                                            </p>
+                                        <td className="px-4 py-3 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>{homeStay?.name}</p>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap relative group">
-                                            <p className='overflow-hidden truncate max-w-md'>{homeStay?.account?.name}
-                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
-                                                    {homeStay?.account?.name}
-                                                </span>
-                                            </p>
+                                        <td className="px-4 py-3 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>{homeStay?.account?.name}</p>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap relative group">
-                                            <p className='overflow-hidden truncate max-w-md'>
-                                                {homeStay?.address}
-                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
-                                                    {homeStay?.address}
-                                                </span>
-                                            </p>
+                                        <td className="px-4 py-3 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>{homeStay?.address}</p>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.status === 1 ? 'bg-green-100 text-green-800' :
                                                 homeStay.status === 2 ? 'bg-red-100 text-red-800' :
                                                     'bg-yellow-100 text-yellow-800'
@@ -439,90 +544,14 @@ export default function PendingHomestay() {
                                                         'Chờ phê duyệt'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="relative">
-                                                <button
-                                                    onClick={() => setOpenDropdownId(openDropdownId === homeStay?.homeStayID ? null : homeStay?.homeStayID)}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                                                    title="Thao tác"
-                                                >
-                                                    <BsThreeDots className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                                                </button>
-
-                                                {openDropdownId === homeStay?.homeStayID && (
-                                                    <div className="absolute top-0 right-5 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 dropdown-menu">
-                                                        <div className="py-1">
-                                                            {(homeStay?.commissionRate?.isAccepted == true && homeStay?.commissionRate?.ownerAccepted == true) ? (
-                                                                <>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            handleApproveClick(homeStay?.homeStayID, homeStay?.commissionRateID);
-                                                                            setOpenDropdownId(null);
-                                                                        }}
-                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                                                    >
-                                                                        <FaCheck className="w-4 h-4 text-green-500" />
-                                                                        Phê duyệt
-                                                                    </button>
-
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            handleRejectClick(homeStay?.homeStayID, homeStay?.commissionRateID);
-                                                                            setOpenDropdownId(null);
-                                                                        }}
-                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                                                    >
-                                                                        <FaTimes className="w-4 h-4 text-red-500" />
-                                                                        Từ chối
-                                                                    </button>
-
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    {((homeStay?.commissionRate?.hostShare === 0 && homeStay?.commissionRate?.platformShare === 0) || (homeStay?.commissionRate == null)) && (
-                                                                        <>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setIsAddCommissionRateModalOpen(true);
-                                                                                    setHomestayIdSelected(homeStay?.homeStayID);
-                                                                                }}
-                                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                                                            >
-                                                                                <FaPlus className="w-4 h-4 text-green-500" />
-                                                                                Thêm tỉ lệ hoa hồng
-                                                                            </button>
-                                                                            {/* <button
-                                                                                onClick={() => {
-                                                                                    handleRejectClick(homeStay?.homeStayID, homeStay?.commissionRateID);
-                                                                                    setOpenDropdownId(null);
-                                                                                }}
-                                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                                                            >
-                                                                                <FaTimes className="w-4 h-4 text-red-500" />
-                                                                                Từ chối
-                                                                            </button> */}
-                                                                        </>
-                                                                    )}
-                                                                </>
-                                                            )}
-
-                                                            {((homeStay?.commissionRate?.ownerAccepted == null || homeStay?.commissionRate?.ownerAccepted == false) && (homeStay?.commissionRate?.isAccepted == true || homeStay?.commissionRate?.isAccepted == false)) && (
-                                                                <button
-                                                                    key={index}
-                                                                    onClick={() => {
-                                                                        setIsEditCommissionRateModalOpen(true);
-                                                                        setHomestayIdSelected(homeStay?.homeStayID);
-                                                                    }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                                                >
-                                                                    <FaEdit className="w-4 h-4 text-green-500" />
-                                                                    Cập nhật tỉ lệ hoa hồng
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
+                                        <td className="px-2 py-3 text-center">
+                                            <ActionDropdown
+                                                homeStay={homeStay}
+                                                onApprove={handleApproveClick}
+                                                onReject={handleRejectClick}
+                                                onAddCommission={(id) => { setIsAddCommissionRateModalOpen(true); setHomestayIdSelected(id); }}
+                                                onEditCommission={(id) => { setIsEditCommissionRateModalOpen(true); setHomestayIdSelected(id); }}
+                                            />
                                         </td>
                                     </motion.tr>
                                 ))}
