@@ -65,7 +65,7 @@ const OwnerSidebar = ({ selectedHomestay, isCollapsed }) => {
   ];
 
   const homestayMenuItems = [
-    { title: 'Dashboard', path: `/owner/homestays/${selectedHomestay}/dashboard`, icon: <FaChartLine /> },
+    { title: 'Tổng quan', path: `/owner/homestays/${selectedHomestay}/dashboard`, icon: <FaChartLine /> },
     { title: 'Thông tin nhà nghỉ', path: `/owner/homestays/${selectedHomestay}/info`, icon: <FaInfoCircle /> },
     {
       title: 'Quản lý căn',

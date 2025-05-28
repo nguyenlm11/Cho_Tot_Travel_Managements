@@ -37,8 +37,12 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
     const searchInputRef = useRef(null);
     const statusOptions = [
         { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
-        { value: '00', label: 'Thành công', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
-        { value: '01', label: 'Đang xử lý', icon: <div className="w-2 h-2 rounded-full bg-yellow-500" /> }
+        { value: '0', label: 'Đang xử lý', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '1', label: 'Đã hoàn thành', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '2', label: 'Đã hủy', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '3', label: 'Yêu cầu hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '4', label: 'Đã hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '5', label: 'Yêu cầu hủy', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> }
     ];
 
     const handleSearchChange = (e) => {
@@ -210,7 +214,7 @@ const ReportHomestay = () => {
                     const dateB = new Date(b.payDate);
                     return dateB - dateA;
                 });
-                console.log({ sortedData });
+                // console.log({ sortedData });
 
                 setTransactions(sortedData);
             } else {
@@ -231,7 +235,7 @@ const ReportHomestay = () => {
         }
         return sum + (transaction?.amount - transaction?.adminAmount);
     }, 0);
-    const successfulTransactions = transactions.filter(transaction => transaction.transactionStatus === '00').length;
+    const successfulTransactions = transactions.filter(transaction => transaction.statusTransaction === '00').length;
     const pendingTransactions = transactions.filter(transaction => transaction.transactionStatus === '01').length;
 
     const handleSort = (key) => {
@@ -254,7 +258,9 @@ const ReportHomestay = () => {
         }
 
         if (selectedStatus !== 'all') {
-            filtered = filtered.filter(transaction => transaction.transactionStatus === selectedStatus);
+            filtered = filtered.filter(transaction =>
+                String(transaction.statusTransaction) === selectedStatus
+            );
         }
 
         if (sortConfig.key) {
@@ -333,6 +339,24 @@ const ReportHomestay = () => {
                 return 'Thanh toán đủ';
             case 2:
                 return 'Hoàn tiền';
+            default:
+                return 'Không xác định';
+        }
+    };
+    const getStatusTransactionText = (kind) => {
+        switch (kind) {
+            case 0:
+                return 'Đang xử lý';
+            case 1:
+                return 'Đã hoàn thành';
+            case 2:
+                return 'Đã hủy';
+            case 3:
+                return 'Yêu cầu hoàn tiền';
+            case 4:
+                return 'Đã hoàn tiền';
+            case 5:
+                return 'Yêu cầu hủy';
             default:
                 return 'Không xác định';
         }
@@ -504,9 +528,9 @@ const ReportHomestay = () => {
                                     <TableHeader label="Người thanh toán" sortKey="payerName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Loại giao dịch" sortKey="transactionKind" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Số tiền đơn" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Trạng thái đơn" sortKey="statusTransaction" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Số tiền nhận" sortKey="amountOwner" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Phí hoa hồng" sortKey="amountAdmin" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Trạng thái" sortKey="status" sortConfig={sortConfig} onSort={handleSort} />
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -539,6 +563,11 @@ const ReportHomestay = () => {
                                                 {formatAmount(transaction.amount)}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTransactionKindColor(transaction.statusTransaction)}`}>
+                                                {getStatusTransactionText(transaction.statusTransaction)}
+                                            </span>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <span className={getTransactionKindColor(transaction.transactionKind)}>
                                                 {/* {formatAmount(transaction.amount, transaction.transactionKind)} */}
@@ -551,11 +580,7 @@ const ReportHomestay = () => {
                                                 {formatAmount(transaction?.adminAmount)}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(transaction.transactionStatus)}`}>
-                                                {getStatusText(transaction.transactionStatus)}
-                                            </span>
-                                        </td>
+
 
                                     </motion.tr>
                                 ))}

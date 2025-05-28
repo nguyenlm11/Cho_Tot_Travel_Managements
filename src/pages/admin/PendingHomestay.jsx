@@ -390,6 +390,7 @@ export default function PendingHomestay() {
                                         {getSortIcon('name')}
                                     </button>
                                 </th>
+                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">Chủ sở hữu</th>
                                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">Địa chỉ</th>
                                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">Trạng thái</th>
                                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">Thao tác</th>
@@ -410,6 +411,13 @@ export default function PendingHomestay() {
                                             <p className='overflow-hidden truncate max-w-md'>{homeStay?.name}
                                                 <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
                                                     {homeStay?.name}
+                                                </span>
+                                            </p>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap relative group">
+                                            <p className='overflow-hidden truncate max-w-md'>{homeStay?.account?.name}
+                                                <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
+                                                    {homeStay?.account?.name}
                                                 </span>
                                             </p>
                                         </td>
@@ -472,16 +480,28 @@ export default function PendingHomestay() {
                                                             ) : (
                                                                 <>
                                                                     {((homeStay?.commissionRate?.hostShare === 0 && homeStay?.commissionRate?.platformShare === 0) || (homeStay?.commissionRate == null)) && (
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setIsAddCommissionRateModalOpen(true);
-                                                                                setHomestayIdSelected(homeStay?.homeStayID);
-                                                                            }}
-                                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                                                                        >
-                                                                            <FaPlus className="w-4 h-4 text-green-500" />
-                                                                            Thêm tỉ lệ hoa hồng
-                                                                        </button>
+                                                                        <>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setIsAddCommissionRateModalOpen(true);
+                                                                                    setHomestayIdSelected(homeStay?.homeStayID);
+                                                                                }}
+                                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                            >
+                                                                                <FaPlus className="w-4 h-4 text-green-500" />
+                                                                                Thêm tỉ lệ hoa hồng
+                                                                            </button>
+                                                                            {/* <button
+                                                                                onClick={() => {
+                                                                                    handleRejectClick(homeStay?.homeStayID, homeStay?.commissionRateID);
+                                                                                    setOpenDropdownId(null);
+                                                                                }}
+                                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                                            >
+                                                                                <FaTimes className="w-4 h-4 text-red-500" />
+                                                                                Từ chối
+                                                                            </button> */}
+                                                                        </>
                                                                     )}
                                                                 </>
                                                             )}

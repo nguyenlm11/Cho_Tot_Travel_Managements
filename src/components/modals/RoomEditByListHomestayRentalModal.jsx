@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaBed, FaRegTimesCircle, FaPlus, FaCloudUploadAlt, FaTrash, FaInfoCircle, FaBath, FaWifi } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import roomAPI from '../../services/api/roomAPI';
+import { MdNotificationsActive } from 'react-icons/md';
 
-const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSuccess, homeStayRentalName, totalBathRooms, totalWifis, totalBathRoomsRental, totalWifisRental }) => {
+const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSuccess, homeStayRentalName, totalBathRooms, totalWifis, totalBathRoomsRental, totalWifisRental, roomID }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
-    const [previewImages, setPreviewImages] = useState([]);
     const [formData, setFormData] = useState({
         roomNumber: '',
         isUsed: false,
@@ -19,17 +19,39 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
     });
     // console.log(totalBathRooms);
     // console.log(totalWifis);
+    // console.log(roomID);
 
-    // console.log(totalBathRoomsRental);
-    // console.log(totalWifisRental);
+    useEffect(() => {
+        if (roomID) {
+            fetchRoomDetail();
+        }
+    }, [roomID])
+
+    const fetchRoomDetail = async () => {
+        try {
+            const response = await roomAPI.getRoomsByRoomId(roomID);
+            if (response?.statusCode === 200) {
+                setFormData({
+                    roomNumber: response?.data?.roomNumber,
+                    isActive: response?.data?.isActive,
+                    RoomTypesID: response?.data?.roomTypesID,
+                    numberBed: response?.data?.numberBed,
+                    numberBathRoom: response?.data?.numberBathRoom,
+                    numberWifi: response?.data?.numberWifi,
+                })
+                // console.log(response?.data);
+            }
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
 
     const validateForm = () => {
         const newErrors = {};
         if (!formData.roomNumber.trim()) newErrors.roomNumber = 'Số phòng là bắt buộc';
         if (!formData.RoomTypesID) newErrors.RoomTypesID = 'Vui lòng chọn loại phòng';
-        if (!formData.Images || formData.Images.length === 0) {
-            newErrors.Images = 'Vui lòng tải lên ít nhất một hình ảnh';
-        }
         if (formData.numberBed < 1) {
             newErrors.numberBed = 'Số giường tối thiểu là 1';
         }
@@ -60,22 +82,21 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
                 const dataToSubmit = {
                     roomNumber: formData.roomNumber.trim(),
                     isUsed: false,
-                    isActive: true,
+                    isActive: formData.isActive,
                     RoomTypesID: formData.RoomTypesID,
-                    numberBed: Number(formData.numberBed),
+                    numberBed: formData.numberBed,
                     numberBathRoom: formData.numberBathRoom,
                     numberWifi: formData.numberWifi,
-                    Images: formData.Images
                 };
                 // console.log(dataToSubmit);
 
-                await roomAPI.createRoom(dataToSubmit);
-                toast.success('Thêm phòng mới thành công!');
+                await roomAPI.updateRoomsByRoomId(roomID, dataToSubmit);
+                toast.success('Cập nhật phòng thành công!');
                 resetForm();
                 onSuccess?.();
                 onClose();
             } catch (error) {
-                toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm phòng');
+                toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi chỉnh sửa phòng');
             } finally {
                 setLoading(false);
             }
@@ -83,39 +104,7 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
             setErrors(newErrors);
         }
     };
-    // Handle image upload
-    const handleImageUpload = (e) => {
-        const files = Array.from(e.target.files);
 
-        // Kiểm tra số lượng ảnh hiện tại + ảnh mới không vượt quá 5
-        if (previewImages.length + files.length > 5) {
-            toast.error('Chỉ được tải lên tối đa 5 ảnh');
-            return;
-        }
-
-        // Cập nhật formData với mảng ảnh mới
-        setFormData(prev => ({
-            ...prev,
-            Images: [...(prev.Images || []), ...files] // Thêm kiểm tra prev.Images
-        }));
-
-        // Tạo preview cho các ảnh mới
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                setPreviewImages(prev => [...prev, reader.result]);
-            };
-            reader.readAsDataURL(file);
-        });
-    };
-
-    const removeImage = (index) => {
-        setPreviewImages(prev => prev.filter((_, i) => i !== index));
-        setFormData(prev => ({
-            ...prev,
-            Images: (prev.Images || []).filter((_, i) => i !== index) // Thêm kiểm tra prev.Images
-        }));
-    };
     const handleInputChange = (e) => {
         let { name, value } = e.target;
         if (name === 'numberBathRoom') {
@@ -145,12 +134,10 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
             isUsed: false,
             isActive: true,
             RoomTypesID: '',
-            numberBed: 0,
-            numberBathRoom: 0,
-            numberWifi: 0,
-            Images: [] // Reset Images về mảng rỗng
+            numberBed: '',
+            numberBathRoom: '',
+            numberWifi: '',
         });
-        setPreviewImages([]); // Reset preview images
         setErrors({});
     };
 
@@ -184,7 +171,7 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
                                     to-primary-dark bg-clip-text text-transparent flex items-center gap-2"
                                 >
                                     <FaBed className="text-primary" />
-                                    Thêm phòng mới
+                                    Chỉnh sửa phòng
                                 </motion.h2>
                                 <motion.button
                                     whileHover={{ scale: 1.1, rotate: 90 }}
@@ -289,7 +276,7 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
                                             value={formData.numberBed}
                                             onChange={handleInputChange}
                                             min="0"
-                                            max="5"
+                                            max="50"
                                             className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
                                         />
                                         {errors.numberBed && (
@@ -310,7 +297,7 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
                                             value={formData.numberBathRoom}
                                             onChange={handleInputChange}
                                             min="0"
-                                            max="5"
+                                            max="50"
                                             className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
                                         />
                                         {errors.numberBathRoom && (
@@ -331,7 +318,7 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
                                             value={formData.numberWifi}
                                             onChange={handleInputChange}
                                             min="0"
-                                            max="5"
+                                            max="50"
                                             className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
                                         />
                                         {errors.numberWifi && (
@@ -340,82 +327,37 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
                                             </p>
                                         )}
                                     </div>
-                                </div>
-                            </div>
-
-
-
-                            {/* Images */}
-                            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                                    Hình ảnh
-                                </h3>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Hình ảnh loại phòng <span className="text-red-500">*</span>
-                                    </label>
-                                    <div
-                                        className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer hover:border-primary"
-                                        onClick={() => document.getElementById('image-upload').click()}
-                                    >
-                                        <input
-                                            id="image-upload"
-                                            type="file"
-                                            multiple
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            className="hidden"
-                                        />
-                                        <FaCloudUploadAlt className="mx-auto h-10 w-10 text-gray-400" />
-                                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                            Kéo thả hoặc click để tải ảnh lên
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            Hỗ trợ JPG, PNG, WEBP (Tối đa 5 ảnh)
-                                        </p>
-                                    </div>
-                                    {errors.Images && (
-                                        <p className="mt-1 text-sm text-red-500 flex items-center">
-                                            <FaInfoCircle className="mr-1" /> {errors.Images}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Preview Images */}
-                                {previewImages.length > 0 && (
-                                    <div className="mt-4">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Xem trước ({previewImages.length} ảnh)
-                                            </h3>
-                                            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
-                                                {previewImages.length}/5 ảnh
-                                            </span>
-                                        </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                            {previewImages.map((img, index) => (
-                                                <div key={index} className="relative rounded-lg overflow-hidden h-32">
-                                                    <img
-                                                        src={img}
-                                                        alt={`Preview ${index + 1}`}
-                                                        className="w-full h-full object-cover"
+                                    <div className='flex items-center justify-between'>
+                                        <div className="mb-3">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                                                <MdNotificationsActive className="mr-1 text-gray-400" />
+                                                Trạng thái <span className="text-red-500 ml-1">*</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                <div className="relative">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.isActive}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                                                        className="sr-only"
                                                     />
-                                                    <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeImage(index)}
-                                                            className="p-1 bg-red-500 rounded-full text-white"
-                                                        >
-                                                            <FaTrash className="w-3 h-3" />
-                                                        </button>
+                                                    <div className={`w-12 h-6 rounded-full transition-colors duration-200 
+                                                    ${formData.isActive ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                                                        <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full 
+                                                        transition-transform duration-200 shadow
+                                                        ${formData.isActive ? 'translate-x-6' : 'translate-x-0'}`}>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            ))}
+                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    {formData.isActive ? 'Hoạt động' : 'Tạm ngưng'}
+                                                </span>
+                                            </label>
                                         </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
+
                         </div>
 
                         {/* Footer với gradient ngược */}
@@ -467,4 +409,4 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
     );
 };
 
-export default RoomAddByListHomestayRentalModal; 
+export default RoomEditByListHomestayRentalModal; 

@@ -698,22 +698,18 @@ const HomestayRentalDetail = () => {
                                                                                 </p>
                                                                             </div>
 
-                                                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                                                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                                                                                 <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
-                                                                                    <FaBed className="text-primary" />
-                                                                                    <span>{roomType?.numberBed} giường</span>
-                                                                                </div>
-                                                                                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
-                                                                                    <FaBath className="text-primary" />
-                                                                                    <span>{roomType.numberBathRoom} p.tắm</span>
-                                                                                </div>
-                                                                                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
-                                                                                    <FaWifi className="text-primary" />
-                                                                                    <span>{roomType.numberWifi} Wifi</span>
+                                                                                    <FaUsers className="text-primary" />
+                                                                                    <span>{roomType?.maxAdults} người lớn</span>
                                                                                 </div>
                                                                                 <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
                                                                                     <FaUsers className="text-primary" />
-                                                                                    <span>{roomType.maxPeople} người</span>
+                                                                                    <span>{roomType?.maxChildren} trẻ em</span>
+                                                                                </div>
+                                                                                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm">
+                                                                                    <FaUsers className="text-primary" />
+                                                                                    <span>Giới hạn {roomType?.maxPeople} người</span>
                                                                                 </div>
                                                                             </div>
 
@@ -736,7 +732,7 @@ const HomestayRentalDetail = () => {
                                                                                             >
                                                                                                 <span className="text-gray-600 dark:text-gray-400 text-sm">
                                                                                                     {/* {pricing.description || "Giá mặc định"} */}
-                                                                                                    {console.log(pricing)}
+
                                                                                                     {pricing?.dayType === 0
                                                                                                         ? 'Ngày thường'
                                                                                                         : pricing?.dayType === 1
@@ -781,7 +777,7 @@ const HomestayRentalDetail = () => {
                                                                                     to={`/owner/homestays/${homestayId}/rentals/${rentalId}/room-types/${roomType.roomTypesID}/rooms`}
                                                                                     className="text-blue-500 hover:text-blue-700 transition-colors flex items-center"
                                                                                 >
-                                                                                    <MdManageSearch className="inline mr-1" /> Quản lý
+                                                                                    <MdManageSearch className="inline mr-1" /> Danh sách phòng
                                                                                 </Link>
                                                                             </div>
                                                                         </div>

@@ -471,7 +471,7 @@ const AddHomestayRental = () => {
                                                         value={formData.numberBedRoom}
                                                         onChange={handleInputChange}
                                                         min="0"
-                                                        max="10"
+                                                        max="20"
                                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                     />
                                                     {errors.numberBedRoom && (
@@ -492,7 +492,7 @@ const AddHomestayRental = () => {
                                                         value={formData.numberBathRoom}
                                                         onChange={handleInputChange}
                                                         min="0"
-                                                        max="10"
+                                                        max="20"
                                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                     />
                                                     {errors.numberBathRoom && (
@@ -513,7 +513,7 @@ const AddHomestayRental = () => {
                                                         value={formData.numberKitchen}
                                                         onChange={handleInputChange}
                                                         min="0"
-                                                        max="10"
+                                                        max="5"
                                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                     />
                                                     {errors.numberKitchen && (
@@ -534,7 +534,7 @@ const AddHomestayRental = () => {
                                                         value={formData.numberWifi}
                                                         onChange={handleInputChange}
                                                         min="0"
-                                                        max="5"
+                                                        max="20"
                                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                     />
                                                     {errors.numberWifi && (
@@ -564,7 +564,7 @@ const AddHomestayRental = () => {
                                                         value={formData.MaxAdults}
                                                         onChange={handleInputChange}
                                                         min="1"
-                                                        max="10"
+                                                        max="20"
                                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                     />
                                                     {errors.MaxAdults && (
@@ -598,7 +598,7 @@ const AddHomestayRental = () => {
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                                                         <FaUsers className="mr-1 text-gray-400" />
-                                                        Tổng <span className="text-red-500">*</span>
+                                                        Giới hạn <span className="text-red-500">*</span>
                                                     </label>
                                                     <input
                                                         type="number"
@@ -606,7 +606,7 @@ const AddHomestayRental = () => {
                                                         value={formData.MaxPeople}
                                                         onChange={handleInputChange}
                                                         min="1"
-                                                        max="20"
+                                                        max="30"
                                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                     />
                                                     {errors.MaxPeople && (

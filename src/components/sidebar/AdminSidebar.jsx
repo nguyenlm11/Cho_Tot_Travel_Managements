@@ -8,7 +8,7 @@ const AdminSidebar = ({ isCollapsed }) => {
   const [expandedMenu, setExpandedMenu] = useState(null); // Chỉ lưu index của menu đang mở
 
   const menuItems = [
-    { title: 'Dashboard', path: '/admin/dashboard', icon: <FaChartLine /> },
+    { title: 'Tổng quan', path: '/admin/dashboard', icon: <FaChartLine /> },
     {
       title: 'Quản lý người dùng',
       path: '/admin/users',

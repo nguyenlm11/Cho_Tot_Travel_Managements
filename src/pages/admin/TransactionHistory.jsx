@@ -39,8 +39,12 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
     const searchInputRef = useRef(null);
     const statusOptions = [
         { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
-        { value: '00', label: 'Thành công', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
-        { value: '01', label: 'Đang xử lý', icon: <div className="w-2 h-2 rounded-full bg-yellow-500" /> }
+        { value: '0', label: 'Đang xử lý', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '1', label: 'Đã hoàn thành', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '2', label: 'Đã hủy', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '3', label: 'Yêu cầu hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '4', label: 'Đã hoàn tiền', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+        { value: '5', label: 'Yêu cầu hủy', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> }
     ];
 
     const handleSearchChange = (e) => {
@@ -365,7 +369,9 @@ const TransactionHistory = () => {
         }
 
         if (selectedStatus !== 'all') {
-            filtered = filtered.filter(transaction => transaction.transactionStatus === selectedStatus);
+            filtered = filtered.filter(transaction =>
+                String(transaction.statusTransaction) === selectedStatus
+            );
         }
 
         if (sortConfig.key) {

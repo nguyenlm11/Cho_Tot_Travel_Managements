@@ -315,7 +315,7 @@ const RoomTypeDetail = () => {
 
 
 
-                                <div>
+                                {/* <div>
                                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
                                         <FaCog className="mr-2 text-primary" />Tính năng
                                     </h2>
@@ -377,7 +377,7 @@ const RoomTypeDetail = () => {
                                         </motion.div>
 
                                     </div>
-                                </div>
+                                </div> */}
 
                                 <div>
                                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
@@ -421,8 +421,8 @@ const RoomTypeDetail = () => {
                                                 <FaUsers className="text-sky-500 dark:text-sky-300 w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-sm text-sky-700 dark:text-sky-300">Tổng</p>
-                                                <p className="text-lg font-bold text-sky-900 dark:text-sky-100">Tối đa {roomTypeDetailData?.maxPeople}</p>
+                                                <p className="text-sm text-sky-700 dark:text-sky-300">Giới hạn</p>
+                                                <p className="text-lg font-bold text-sky-900 dark:text-sky-100">Tối đa {roomTypeDetailData?.maxPeople} người lớn</p>
                                             </div>
                                         </motion.div>
                                     </div>
