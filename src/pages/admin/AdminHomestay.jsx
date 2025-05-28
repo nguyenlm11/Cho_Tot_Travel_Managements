@@ -4,6 +4,7 @@ import { FaSearch, FaSort, FaArrowDown, FaArrowUp, FaUser, FaFilter, FaUserCheck
 import { IoClose } from 'react-icons/io5';
 import adminAPI from '../../services/api/adminAPI';
 import { toast, Toaster } from 'react-hot-toast';
+import ReactDOM from 'react-dom';
 
 
 
@@ -145,6 +146,111 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
         </div>
     );
 };
+
+function ActionDropdown({ homeStay, handleViewDetail, handleToggleClick }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const buttonRef = useRef(null);
+    const menuRef = useRef(null);
+    const [dropdownStyle, setDropdownStyle] = useState({});
+
+    const toggleDropdown = () => {
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const dropdownWidth = 180;
+            const dropdownHeight = 100;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            let top = rect.bottom + window.scrollY;
+            let left = rect.left + window.scrollX;
+            let transform = '';
+            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+                top = rect.top + window.scrollY - dropdownHeight;
+                transform = 'translateY(-100%)';
+            }
+            if (left + dropdownWidth > window.innerWidth - 8) {
+                left = window.innerWidth - dropdownWidth - 30;
+            }
+            setDropdownStyle({
+                position: 'absolute',
+                top: top,
+                left: left,
+                zIndex: 9999,
+                minWidth: dropdownWidth,
+                transform,
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
+    const closeDropdown = () => setIsOpen(false);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target) &&
+                menuRef.current &&
+                !menuRef.current.contains(event.target)
+            ) {
+                closeDropdown();
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
+
+    const dropdownContent = (
+        <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            style={dropdownStyle}
+            className="rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="options-menu"
+        >
+            <div className="py-1" role="none">
+                <button
+                    onClick={() => { handleViewDetail(homeStay.homeStayID); closeDropdown(); }}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    role="menuitem"
+                >
+                    <FaEye className="mr-3 w-4 h-4" />
+                    Xem chi tiết
+                </button>
+                <button
+                    onClick={() => { handleToggleClick(homeStay.homeStayID, homeStay.status); closeDropdown(); }}
+                    className={`flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100 ${homeStay.status === 1 ? 'text-red-600' : 'text-green-600'}`}
+                    role="menuitem"
+                >
+                    {homeStay.status === 1
+                        ? <FaBan className="mr-3 w-4 h-4" />
+                        : <FaCheck className="mr-3 w-4 h-4" />
+                    }
+                    {homeStay.status === 1 ? 'Dừng hoạt động' : 'Kích hoạt'}
+                </button>
+            </div>
+        </motion.div>
+    );
+
+    return (
+        <>
+            <button
+                ref={buttonRef}
+                onClick={toggleDropdown}
+                className="flex items-center text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-0"
+            >
+                <FaEllipsisV className="w-5 h-5" />
+            </button>
+            {isOpen && ReactDOM.createPortal(dropdownContent, document.body)}
+        </>
+    );
+}
 
 export default function AdminHomestay() {
     const [homeStays, setHomeStays] = useState([]);
@@ -357,7 +463,7 @@ export default function AdminHomestay() {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[22%] min-w-[120px]">
                                     <button
                                         onClick={() => handleSort('name')}
                                         className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
@@ -366,7 +472,7 @@ export default function AdminHomestay() {
                                         {getSortIcon('name')}
                                     </button>
                                 </th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[18%] min-w-[100px]">
                                     <button
                                         onClick={() => handleSort('ownerName')}
                                         className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
@@ -375,15 +481,13 @@ export default function AdminHomestay() {
                                         {getSortIcon('ownerName')}
                                     </button>
                                 </th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/4">
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[38%] min-w-[180px]">
                                     Địa chỉ
                                 </th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
+                                <th className="py-3 px-4 text-center text-sm font-medium text-gray-900 dark:text-white w-[11%] min-w-[80px]">
                                     Trạng thái
                                 </th>
-                                <th className="py-3 px-6 text-left text-sm font-medium text-gray-900 dark:text-white w-1/6">
-                                    Thao tác
-                                </th>
+                                <th className="py-3 px-2 text-center text-sm font-medium text-gray-900 dark:text-white w-[5%] min-w-[60px]"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -395,75 +499,41 @@ export default function AdminHomestay() {
                                     transition={{ delay: index * 0.05 }}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
                                 >
-                                    <td className="px-6 py-4 whitespace-nowrap relative group">
+                                    <td className="px-4 py-3 whitespace-nowrap relative group">
                                         <p className='overflow-hidden truncate max-w-md'>{homeStay?.name}
                                             <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
                                                 {homeStay?.name}
                                             </span>
                                         </p>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap relative group">
+                                    <td className="px-4 py-3 whitespace-nowrap relative group">
                                         <p className='overflow-hidden truncate max-w-md'>{homeStay?.ownerName}
                                             <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
                                                 {homeStay?.ownerName}
                                             </span>
                                         </p>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap relative group">
-                                        <p className='overflow-hidden truncate max-w-md'>
+                                    <td className="px-4 py-3 whitespace-nowrap relative group">
+                                        <p className='overflow-hidden truncate max-w-lg'>
                                             {homeStay?.address}
                                             <span className="absolute hidden group-hover:block bg-gray-500 text-white text-sm rounded-md px-1 py-1 bottom-full left-1/2 transform -translate-x-1/2 mb-1 min-w-max z-50">
                                                 {homeStay?.address}
                                             </span>
                                         </p>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-4 py-3 whitespace-nowrap text-center">
                                         <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
                                             ${homeStay.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
                                         >
                                             {homeStay.status === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap relative">
-                                        <div className="relative inline-block text-left">
-                                            <button
-                                                onClick={(e) => {
-                                                    const menu = e.currentTarget.nextElementSibling;
-                                                    menu.classList.toggle('hidden');
-                                                }}
-                                                className="flex items-center text-gray-600 hover:text-gray-800"
-                                            >
-                                                <FaEllipsisV className="w-5 h-5" />
-                                            </button>
-                                            <div className="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                                <div className="py-1">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            handleViewDetail(homeStay.homeStayID);
-                                                            e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                        }}
-                                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                    >
-                                                        <FaEye className="mr-3 w-4 h-4" />
-                                                        Xem chi tiết
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            handleToggleClick(homeStay.homeStayID, homeStay.status);
-                                                            e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                        }}
-                                                        className={`flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100 
-                        ${homeStay.status === 1 ? 'text-red-600' : 'text-green-600'}`}
-                                                    >
-                                                        {homeStay.status === 1
-                                                            ? <FaBan className="mr-3 w-4 h-4" />
-                                                            : <FaCheck className="mr-3 w-4 h-4" />
-                                                        }
-                                                        {homeStay.status === 1 ? 'Dừng hoạt động' : 'Kích hoạt'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <td className="px-2 py-3 text-center">
+                                        <ActionDropdown
+                                            homeStay={homeStay}
+                                            handleViewDetail={handleViewDetail}
+                                            handleToggleClick={handleToggleClick}
+                                        />
                                     </td>
                                 </motion.tr>
                             ))}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUserTie, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaUserCheck } from 'react-icons/fa';
+import { FaUserTie, FaSearch, FaSortAmountUp, FaSortAmountDown, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { API_CONFIG } from '../../services/config';
@@ -216,10 +216,16 @@ const OwnerManagement = () => {
             gradient: 'from-blue-500 to-blue-600'
         },
         {
-            label: 'Chủ nhà đang hoạt động',
-            value: owners.filter(owner => owner.token !== null).length,
+            label: 'Chủ nhà hoạt động',
+            value: owners.filter(owner => owner.isActive === true).length,
             icon: <FaUserCheck className="w-6 h-6 text-white" />,
             gradient: 'from-green-500 to-green-600'
+        },
+        {
+            label: 'Chủ nhà không hoạt động',
+            value: owners.filter(owner => owner.isActive === false).length,
+            icon: <FaUserTimes className="w-6 h-6 text-white" />,
+            gradient: 'from-red-500 to-red-600'
         }
     ];
 
@@ -270,7 +276,7 @@ const OwnerManagement = () => {
             </motion.div>
 
             {/* Stats Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {statsData.map((stat, index) => (
                     <motion.div
                         key={index}
@@ -291,147 +297,15 @@ const OwnerManagement = () => {
             </div>
 
             {/* Search Bar and Create Owner Button */}
-            <motion.div variants={itemVariants} className="mb-6 flex items-center justify-between">
+            <motion.div variants={itemVariants} className="mb-6 items-center">
                 <SearchBar
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
                     handleSearch={handleSearch}
                     setActualSearchTerm={setActualSearchTerm}
                 />
-                {/* <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="px-6 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-all duration-200"
-                >
-                    <p className='flex justify-center items-center gap-4'>
-                        <IoPersonAddSharp />
-                        Thêm chủ nhà
-                    </p>
-                </button> */}
             </motion.div>
 
-            {/* Modal for Creating Owner */}
-            <AnimatePresence>
-                {isModalOpen && (
-                    <motion.div
-                        className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4 overflow-y-auto max-h-[80vh]">
-                            <h2 className="text-2xl font-bold mb-4">Thêm chủ nhà mới</h2>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Tên tài khoản</label>
-                                <input
-                                    type="text"
-                                    value={newOwner.userName}
-                                    onChange={(e) => setNewOwner({ ...newOwner, userName: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
-                                    placeholder="Nhập tên tài khoản..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Email</label>
-                                <input
-                                    type="email"
-                                    value={newOwner.email}
-                                    onChange={(e) => setNewOwner({ ...newOwner, email: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
-                                    placeholder="Nhập email..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Mật khẩu</label>
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        onChange={(e) => setNewOwner({ ...newOwner, password: e.target.value })}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
-                                        placeholder="Nhập mật khẩu..."
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                                    >
-                                        {showPassword ? (
-                                            <IoEyeOff className="w-5 h-5 text-gray-500" />
-                                        ) : (
-                                            <IoEye className="w-5 h-5 text-gray-500" />
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Họ và tên</label>
-                                <input
-                                    type="text"
-                                    value={newOwner.name}
-                                    onChange={(e) => setNewOwner({ ...newOwner, name: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
-                                    placeholder="Nhập họ và tên..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Số điện thoại</label>
-                                <input
-                                    type="text"
-                                    value={newOwner.phone}
-                                    onChange={(e) => setNewOwner({ ...newOwner, phone: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
-                                    placeholder="Nhập số điện thoại..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Địa chỉ</label>
-                                <input
-                                    type="text"
-                                    value={newOwner.address}
-                                    onChange={(e) => setNewOwner({ ...newOwner, address: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
-                                    placeholder="Nhập địa chỉ..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Số tài khoản</label>
-                                <input
-                                    type="text"
-                                    value={newOwner.bankAccountNumber}
-                                    onChange={(e) => setNewOwner({ ...newOwner, bankAccountNumber: e.target.value })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
-                                    placeholder="Nhập số tài khoản ngân hàng..."
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium">Vai trò</label>
-                                <select
-                                    value={newOwner.role[0]}
-                                    onChange={(e) => setNewOwner({ ...newOwner, role: [e.target.value] })}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 text-gray-700"
-                                >
-                                    <option value="Owner">Owner</option>
-                                </select>
-                            </div>
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={handleCreateOwner}
-                                    className="ml-2 px-4 py-2 bg-green-500 text-white rounded-lg"
-                                >
-                                    Thêm
-                                </button>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Owners Table */}
             <motion.div
                 variants={itemVariants}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
@@ -444,7 +318,8 @@ const OwnerManagement = () => {
                                 <TableHeader label="Email" sortKey="email" />
                                 <TableHeader label="Số điện thoại" sortKey="phone" />
                                 <TableHeader label="Địa chỉ" sortKey="address" />
-                                <th className="px-6 py-3 text-left">Thao tác</th>
+                                <TableHeader label="Trạng thái" sortKey="status" />
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -491,6 +366,11 @@ const OwnerManagement = () => {
                                                     {owner.address}
                                                 </span>
                                             </p>
+                                        </td>
+                                        <td className="px-6 py-4 ">
+                                            <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                                                {owner.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
