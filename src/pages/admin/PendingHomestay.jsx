@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock, FaPlus, FaEdit } from 'react-icons/fa';
-import { TbHomePlus } from "react-icons/tb";
+import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock, FaPlus, FaEdit, FaEye } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { toast, Toaster } from 'react-hot-toast';
 import adminAPI from '../../services/api/adminAPI';
@@ -77,7 +77,7 @@ const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
     );
 };
 
-function ActionDropdown({ homeStay, onApprove, onReject, onAddCommission, onEditCommission }) {
+function ActionDropdown({ homeStay, onApprove, onReject, onAddCommission, onEditCommission, onViewDetail }) {
     const [isOpen, setIsOpen] = useState(false);
     const buttonRef = useRef(null);
     const menuRef = useRef(null);
@@ -145,18 +145,25 @@ function ActionDropdown({ homeStay, onApprove, onReject, onAddCommission, onEdit
             aria-labelledby="options-menu"
         >
             <div className="py-1" role="none">
+                <button
+                    onClick={() => { onViewDetail(homeStay?.homeStayID); closeDropdown(); }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                >
+                    <FaEye className="w-4 h-4 text-green-500" />
+                    Xem chi tiết
+                </button>
                 {(homeStay?.commissionRate?.isAccepted == true && homeStay?.commissionRate?.ownerAccepted == true) ? (
                     <>
                         <button
                             onClick={() => { console.log('onApprove', homeStay?.homeStayID, homeStay?.commissionRateID); onApprove(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
                         >
                             <FaCheck className="w-4 h-4 text-green-500" />
                             Phê duyệt
                         </button>
                         <button
                             onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
                         >
                             <FaTimes className="w-4 h-4 text-red-500" />
                             Từ chối
@@ -224,6 +231,7 @@ export default function PendingHomestay() {
     const [openDropdownId, setOpenDropdownId] = useState(null);
     const [homestayIdSelected, setHomestayIdSelected] = useState(null);
     const [isEditCommissionRateModalOpen, setIsEditCommissionRateModalOpen] = useState(false)
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchHomeStays();
@@ -380,6 +388,10 @@ export default function PendingHomestay() {
         setCurrentPage(1);
     };
 
+    const handleViewDetail = (homestayId) => {
+        navigate(`/admin/homestays/detail/${homestayId}`);
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -511,14 +523,14 @@ export default function PendingHomestay() {
                                 <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[18%] min-w-[100px]">Chủ nhà</th>
                                 <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[34%] min-w-[160px]">Địa chỉ</th>
                                 <th className="py-3 px-4 text-center text-sm font-medium text-gray-900 dark:text-white w-[10%] min-w-[80px]">Trạng thái</th>
-                                <th className="py-3 px-2 text-center text-sm font-medium text-gray-900 dark:text-white w-[5%] min-w-[60px]">Thao tác</th>
+                                <th className="py-3 px-2 text-center text-sm font-medium text-gray-900 dark:text-white w-[5%] min-w-[60px]"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             <AnimatePresence>
                                 {currentItems.map((homeStay, index) => (
                                     <motion.tr
-                                        key={homeStay.id}
+                                        key={homeStay.homeStayID}
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
@@ -532,7 +544,7 @@ export default function PendingHomestay() {
                                             <p className='overflow-hidden truncate max-w-md'>{homeStay?.account?.name}</p>
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap relative group">
-                                            <p className='overflow-hidden truncate max-w-md'>{homeStay?.address}</p>
+                                            <p className='overflow-hidden truncate max-w-lg'>{homeStay?.address}</p>
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.status === 1 ? 'bg-green-100 text-green-800' :
@@ -551,6 +563,7 @@ export default function PendingHomestay() {
                                                 onReject={handleRejectClick}
                                                 onAddCommission={(id) => { setIsAddCommissionRateModalOpen(true); setHomestayIdSelected(id); }}
                                                 onEditCommission={(id) => { setIsEditCommissionRateModalOpen(true); setHomestayIdSelected(id); }}
+                                                onViewDetail={handleViewDetail}
                                             />
                                         </td>
                                     </motion.tr>
