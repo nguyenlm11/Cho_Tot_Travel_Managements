@@ -43,13 +43,21 @@ const authService = {
                 };
             }
         } catch (error) {
-            localStorage.clear();
+            // Clear auth data but preserve theme
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('isAuthenticated');
             throw error?.response?.data || error;
         }
     },
 
     logout: () => {
-        localStorage.clear();
+        // Clear auth data but preserve theme
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('isAuthenticated');
     },
 
     register: async (formData) => {
@@ -111,7 +119,11 @@ const authService = {
                 };
             }
         } catch (error) {
-            localStorage.clear();
+            // Clear auth data but preserve theme
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('isAuthenticated');
             throw error?.response?.data || error;
         }
     }

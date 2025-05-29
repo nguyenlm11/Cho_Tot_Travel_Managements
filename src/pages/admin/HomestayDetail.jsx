@@ -238,22 +238,8 @@ const HomestayDetail = () => {
                                                 {homestay.sumRate && homestay.totalRatings ? (
                                                     <>
                                                         <span className="text-2xl font-bold text-primary">
-                                                            {(homestay.sumRate / homestay.totalRatings).toFixed(1)}
+                                                            {homestay.sumRate.toFixed(1)}
                                                         </span>
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-primary text-sm font-medium">/5</span>
-                                                            <div className="flex items-center gap-0.5 ml-1">
-                                                                {[...Array(5)].map((_, i) => (
-                                                                    <FaStar
-                                                                        key={i}
-                                                                        className={`w-3 h-3 ${i < Math.round(homestay.sumRate / homestay.totalRatings)
-                                                                            ? 'text-primary'
-                                                                            : 'text-gray-300 dark:text-gray-600'
-                                                                            }`}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        </div>
                                                         <span className="text-gray-500 dark:text-gray-400 text-sm">
                                                             ({homestay.totalRatings} đánh giá)
                                                         </span>
