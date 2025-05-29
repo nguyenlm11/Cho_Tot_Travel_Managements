@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaSearch, FaSort, FaArrowDown, FaArrowUp, FaUser, FaFilter, FaUserCheck, FaUserTimes, FaEllipsisV, FaEye, FaBan, FaCheck } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
@@ -6,12 +7,8 @@ import adminAPI from '../../services/api/adminAPI';
 import { toast, Toaster } from 'react-hot-toast';
 import ReactDOM from 'react-dom';
 
-
-
-// Thêm component FilterBar
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
     const searchInputRef = useRef(null);
-
     const statusOptions = [
         { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
         { value: 'active', label: 'Đang hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
@@ -268,7 +265,8 @@ export default function AdminHomestay() {
         homestayId: null,
         currentStatus: null
     });
-    const [sortColumn, setSortColumn] = useState('name'); // 'name' hoặc 'ownerName'
+    const [sortColumn, setSortColumn] = useState('name'); 
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchHomeStays();
@@ -381,8 +379,7 @@ export default function AdminHomestay() {
         );
     }
     const handleViewDetail = (homestayId) => {
-        // Thêm logic xem chi tiết homestay ở đây
-        console.log('View detail for homestay:', homestayId);
+        navigate(`/admin/homestays/detail/${homestayId}`);
     };
 
     return (
@@ -493,7 +490,7 @@ export default function AdminHomestay() {
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {currentItems.map((homeStay, index) => (
                                 <motion.tr
-                                    key={homeStay.id}
+                                    key={homeStay.homeStayID}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
