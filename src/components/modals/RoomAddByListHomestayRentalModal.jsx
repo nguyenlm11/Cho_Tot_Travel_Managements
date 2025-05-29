@@ -33,14 +33,29 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
         if (formData.numberBed < 1) {
             newErrors.numberBed = 'Số giường tối thiểu là 1';
         }
+        if (formData.numberBed > 5) {
+            newErrors.numberBed = 'Số giường tối đa là 5';
+        }
         if (formData.numberBathRoom < 0) {
             newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
+        }
+        if (formData.numberBathRoom === "") {
+            newErrors.numberBathRoom = 'Số phòng tắm không thể để trống';
+        }
+        if (formData.numberBathRoom > 5) {
+            newErrors.numberBathRoom = 'Số phòng tắm tối đa là 5';
         }
         // if (formData.numberBathRoom > totalBathRooms) {
         //     newErrors.numberBathRoom = 'Số phòng tắm không thể vượt quá tổng phòng tắm của căn'
         // }
         if (formData.numberWifi < 0) {
             newErrors.numberWifi = 'Số wifi không thể là số âm';
+        }
+        if (formData.numberWifi === '') {
+            newErrors.numberWifi = 'Số wifi không thể để trống';
+        }
+        if (formData.numberWifi > 5) {
+            newErrors.numberWifi = 'Số wifi tối đa là 5';
         }
         // if (formData.numberWifi > totalWifis) {
         //     newErrors.numberWifi = 'Số wifi không thể vượt quá tổng wifi của căn'
@@ -63,8 +78,8 @@ const RoomAddByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucce
                     isActive: true,
                     RoomTypesID: formData.RoomTypesID,
                     numberBed: Number(formData.numberBed),
-                    numberBathRoom: formData.numberBathRoom,
-                    numberWifi: formData.numberWifi,
+                    numberBathRoom: Number(formData.numberBathRoom),
+                    numberWifi: Number(formData.numberWifi),
                     Images: formData.Images
                 };
                 // console.log(dataToSubmit);
