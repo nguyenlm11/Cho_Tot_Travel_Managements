@@ -221,7 +221,7 @@ function ActionDropdown({ homeStay, handleViewDetail, handleToggleClick }) {
                     Xem chi tiết
                 </button>
                 <button
-                    onClick={() => { handleToggleClick(homeStay.homeStayID, homeStay.status); closeDropdown(); }}
+                    onClick={() => { handleToggleClick(homeStay.homeStayID, homeStay.status, homeStay?.commissionRateID); closeDropdown(); }}
                     className={`flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100 ${homeStay.status === 1 ? 'text-red-600' : 'text-green-600'}`}
                     role="menuitem"
                 >
@@ -263,9 +263,10 @@ export default function AdminHomestay() {
         isOpen: false,
         type: '', // 'activate' hoặc 'deactivate'
         homestayId: null,
-        currentStatus: null
+        currentStatus: null,
+        commissionRateID: null
     });
-    const [sortColumn, setSortColumn] = useState('name'); 
+    const [sortColumn, setSortColumn] = useState('name');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -279,6 +280,7 @@ export default function AdminHomestay() {
             setOriginalData(response?.data);
             setLoading(false);
         } catch (error) {
+            console.log(error);
             toast.error('Không thể tải danh sách homestay');
             setLoading(false);
         }
@@ -323,26 +325,29 @@ export default function AdminHomestay() {
     };
 
     // Xử lý toggle trạng thái hoạt động
-    const handleToggleClick = (id, currentStatus) => {
+    const handleToggleClick = (id, currentStatus, commissionRateID) => {
         setConfirmModal({
             isOpen: true,
             type: currentStatus === 1 ? 'deactivate' : 'activate',
             homestayId: id,
-            currentStatus: currentStatus
+            currentStatus: currentStatus,
+            commissionRateID: commissionRateID
         });
     };
 
     const handleConfirm = async () => {
         try {
             const newStatus = confirmModal.currentStatus === 1 ? 2 : 1;
-            await adminAPI.changeHomeStayStatus(confirmModal.homestayId, newStatus);
+            // console.log(confirmModal.homestayId);
+            // console.log(confirmModal.commissionRateID);
+            await adminAPI.changeHomeStayStatus(confirmModal.homestayId, newStatus, confirmModal.commissionRateID);
             toast.success(`${newStatus === 1 ? 'Kích hoạt' : 'Dừng hoạt động'} homestay thành công`);
             await fetchHomeStays();
         } catch (error) {
             console.log(error);
             toast.error('Không thể cập nhật trạng thái homestay');
         } finally {
-            setConfirmModal({ isOpen: false, type: '', homestayId: null, currentStatus: null });
+            setConfirmModal({ isOpen: false, type: '', homestayId: null, currentStatus: null, commissionRateID: null });
         }
     };
 
@@ -618,7 +623,7 @@ export default function AdminHomestay() {
                             </p>
                             <div className="flex justify-end gap-4">
                                 <button
-                                    onClick={() => setConfirmModal({ isOpen: false, type: '', homestayId: null, currentStatus: null })}
+                                    onClick={() => setConfirmModal({ isOpen: false, type: '', homestayId: null, currentStatus: null, commissionRateID: null })}
                                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
                                     Hủy

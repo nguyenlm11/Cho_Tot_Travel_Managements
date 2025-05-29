@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaBed, FaRegTimesCircle, FaPlus, FaCloudUploadAlt, FaTrash, FaInfoCircle, FaBath, FaWifi } from 'react-icons/fa';
+import { FaTimes, FaBed, FaRegTimesCircle, FaPlus, FaCloudUploadAlt, FaTrash, FaInfoCircle, FaBath, FaWifi, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import roomAPI from '../../services/api/roomAPI';
 import { MdNotificationsActive } from 'react-icons/md';
@@ -55,14 +55,29 @@ const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucc
         if (formData.numberBed < 1) {
             newErrors.numberBed = 'Số giường tối thiểu là 1';
         }
+        if (formData.numberBed > 5) {
+            newErrors.numberBed = 'Số giường không được nhập quá 5';
+        }
         if (formData.numberBathRoom < 0) {
             newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
+        }
+        if (formData.numberBathRoom === "") {
+            newErrors.numberBathRoom = 'Số phòng tắm không thể để trống';
+        }
+        if (formData.numberBathRoom > 5) {
+            newErrors.numberBathRoom = 'Số phòng tắm không được nhập quá 5';
         }
         // if (formData.numberBathRoom > totalBathRooms) {
         //     newErrors.numberBathRoom = 'Số phòng tắm không thể vượt quá tổng phòng tắm của căn'
         // }
         if (formData.numberWifi < 0) {
             newErrors.numberWifi = 'Số wifi không thể là số âm';
+        }
+        if (formData.numberWifi > 5) {
+            newErrors.numberWifi = 'Số wifi không được nhập quá 5';
+        }
+        if (formData.numberWifi === "") {
+            newErrors.numberWifi = 'Số wifi không thể để trống';
         }
         // if (formData.numberWifi > totalWifis) {
         //     newErrors.numberWifi = 'Số wifi không thể vượt quá tổng wifi của căn'
@@ -276,7 +291,7 @@ const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucc
                                             value={formData.numberBed}
                                             onChange={handleInputChange}
                                             min="0"
-                                            max="50"
+                                            max="5"
                                             className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
                                         />
                                         {errors.numberBed && (
@@ -297,7 +312,7 @@ const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucc
                                             value={formData.numberBathRoom}
                                             onChange={handleInputChange}
                                             min="0"
-                                            max="50"
+                                            max="5"
                                             className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
                                         />
                                         {errors.numberBathRoom && (
@@ -318,7 +333,7 @@ const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucc
                                             value={formData.numberWifi}
                                             onChange={handleInputChange}
                                             min="0"
-                                            max="50"
+                                            max="5"
                                             className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
                                         />
                                         {errors.numberWifi && (
@@ -395,8 +410,8 @@ const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucc
                                         </div>
                                     ) : (
                                         <>
-                                            <FaPlus className="w-4 h-4" />
-                                            <span>Thêm phòng</span>
+                                            <FaEdit className="w-4 h-4" />
+                                            <span>Cập nhật</span>
                                         </>
                                     )}
                                 </motion.button>
