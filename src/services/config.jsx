@@ -9,7 +9,7 @@ export const API_CONFIG = {
 
     //Chạy trên server deploy link này
     BASE_URL: 'https://capstone-bookinghomestay.onrender.com/api',
-    
+
     TOAST_CONFIG: {
         SUCCESS: {
             style: {
@@ -81,8 +81,10 @@ axiosInstance.interceptors.response.use(
                     return axiosInstance(originalRequest);
                 }
             } catch (error) {
-                localStorage.clear();
-                window.location.href = '/login';
+                localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('userInfo');
+                localStorage.removeItem('isAuthenticated');
                 return Promise.reject(error);
             }
         }
