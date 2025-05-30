@@ -667,6 +667,7 @@ const TransactionHistory = () => {
                             <thead className="bg-gray-50 dark:bg-gray-900/50">
                                 <tr>
                                     <TableHeader label="Ngày thanh toán" sortKey="payDate" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Ngày nhận tiền" sortKey="finishDate" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Mã giao dịch" sortKey="transactionNo" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Người thanh toán" sortKey="payerName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Nhà nghỉ" sortKey="homeStayName" sortConfig={sortConfig} onSort={handleSort} />
@@ -689,6 +690,9 @@ const TransactionHistory = () => {
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                             {formatDate(transaction.payDate)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {formatDate(transaction?.finishDate)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                             {transaction.transactionNo}

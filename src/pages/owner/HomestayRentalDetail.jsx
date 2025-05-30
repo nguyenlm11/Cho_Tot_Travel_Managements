@@ -978,17 +978,6 @@ const HomestayRentalDetail = () => {
                                                     </motion.button>
                                                 )}
 
-                                                {rental?.rentWhole === false && (
-                                                    <motion.button
-                                                        variants={buttonVariants}
-                                                        whileHover="hover"
-                                                        whileTap="tap"
-                                                        onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomRental`)}
-                                                        className="w-full py-3 bg-orange-400 hover:bg-orange-500 text-white rounded-lg flex items-center justify-center"
-                                                    >
-                                                        <FaHome className="mr-2" /> Danh sách phòng
-                                                    </motion.button>
-                                                )}
 
                                                 <motion.button
                                                     variants={buttonVariants}
@@ -1001,6 +990,20 @@ const HomestayRentalDetail = () => {
                                                 </motion.button>
                                             </>
                                         )}
+
+                                        {rental?.rentWhole === false && (
+                                            <motion.button
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                                onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomRental`)}
+                                                className="w-full py-3 bg-orange-400 hover:bg-orange-500 text-white rounded-lg flex items-center justify-center"
+                                            >
+                                                <FaHome className="mr-2" /> Danh sách phòng
+                                            </motion.button>
+                                        )}
+
+
                                     </div>
                                 </div>
                             </motion.div>

@@ -172,24 +172,42 @@ function ActionDropdown({ homeStay, onApprove, onReject, onAddCommission, onEdit
                 ) : (
                     <>
                         {((homeStay?.commissionRate?.hostShare === 0 && homeStay?.commissionRate?.platformShare === 0) || (homeStay?.commissionRate == null)) && (
-                            <button
-                                onClick={() => { console.log('onAddCommission', homeStay?.homeStayID); onAddCommission(homeStay?.homeStayID); closeDropdown(); }}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
-                            >
-                                <FaPlus className="w-4 h-4 text-green-500" />
-                                Thêm tỉ lệ hoa hồng
-                            </button>
+                            <>
+                                <button
+                                    onClick={() => { console.log('onAddCommission', homeStay?.homeStayID); onAddCommission(homeStay?.homeStayID); closeDropdown(); }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                                >
+                                    <FaPlus className="w-4 h-4 text-green-500" />
+                                    Thêm tỉ lệ hoa hồng
+                                </button>
+                                <button
+                                    onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                                >
+                                    <FaTimes className="w-4 h-4 text-red-500" />
+                                    Từ chối
+                                </button>
+                            </>
                         )}
                     </>
                 )}
                 {((homeStay?.commissionRate?.ownerAccepted == null || homeStay?.commissionRate?.ownerAccepted == false) && (homeStay?.commissionRate?.isAccepted == true || homeStay?.commissionRate?.isAccepted == false)) && (
-                    <button
-                        onClick={() => { console.log('onEditCommission', homeStay?.homeStayID); onEditCommission(homeStay?.homeStayID); closeDropdown(); }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
-                    >
-                        <FaEdit className="w-4 h-4 text-green-500" />
-                        Cập nhật tỉ lệ
-                    </button>
+                    <>
+                        <button
+                            onClick={() => { console.log('onEditCommission', homeStay?.homeStayID); onEditCommission(homeStay?.homeStayID); closeDropdown(); }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                        >
+                            <FaEdit className="w-4 h-4 text-green-500" />
+                            Cập nhật tỉ lệ
+                        </button>
+                        <button
+                            onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                        >
+                            <FaTimes className="w-4 h-4 text-red-500" />
+                            Từ chối
+                        </button>
+                    </>
                 )}
             </div>
         </motion.div>

@@ -155,6 +155,7 @@ const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucc
         });
         setErrors({});
     };
+    const user = JSON.parse(localStorage.getItem('userInfo'));
 
     return (
         <AnimatePresence>
@@ -202,77 +203,79 @@ const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucc
 
                         {/* Body */}
                         <div className="p-6 space-y-6">
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                {/* <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                    Tiện nghi phòng
-                                </h3> */}
-                                <motion.div
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.1 }}
-                                >
-                                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                                        Loại phòng<span className="text-red-500 ml-1">*</span>
-                                    </label>
-                                    <select
-                                        value={formData.RoomTypesID}
-                                        name='roomTypeId'
-                                        onChange={(e) => setFormData({ ...formData, RoomTypesID: e.target.value })}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white"
+                            {user?.role === 'Owner' && (
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    {/* <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                Tiện nghi phòng
+                            </h3> */}
+                                    <motion.div
+                                        initial={{ x: -20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: 0.1 }}
                                     >
-                                        <option value="">Chọn loại phòng</option>
-                                        {roomTypeId?.map((items) => (
-                                            <option key={items.roomTypesID} value={items.roomTypesID}>
-                                                {items?.name} - {homeStayRentalName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.RoomTypesID && (
-                                        <motion.p
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                                            Loại phòng<span className="text-red-500 ml-1">*</span>
+                                        </label>
+                                        <select
+                                            value={formData.RoomTypesID}
+                                            name='roomTypeId'
+                                            onChange={(e) => setFormData({ ...formData, RoomTypesID: e.target.value })}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white"
                                         >
-                                            <FaRegTimesCircle />
-                                            {errors.RoomTypesID}
-                                        </motion.p>
-                                    )}
-                                </motion.div>
+                                            <option value="">Chọn loại phòng</option>
+                                            {roomTypeId?.map((items) => (
+                                                <option key={items.roomTypesID} value={items.roomTypesID}>
+                                                    {items?.name} - {homeStayRentalName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.RoomTypesID && (
+                                            <motion.p
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                                            >
+                                                <FaRegTimesCircle />
+                                                {errors.RoomTypesID}
+                                            </motion.p>
+                                        )}
+                                    </motion.div>
 
 
 
 
-                                {/* Số phòng */}
-                                <motion.div
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.1 }}
-                                >
-                                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                                        Số phòng<span className="text-red-500 ml-1">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="roomNumber"
-                                        value={formData.roomNumber}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 
-                                            dark:border-gray-600 dark:bg-gray-700 focus:ring-2 
-                                            focus:ring-primary/50 transition-all duration-200"
-                                        placeholder="Nhập số phòng (vd: 101, A101, ...)"
-                                    />
-                                    {errors.roomNumber && (
-                                        <motion.p
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="mt-1 text-sm text-red-500 flex items-center gap-1"
-                                        >
-                                            <FaRegTimesCircle />
-                                            {errors.roomNumber}
-                                        </motion.p>
-                                    )}
-                                </motion.div>
-                            </form>
+                                    {/* Số phòng */}
+                                    <motion.div
+                                        initial={{ x: -20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: 0.1 }}
+                                    >
+                                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                                            Số phòng<span className="text-red-500 ml-1">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="roomNumber"
+                                            value={formData.roomNumber}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 
+                                        dark:border-gray-600 dark:bg-gray-700 focus:ring-2 
+                                        focus:ring-primary/50 transition-all duration-200"
+                                            placeholder="Nhập số phòng (vd: 101, A101, ...)"
+                                        />
+                                        {errors.roomNumber && (
+                                            <motion.p
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                                            >
+                                                <FaRegTimesCircle />
+                                                {errors.roomNumber}
+                                            </motion.p>
+                                        )}
+                                    </motion.div>
+                                </form>
+                            )}
 
                             {/* Room Facilities */}
                             <div className="space-y-3">
@@ -280,68 +283,73 @@ const RoomEditByListHomestayRentalModal = ({ isOpen, onClose, roomTypeId, onSucc
                                     Tiện nghi phòng
                                 </h3> */}
                                 <div className="grid grid-cols-3 gap-3">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
-                                            <FaBed className="mr-1.5 text-gray-500 dark:text-gray-400" />
-                                            Giường <span className="text-red-500 ml-1">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="numberBed"
-                                            value={formData.numberBed}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                            max="5"
-                                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
-                                        />
-                                        {errors.numberBed && (
-                                            <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                <FaInfoCircle className="mr-1" /> {errors.numberBed}
-                                            </p>
-                                        )}
-                                    </div>
+                                    {user?.role === 'Owner' && (
+                                        <>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                                                    <FaBed className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                                                    Giường <span className="text-red-500 ml-1">*</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="numberBed"
+                                                    value={formData.numberBed}
+                                                    onChange={handleInputChange}
+                                                    min="0"
+                                                    max="5"
+                                                    className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                                                />
+                                                {errors.numberBed && (
+                                                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                        <FaInfoCircle className="mr-1" /> {errors.numberBed}
+                                                    </p>
+                                                )}
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
-                                            <FaBath className="mr-1.5 text-gray-500 dark:text-gray-400" />
-                                            Phòng tắm <span className="text-red-500 ml-1">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="numberBathRoom"
-                                            value={formData.numberBathRoom}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                            max="5"
-                                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
-                                        />
-                                        {errors.numberBathRoom && (
-                                            <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                <FaInfoCircle className="mr-1" /> {errors.numberBathRoom}
-                                            </p>
-                                        )}
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                                                    <FaBath className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                                                    Phòng tắm <span className="text-red-500 ml-1">*</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="numberBathRoom"
+                                                    value={formData.numberBathRoom}
+                                                    onChange={handleInputChange}
+                                                    min="0"
+                                                    max="5"
+                                                    className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                                                />
+                                                {errors.numberBathRoom && (
+                                                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                        <FaInfoCircle className="mr-1" /> {errors.numberBathRoom}
+                                                    </p>
+                                                )}
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
-                                            <FaWifi className="mr-1.5 text-gray-500 dark:text-gray-400" />
-                                            Wifi <span className="text-red-500 ml-1">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="numberWifi"
-                                            value={formData.numberWifi}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                            max="5"
-                                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
-                                        />
-                                        {errors.numberWifi && (
-                                            <p className="mt-1 text-sm text-red-500 flex items-center">
-                                                <FaInfoCircle className="mr-1" /> {errors.numberWifi}
-                                            </p>
-                                        )}
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center">
+                                                    <FaWifi className="mr-1.5 text-gray-500 dark:text-gray-400" />
+                                                    Wifi <span className="text-red-500 ml-1">*</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="numberWifi"
+                                                    value={formData.numberWifi}
+                                                    onChange={handleInputChange}
+                                                    min="0"
+                                                    max="5"
+                                                    className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm transition-all duration-200 shadow-sm"
+                                                />
+                                                {errors.numberWifi && (
+                                                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                                                        <FaInfoCircle className="mr-1" /> {errors.numberWifi}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+
                                     <div className='flex items-center justify-between'>
                                         <div className="mb-3">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
