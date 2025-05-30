@@ -111,10 +111,10 @@ const HomestayDetail = () => {
             <Toaster />
             <div className="mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div>
+                        <div>
                         <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-2">
                             {homestay.name}
-                        </h1>
+                            </h1>
                         <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                             <FaMapMarkerAlt className="w-4 h-4" />
                             <span>{homestay.address}</span>
@@ -124,14 +124,14 @@ const HomestayDetail = () => {
                         <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(homestay.status)}`}>
                             {getStatusText(homestay.status)}
                         </span>
-                        {user?.role === "Owner" && (
+                            {user?.role === "Owner" && (
                             <button
                                 onClick={() => openEditModal(homestay)}
-                                className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2
+                                    className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2
                                     hover:bg-primary-dark transition-colors"
-                            >
-                                <FaEdit />
-                                Chỉnh sửa
+                                >
+                                    <FaEdit />
+                                    Chỉnh sửa
                             </button>
                         )}
                     </div>
@@ -229,7 +229,7 @@ const HomestayDetail = () => {
                             <h3 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                                 <FaHome className="w-5 h-5" />
                                 Thông tin cơ bản
-                            </h3>
+                                    </h3>
                         </div>
                         <div className="p-6 space-y-6">
                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4">
@@ -322,7 +322,7 @@ const HomestayDetail = () => {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                </div>
 
                     {homestay.cultureExperiences && homestay.cultureExperiences.length > 0 && (
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
@@ -358,9 +358,9 @@ const HomestayDetail = () => {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        </div>
-                    )}
+                                            </div>
+                                        </div>
+                                    )}
 
                     {homestay.services && homestay.services.length > 0 && (
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
@@ -393,7 +393,7 @@ const HomestayDetail = () => {
                                                     }`}
                                                 >
                                                     {service.status ? 'Hoạt động' : 'Không hoạt động'}
-                                                </span>
+                                    </span>
                                             </div>
                                             <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
                                                 {service.description}
@@ -436,7 +436,7 @@ const HomestayDetail = () => {
                                                     <div>
                                                         <span className="font-semibold text-gray-800 dark:text-white text-base">
                                                             {rating.username}
-                                                        </span>
+                                    </span>
                                                         <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(rating.createdAt)}</p>
                                                     </div>
                                                 </div>
@@ -478,7 +478,7 @@ const HomestayDetail = () => {
                             </div>
                         </div>
                     )}
-                </div>
+                            </div>
 
                 <div className="space-y-6">
                     {homestay.commissionRate && (
@@ -503,9 +503,9 @@ const HomestayDetail = () => {
                                             {homestay.commissionRate.platformShare * 100}%
                                         </p>
                                     </div>
-                                </div>
+                    </div>
 
-                                <div className="space-y-3">
+                            <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-600 dark:text-gray-400">Trạng thái admin:</span>
                                         <span className={`flex items-center gap-1 ${homestay.commissionRate.isAccepted
@@ -534,12 +534,12 @@ const HomestayDetail = () => {
                                 </div>
 
                                 {user?.role === "Owner" && !(homestay.commissionRate.isAccepted && homestay.commissionRate.ownerAccepted) && (
-                                    <button
+                                <button
                                         onClick={() => setIsAcceptCommissionRateModalOpen(true)}
                                         className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                                     >
                                         Xác nhận tỷ lệ hoa hồng
-                                    </button>
+                                </button>
                                 )}
                             </div>
                         </div>
@@ -569,12 +569,12 @@ const HomestayDetail = () => {
                                 </div>
 
                                 {user?.role === "Owner" && (
-                                    <button
+                                <button
                                         onClick={() => setIsEditPolicyModalOpen(true)}
                                         className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                                     >
                                         Cập nhật chính sách
-                                    </button>
+                                </button>
                                 )}
                             </div>
                         </div>

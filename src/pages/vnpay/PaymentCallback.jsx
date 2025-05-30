@@ -111,32 +111,16 @@ const PaymentCallback = () => {
             }
         } catch (error) {
             console.error('Error in updatePaymentStatusOnBackend:', error);
-            // Bỏ qua lỗi và tiếp tục xử lý
         }
     };
 
     const handleBackToBookings = () => {
         const token = localStorage.getItem('token');
-
         if (!token) {
             navigate('/login');
             return;
         }
-
-        // Lấy homestayId từ OrderInfo hoặc từ localStorage
-        const bookingInfo = localStorage.getItem('currentBookingInfo');
-        let homestayId = '';
-
-        if (bookingInfo) {
-            const parsedInfo = JSON.parse(bookingInfo);
-            homestayId = parsedInfo.homestayId;
-        }
-
-        if (homestayId) {
-            navigate(`/owner/homestays/${homestayId}/bookings`);
-        } else {
-            navigate('/owner/homestays');
-        }
+        navigate('/admin/revenue/transactions');
     };
 
     if (loading) {
@@ -145,7 +129,7 @@ const PaymentCallback = () => {
                 <div className="p-8 bg-white rounded-lg shadow-md">
                     <h1 className="text-2xl font-bold text-center mb-4">Đang xử lý kết quả thanh toán...</h1>
                     <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
                     </div>
                 </div>
             </div>
@@ -161,9 +145,9 @@ const PaymentCallback = () => {
                     <div className="flex justify-center">
                         <button
                             onClick={handleBackToBookings}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                         >
-                            Quay lại danh sách đặt phòng
+                            Quay lại danh sách giao dịch
                         </button>
                     </div>
                 </div>
@@ -244,9 +228,9 @@ const PaymentCallback = () => {
                 <div className="mt-6 text-center">
                     <button
                         onClick={handleBackToBookings}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                     >
-                        Quay lại danh sách đặt phòng
+                        Quay lại danh sách giao dịch
                     </button>
                 </div>
             </div>
