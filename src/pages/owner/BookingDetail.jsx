@@ -96,7 +96,7 @@ export const BookingDetail = () => {
                     </button>
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                            Đơn đặt phòng #{booking.bookingCode}
+                            Đơn đặt phòng: #{booking.bookingCode}
                         </h1>
                         <div className="flex items-center gap-4 mt-2">
                             <div className="flex items-center text-gray-600 dark:text-gray-400">
@@ -236,7 +236,7 @@ export const BookingDetail = () => {
                                                 <div className="flex justify-between items-center mb-4">
                                                     <h4 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
                                                         <FaReceipt className="text-green-600 w-5 h-5" />
-                                                        Dịch vụ
+                                                        Mã dịch vụ: #{service.bookingServiceCode}
                                                     </h4>
                                                     <StatusBadge status={service.paymentServiceStatus} config={paymentStatusConfig} />
                                                 </div>

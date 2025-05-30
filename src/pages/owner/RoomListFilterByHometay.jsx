@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect, useMemo, Fragment } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaCheck, FaMoneyBillWave, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaTag } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaSortAmountDown, FaSortAmountUp, FaCheck, FaSync, FaEllipsisV, FaEye, FaTag } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
 import { useNavigate, useParams } from 'react-router-dom';
-import bookingAPI from '../../services/api/bookingAPI';
 import roomAPI from '../../services/api/roomAPI';
 import FilterRoomStartAndEndDate from '../../components/modals/FilterRoomStartAndEndDate';
 import { formatPrice } from '../../utils/utils';
+import ReactDOM from 'react-dom';
 
 const pageVariants = {
   initial: { opacity: 0 },
@@ -36,17 +36,105 @@ const cardVariants = {
   }
 };
 
-// Trạng thái đặt dịch vụ
-const ServiceBookingStatus = {
-  isActive: true,
-  isUsed: false,
-};
+const ServiceBookingStatus = { isActive: true, isUsed: false };
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
+function ActionDropdown({ room, onViewDetail }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef(null);
+  const menuRef = useRef(null);
+  const [dropdownStyle, setDropdownStyle] = useState({});
 
+  const toggleDropdown = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const dropdownWidth = 180;
+      const dropdownHeight = 80;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      let top = rect.bottom + window.scrollY;
+      let left = rect.left + window.scrollX;
+      let transform = '';
+
+      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+        top = rect.top + window.scrollY - dropdownHeight;
+        transform = 'translateY(-100%)';
+      }
+      if (left + dropdownWidth > window.innerWidth - 8) {
+        left = window.innerWidth - dropdownWidth - 30;
+      }
+      setDropdownStyle({
+        position: 'absolute',
+        top: top,
+        left: left,
+        zIndex: 9999,
+        minWidth: dropdownWidth,
+        transform,
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const closeDropdown = () => setIsOpen(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target) &&
+        menuRef.current &&
+        !menuRef.current.contains(event.target)
+      ) {
+        closeDropdown();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const dropdownContent = (
+    <motion.div
+      ref={menuRef}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.1 }}
+      style={dropdownStyle}
+      className="rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 dark:border-gray-700"
+      role="menu"
+      aria-orientation="vertical"
+    >
+      <div className="py-1" role="none">
+        <button
+          onClick={() => {
+            onViewDetail(room.roomID);
+            closeDropdown();
+          }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
+        >
+          <FaEye className="w-4 h-4 text-green-500" />
+          Xem chi tiết
+        </button>
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={toggleDropdown}
+        className="inline-flex items-center justify-center p-2 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      >
+        <FaEllipsisV className="w-5 h-5" />
+      </button>
+      {isOpen && ReactDOM.createPortal(dropdownContent, document.body)}
+    </>
+  );
+}
 
 const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm, fetchRoomByHomestayID }) => {
   const searchInputRef = useRef(null);
@@ -83,9 +171,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTer
   const handleClickFilter = (data) => {
     // log 2 ngày start và end đã format
     // console.log(data);
-
     fetchRoomByHomestayID(data.startDate, data.endDate);
-
   }
 
   return (
@@ -217,8 +303,6 @@ const RoomListFilterByHomestay = () => {
 
   const filteredServiceBookings = useMemo(() => {
     let filtered = [...rooms];
-
-    // Filter theo searchTerm
     if (actualSearchTerm) {
       const searchLower = actualSearchTerm.toLowerCase();
       filtered = filtered.filter(room =>
@@ -227,13 +311,9 @@ const RoomListFilterByHomestay = () => {
         (room?.homeStayRentalName?.toLowerCase().includes(searchLower) || '')
       );
     }
-
-    // Filter theo status nếu có
     if (selectedStatus !== 'all') {
       filtered = filtered.filter(booking => booking.status === parseInt(selectedStatus));
     }
-
-    // Sort
     if (sortConfig.key) {
       filtered.sort((a, b) => {
         let valA, valB;
@@ -324,20 +404,6 @@ const RoomListFilterByHomestay = () => {
   ], [rooms]);
   // console.log(rooms);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const dropdowns = document.querySelectorAll('.relative.inline-block.text-left');
-      dropdowns.forEach(dropdown => {
-        if (!dropdown.contains(event.target)) {
-          const menu = dropdown.querySelector('.absolute');
-          if (menu) menu.classList.add('hidden');
-        }
-      });
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
   const homestayName = localStorage.getItem('homestayName')
   return (
     <motion.div
@@ -504,32 +570,7 @@ const RoomListFilterByHomestay = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="relative inline-block text-left">
-                          <button
-                            onClick={(e) => {
-                              e.currentTarget.nextElementSibling.classList.toggle('hidden');
-                            }}
-                            className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100"
-                          >
-                            <FaEllipsisV className="w-5 h-5" />
-                          </button>
-
-                          <div className="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            <div className="py-1">
-                              <button
-                                onClick={(e) => {
-                                  // console.log(booking);
-                                  handleViewRoomBooking(booking.roomID);
-                                  e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                }}
-                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              >
-                                <FaEye className="mr-3 w-4 h-4" />
-                                Xem chi tiết
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                        <ActionDropdown room={booking} onViewDetail={handleViewRoomBooking} />
                       </td>
                     </motion.tr>
                   );

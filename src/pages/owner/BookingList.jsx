@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaQrcode, FaCheck, FaMoneyBillWave, FaSync, FaEllipsisV, FaEye, FaComments } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaQrcode, FaCheck, FaSync, FaEllipsisV, FaEye, FaComments } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import QRScannerModal from '../../components/modals/QRScannerModal';
 import CountUp from 'react-countup';
@@ -11,6 +11,7 @@ import { FaExchangeAlt } from "react-icons/fa";
 import { ChangeRoomModal } from '../../components/modals/ChangeRoomModal';
 import { FaDeleteLeft } from 'react-icons/fa6';
 import chatAPI from '../../services/api/chatAPI';
+import ReactDOM from 'react-dom';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -63,35 +64,71 @@ const formatDate = (dateString) => {
 };
 
 const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, handleScanResult, handleStartChat, handleRequestCancelToAdmin, handleRequestRefundToAdmin }) => {
-
     const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef(null);
-    const toggleDropdown = () => setIsOpen(!isOpen);
-    const closeDropdown = () => setIsOpen(false);
+    const buttonRef = useRef(null);
+    const menuRef = useRef(null);
+    const [dropdownStyle, setDropdownStyle] = useState({});
     const [isChangeRoomModal, setIsChangeRoomModal] = useState(false);
     const [selectBooking, setSelectBooking] = useState(null);
     const [isSameCheckinDate, setIsSameCheckinDate] = useState(false);
 
+    const toggleDropdown = () => {
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const dropdownWidth = 200;
+            const dropdownHeight = 250;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            let top = rect.bottom + window.scrollY + 8;
+            let left = rect.left + window.scrollX - 50;
+            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+                top = rect.top + window.scrollY - dropdownHeight - 8;
+            }
+            if (left + dropdownWidth > window.innerWidth - 16) {
+                left = window.innerWidth - dropdownWidth - 16;
+            }
+            if (left < 16) {
+                left = 16;
+            }
+
+            setDropdownStyle({
+                position: 'absolute',
+                top: top,
+                left: left,
+                zIndex: 9999,
+                minWidth: dropdownWidth,
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
+    const closeDropdown = () => setIsOpen(false);
+
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                closeDropdown(); 2
+            if (
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target) &&
+                menuRef.current &&
+                !menuRef.current.contains(event.target)
+            ) {
+                closeDropdown();
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [isOpen]);
 
     useEffect(() => {
         const currentDate = new Date();
         const bookingDate = new Date(booking?.bookingDetails?.[0]?.checkInDate);
 
-        // Reset time part to compare only dates
         currentDate.setHours(0, 0, 0, 0);
         bookingDate.setHours(0, 0, 0, 0);
-
-        // Allow check-in if current date is equal to or after booking date
         setIsSameCheckinDate(currentDate >= bookingDate);
     }, [booking]);
 
@@ -100,158 +137,140 @@ const ActionDropdown = ({ booking, homestayId, handleViewBooking, handleRefund, 
         closeDropdown();
     };
 
+    const dropdownContent = (
+        <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            style={dropdownStyle}
+            className="rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 dark:border-gray-700"
+            role="menu"
+            aria-orientation="vertical"
+        >
+            <div className="py-1" role="none">
+                {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
+                    <button
+                        onClick={() => handleActionClick(() => handleRequestRefundToAdmin(booking.bookingID, BookingStatus.NoShow))}
+                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        role="menuitem"
+                    >
+                        Chấp nhận hoàn tiền
+                    </button>
+                )}
+                {booking.status !== BookingStatus.Cancelled &&
+                    booking.status !== BookingStatus.NoShow &&
+                    booking.status !== BookingStatus.InProgress &&
+                    booking.status !== BookingStatus.Completed &&
+                    booking.paymentStatus !== 0 &&
+                    booking.status == BookingStatus.Confirmed &&
+                    isSameCheckinDate &&
+                    (
+                        <button
+                            onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.InProgress))}
+                            className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            role="menuitem"
+                        >
+                            <FaQrcode className="mr-3 w-4 h-4 text-green-500" aria-hidden="true" />
+                            Check-in
+                        </button>
+                    )}
+                {booking.status == BookingStatus.InProgress && (
+                    <button
+                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Completed))}
+                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        role="menuitem"
+                    >
+                        <FaQrcode className="mr-3 w-4 h-4 text-green-500" aria-hidden="true" />
+                        Check-out
+                    </button>
+                )}
+
+                {booking.status == BookingStatus.Pending &&
+                    booking.paymentStatus !== 0 &&
+                    (booking.paymentStatus == PaymentStatus.Deposited ||
+                        booking.paymentStatus == PaymentStatus.FullyPaid) && (
+                        <button
+                            onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Confirmed))}
+                            className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            role="menuitem"
+                        >
+                            <FaCheck className="mr-3 w-4 h-4 text-green-500" aria-hidden="true" />
+                            Xác nhận
+                        </button>
+                    )}
+
+                {booking.status == BookingStatus.Confirmed && (
+                    <button
+                        onClick={() => handleActionClick(() => handleRequestCancelToAdmin(booking.bookingID, BookingStatus.RequestCancelled))}
+                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        role="menuitem"
+                    >
+                        <FaDeleteLeft className="mr-3 w-4 h-4 text-red-500" aria-hidden="true" />
+                        Hủy
+                    </button>
+                )}
+
+                {booking.bookingDetails?.some(item => item.roomID != null) &&
+                    booking.status !== BookingStatus.Cancelled &&
+                    booking.status !== BookingStatus.NoShow &&
+                    booking.status !== BookingStatus.Completed &&
+                    booking.paymentStatus !== 0 && (
+                        <button
+                            onClick={() => {
+                                handleActionClick(() => {
+                                    setIsChangeRoomModal(true);
+                                    setSelectBooking(booking);
+                                });
+                            }}
+                            className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            role="menuitem"
+                        >
+                            <FaExchangeAlt className="w-3 h-4 mr-3 text-blue-500" aria-hidden="false" />
+                            Change room
+                        </button>
+                    )
+                }
+
+                <button
+                    onClick={() => handleActionClick(() => handleViewBooking(booking.bookingID))}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    role="menuitem"
+                >
+                    <FaEye className="mr-3 w-4 h-4 text-green-500" aria-hidden="true" />
+                    Xem chi tiết
+                </button>
+                <button
+                    onClick={() => handleActionClick(handleStartChat)}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    role="menuitem"
+                >
+                    <FaComments className="mr-3 w-4 h-4 text-blue-500" aria-hidden="true" />
+                    Chat
+                </button>
+            </div>
+        </motion.div>
+    );
+
     return (
-        <div className="relative inline-block text-left" ref={dropdownRef}>
+        <>
             <button
+                ref={buttonRef}
                 onClick={toggleDropdown}
-                className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="inline-flex items-center justify-center p-2 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-haspopup="true"
                 aria-expanded={isOpen}
             >
                 <FaEllipsisV className="w-5 h-5" />
             </button>
-
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.1 }}
-                        className="absolute -left-6 z-50 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="options-menu"
-                    >
-                        <div className="py-1" role="none">
-                            {/* {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
-                                <button
-                                    onClick={() => handleActionClick(() => handleRefund(booking.bookingID))}
-                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    <FaMoneyBillWave className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
-                                    Hoàn tiền
-                                </button>
-                            )} */}
-
-                            {booking.status === BookingStatus.Refund && booking.status !== BookingStatus.Cancelled && (
-                                <button
-                                    onClick={() => handleActionClick(() => handleRequestRefundToAdmin(booking.bookingID, BookingStatus.NoShow))}
-                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    Chấp nhận hoàn tiền
-                                </button>
-                            )}
-                            {booking.status !== BookingStatus.Cancelled &&
-                                booking.status !== BookingStatus.NoShow &&
-                                booking.status !== BookingStatus.InProgress &&
-                                booking.status !== BookingStatus.Completed &&
-                                booking.paymentStatus !== 0 &&
-                                booking.status == BookingStatus.Confirmed &&
-                                isSameCheckinDate &&
-                                (
-                                    <button
-                                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.InProgress))}
-                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                        role="menuitem"
-                                    >
-                                        <FaQrcode className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
-                                        Check-in
-                                    </button>
-                                )}
-                            {booking.status == BookingStatus.InProgress && (
-                                <button
-                                    onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Completed))}
-                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    <FaQrcode className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
-                                    Check-out
-                                </button>
-                            )}
-
-                            {booking.status == BookingStatus.Pending &&
-                                booking.paymentStatus !== 0 &&
-                                (booking.paymentStatus == PaymentStatus.Deposited ||
-                                    booking.paymentStatus == PaymentStatus.FullyPaid) && (
-                                    <button
-                                        onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Confirmed))}
-                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                        role="menuitem"
-                                    >
-                                        <FaCheck className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
-                                        Xác nhận
-                                    </button>
-                                )}
-
-                            {booking.status == BookingStatus.Confirmed && (
-                                <button
-                                    // onClick={() => handleActionClick(() => handleScanResult(booking.bookingID, booking, BookingStatus.Cancelled))}
-                                    onClick={() => handleActionClick(() => handleRequestCancelToAdmin(booking.bookingID, BookingStatus.RequestCancelled))}
-                                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    <FaDeleteLeft className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
-                                    Hủy
-                                </button>
-                            )}
-
-                            {booking.bookingDetails?.some(item => item.roomID != null) &&
-                                booking.status !== BookingStatus.Cancelled &&
-                                booking.status !== BookingStatus.NoShow &&
-                                booking.status !== BookingStatus.Completed &&
-                                booking.paymentStatus !== 0 && (
-                                    <button
-                                        onClick={() => {
-                                            handleActionClick(() => {
-                                                setIsChangeRoomModal(true);
-                                                setSelectBooking(booking);
-                                            });
-                                        }}
-                                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                        role="menuitem"
-                                    >
-                                        <span>
-                                            <FaExchangeAlt className="w-3 h-4 mr-3 text-gray-400" aria-hidden="false" />
-                                        </span>
-                                        <span>
-                                            Change room
-                                        </span>
-                                    </button>
-                                )
-                            }
-
-
-
-                            <button
-                                onClick={() => handleActionClick(() => handleViewBooking(booking.bookingID))}
-                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="menuitem"
-                            >
-                                <FaEye className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
-                                Xem chi tiết
-                            </button>
-                            <button
-                                onClick={() => handleActionClick(handleStartChat)}
-                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                role="menuitem"
-                            >
-                                <FaComments className="mr-3 w-4 h-4 text-gray-400" aria-hidden="true" />
-                                Chat
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {isOpen && ReactDOM.createPortal(dropdownContent, document.body)}
             <ChangeRoomModal
                 isOpen={isChangeRoomModal}
                 onClose={() => setIsChangeRoomModal(false)}
                 booking={selectBooking}
-
             />
-        </div>
+        </>
     );
 };
 
@@ -436,7 +455,6 @@ const BookingList = () => {
     const filteredBookings = useMemo(() => {
         let filtered = [...bookings];
         // console.log(actualSearchTerm);
-
         if (actualSearchTerm) {
             const searchLower = actualSearchTerm.toLowerCase();
             filtered = filtered.filter(booking =>
@@ -517,12 +535,8 @@ const BookingList = () => {
                 }
                 const bookingCheckInDate = new Date(currentBooking.bookingDetails[0]?.checkInDate);
                 const today = new Date();
-
-                // Reset time part to compare only dates
                 bookingCheckInDate.setHours(0, 0, 0, 0);
                 today.setHours(0, 0, 0, 0);
-
-                // Allow check-in if today is equal to or after check-in date
                 if (today < bookingCheckInDate) {
                     throw new Error('Chỉ có thể check-in từ ngày nhận phòng trở đi');
                 }
@@ -533,15 +547,12 @@ const BookingList = () => {
                     throw new Error('Không thể check-out');
                 }
             }
-
             const bookingData = {
                 bookingId: parsedBookingId,
                 status: bookingStatus,
                 paymentStatus: currentBooking.paymentStatus
             };
-
             console.log("Sending data:", bookingData);
-
             const response = await bookingAPI.updateBookingStatus(
                 bookingData.bookingId,
                 bookingData.status,
@@ -579,7 +590,6 @@ const BookingList = () => {
                     border: '1px solid #FCA5A5'
                 },
             });
-            // Không đóng modal scan khi có lỗi để người dùng có thể quét lại
             throw error;
         }
     };
@@ -631,7 +641,6 @@ const BookingList = () => {
 
     const handleRequestCancelToAdmin = async (bookingId) => {
         // console.log(bookingId);
-
         try {
             const response = await bookingAPI.requestCancelToAdmin(bookingId);
             if (response?.statusCode === 200) {
@@ -648,7 +657,6 @@ const BookingList = () => {
 
     const handleRequestRefundToAdmin = async (bookingId) => {
         // console.log(bookingId);
-
         try {
             const response = await bookingAPI.requestRefundToAdmin(bookingId)
             if (response?.statusCode === 200) {
@@ -680,8 +688,7 @@ const BookingList = () => {
         return (
             <th
                 onClick={() => handleSort(sortKey)}
-                className="px-6 py-3 text-left cursor-pointer group hover:bg-gray-100 
-          dark:hover:bg-gray-800/50 transition-colors"
+                className="px-6 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
             >
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-700 dark:text-gray-300">
@@ -820,17 +827,118 @@ const BookingList = () => {
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900/50">
                                 <tr>
-                                    <TableHeader label="Ngày đặt" sortKey="bookingDate" />
-                                    <TableHeader label="Mã giao dịch" />
-                                    <TableHeader label="Khách hàng" sortKey="customerName" />
-                                    <TableHeader label="Căn thuê" sortKey="homestayName" />
-                                    <TableHeader label="Ngày nhận phòng" sortKey="checkInDate" />
-                                    <TableHeader label="Ngày trả phòng" sortKey="checkOutDate" />
-                                    <TableHeader label="Trạng thái" sortKey="status" />
-                                    <TableHeader label="Thanh toán" sortKey="paymentStatus" />
-                                    <th className="px-6 py-3 text-left">
+                                    <th className="w-24 px-4 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                                        onClick={() => handleSort('bookingDate')}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                                Ngày đặt
+                                            </span>
+                                            <div className={`transition-colors ${sortConfig.key === 'bookingDate' ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
+                                                {sortConfig.key === 'bookingDate' && (
+                                                    sortConfig.direction === 'asc'
+                                                        ? <FaSortAmountUp className="w-4 h-4" />
+                                                        : <FaSortAmountDown className="w-4 h-4" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th className="w-32 px-4 py-3 text-left">
                                         <span className="font-semibold text-gray-700 dark:text-gray-300">
-                                            Hành động
+                                            Mã giao dịch
+                                        </span>
+                                    </th>
+                                    <th className="w-48 px-4 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                                        onClick={() => handleSort('customerName')}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                                Khách hàng
+                                            </span>
+                                            <div className={`transition-colors ${sortConfig.key === 'customerName' ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
+                                                {sortConfig.key === 'customerName' && (
+                                                    sortConfig.direction === 'asc'
+                                                        ? <FaSortAmountUp className="w-4 h-4" />
+                                                        : <FaSortAmountDown className="w-4 h-4" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th className="w-24 px-4 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                                        onClick={() => handleSort('homestayName')}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                                Căn thuê
+                                            </span>
+                                            <div className={`transition-colors ${sortConfig.key === 'homestayName' ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
+                                                {sortConfig.key === 'homestayName' && (
+                                                    sortConfig.direction === 'asc'
+                                                        ? <FaSortAmountUp className="w-4 h-4" />
+                                                        : <FaSortAmountDown className="w-4 h-4" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th className="w-28 px-4 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                                        onClick={() => handleSort('checkInDate')}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                                Nhận phòng
+                                            </span>
+                                            <div className={`transition-colors ${sortConfig.key === 'checkInDate' ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
+                                                {sortConfig.key === 'checkInDate' && (
+                                                    sortConfig.direction === 'asc'
+                                                        ? <FaSortAmountUp className="w-4 h-4" />
+                                                        : <FaSortAmountDown className="w-4 h-4" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th className="w-28 px-4 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                                        onClick={() => handleSort('checkOutDate')}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                                Trả phòng
+                                            </span>
+                                            <div className={`transition-colors ${sortConfig.key === 'checkOutDate' ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
+                                                {sortConfig.key === 'checkOutDate' && (
+                                                    sortConfig.direction === 'asc'
+                                                        ? <FaSortAmountUp className="w-4 h-4" />
+                                                        : <FaSortAmountDown className="w-4 h-4" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th className="w-32 px-4 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                                        onClick={() => handleSort('status')}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                                Trạng thái
+                                            </span>
+                                            <div className={`transition-colors ${sortConfig.key === 'status' ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
+                                                {sortConfig.key === 'status' && (
+                                                    sortConfig.direction === 'asc'
+                                                        ? <FaSortAmountUp className="w-4 h-4" />
+                                                        : <FaSortAmountDown className="w-4 h-4" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th className="w-28 px-4 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                                        onClick={() => handleSort('paymentStatus')}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                                Thanh toán
+                                            </span>
+                                            <div className={`transition-colors ${sortConfig.key === 'paymentStatus' ? 'text-primary' : 'text-gray-400 dark:text-gray-600'}`}>
+                                                {sortConfig.key === 'paymentStatus' && (
+                                                    sortConfig.direction === 'asc'
+                                                        ? <FaSortAmountUp className="w-4 h-4" />
+                                                        : <FaSortAmountDown className="w-4 h-4" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th className="w-20 px-4 py-3 text-center">
+                                        <span className="font-semibold text-gray-700 dark:text-gray-300">
                                         </span>
                                     </th>
                                 </tr>
@@ -849,77 +957,66 @@ const BookingList = () => {
                                             exit={{ opacity: 0, y: -20 }}
                                             className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                         >
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-gray-600 dark:text-gray-400">
+                                            <td className="w-24 px-4 py-4 whitespace-nowrap">
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">
                                                     {formatDate(booking.bookingDate)}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <p className="text-gray-600 dark:text-gray-400 w-40 truncate">
+                                            <td className="w-32 px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-600 dark:text-gray-400 truncate" title={booking?.bookingCode}>
                                                     {booking?.bookingCode}
-                                                </p>
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium text-gray-900 dark:text-white">
+                                            <td className="w-48 px-4 py-4">
+                                                <div className="flex flex-col space-y-1">
+                                                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate" title={booking.account.name}>
                                                         {booking.account.name}
                                                     </span>
-                                                    <span className="text-sm text-gray-500">
+                                                    <span className="text-xs text-gray-500 truncate" title={booking.account.email}>
                                                         {booking.account.email}
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-gray-600 dark:text-gray-400">
+                                            <td className="w-24 px-4 py-4 whitespace-nowrap">
+                                                <span className="text-sm text-gray-600 dark:text-gray-400 truncate block" title={bookingDetail.homeStayRentals?.name || 'N/A'}>
                                                     {bookingDetail.homeStayRentals?.name || 'N/A'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="w-28 px-4 py-4 whitespace-nowrap">
                                                 {bookingDetail.checkInDate && (
-                                                    <span className="text-gray-600 dark:text-gray-400">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">
                                                         {formatDate(bookingDetail.checkInDate)}
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="w-28 px-4 py-4 whitespace-nowrap">
                                                 {bookingDetail.checkOutDate && (
-                                                    <span className="text-gray-600 dark:text-gray-400">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">
                                                         {formatDate(bookingDetail.checkOutDate)}
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="w-32 px-4 py-4 whitespace-nowrap">
                                                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${bookingStatusInfo.color}`}>
                                                     {bookingStatusInfo.text}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${paymentStatusInfo.color}`}>
+                                            <td className="w-28 px-4 py-4 whitespace-nowrap">
+                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${paymentStatusInfo.color}`}>
                                                     {paymentStatusInfo.text}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex gap-2">
-                                                        <ActionDropdown
-                                                            booking={booking}
-                                                            homestayId={homestayId}
-                                                            handleViewBooking={handleViewBooking}
-                                                            handleRefund={handleRefund}
-                                                            handleRequestCancelToAdmin={handleRequestCancelToAdmin}
-                                                            handleRequestRefundToAdmin={handleRequestRefundToAdmin}
-                                                            handleScanResult={handleScanResult}
-                                                            handleStartChat={() => handleStartChat(booking.accountID, homestayId)}
-                                                        />
-                                                        {/* <button
-                                                            onClick={() => handleStartChat(booking.accountID, homestayId)}
-                                                            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                                                        >
-                                                            <FaComments />
-                                                            <span>Chat</span>
-                                                        </button> */}
-                                                    </div>
-                                                </div>
+                                            <td className="w-20 px-4 py-4 whitespace-nowrap text-center">
+                                                <ActionDropdown
+                                                    booking={booking}
+                                                    homestayId={homestayId}
+                                                    handleViewBooking={handleViewBooking}
+                                                    handleRefund={handleRefund}
+                                                    handleRequestCancelToAdmin={handleRequestCancelToAdmin}
+                                                    handleRequestRefundToAdmin={handleRequestRefundToAdmin}
+                                                    handleScanResult={handleScanResult}
+                                                    handleStartChat={() => handleStartChat(booking.accountID, homestayId)}
+                                                />
                                             </td>
                                         </motion.tr>
                                     );
