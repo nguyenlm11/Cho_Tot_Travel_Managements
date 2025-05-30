@@ -25,7 +25,7 @@ const adminAPI = {
     changeHomeStayStatus: async (homestayId, status, commissionRateID) => {
         try {
             console.log("Calling API with:", { homestayId, status });
-            const response = await axiosInstance.put(`/homestay/ChangeHomeStayStatus?homestayId=${homestayId}&status=${status}&commissionRateID=${commissionRateID}`);
+            const response = await axiosInstance.put(`/homestay/ChangeHomeStayStatus?homestayId=${homestayId}&status=${status}${commissionRateID ? `&commissionRateID=${commissionRateID}` : ''}`);
             console.log("API Response:", response.data);
             return response.data;
         } catch (error) {

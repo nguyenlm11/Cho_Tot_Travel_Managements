@@ -494,13 +494,13 @@ const HomestayDetail = () => {
                                     <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Chủ nhà</p>
                                         <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                            {homestay.commissionRate.hostShare}%
+                                            {homestay.commissionRate.hostShare * 100}%
                                         </p>
                                     </div>
                                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Nền tảng</p>
                                         <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                            {homestay.commissionRate.platformShare}%
+                                            {homestay.commissionRate.platformShare * 100}%
                                         </p>
                                     </div>
                                 </div>
