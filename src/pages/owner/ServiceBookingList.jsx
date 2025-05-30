@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect, useMemo, Fragment } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaUser, FaCheck, FaMoneyBillWave, FaInfoCircle, FaSync, FaEllipsisV, FaEye, FaTag } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronDown, FaSortAmountDown, FaSortAmountUp, FaCalendarAlt, FaCheck, FaSync, FaEllipsisV, FaEye, FaTag } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import CountUp from 'react-countup';
 import { useNavigate, useParams } from 'react-router-dom';
 import bookingAPI from '../../services/api/bookingAPI';
+import ReactDOM from 'react-dom';
 
 const pageVariants = {
     initial: { opacity: 0 },
@@ -33,17 +34,7 @@ const cardVariants = {
     }
 };
 
-// Trạng thái đặt dịch vụ
-const ServiceBookingStatus = {
-    Pending: 0,
-    Confirmed: 1,
-    InProgress: 2,
-    Completed: 3,
-    Cancelled: 4,
-    Refund: 5,
-    AcceptRefund: 6
-};
-
+const ServiceBookingStatus = { Pending: 0, Confirmed: 1, InProgress: 2, Completed: 3, Cancelled: 4, Refund: 5, AcceptRefund: 6 };
 const serviceBookingStatusConfig = {
     [ServiceBookingStatus.Pending]: { color: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100', text: 'Chờ xác nhận' },
     [ServiceBookingStatus.Confirmed]: { color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100', text: 'Đã xác nhận' },
@@ -65,6 +56,116 @@ const formatCurrency = (amount) => {
         currency: 'VND'
     }).format(amount);
 };
+
+function ActionDropdown({ booking, onViewDetail, onRequestRefund }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const buttonRef = useRef(null);
+    const menuRef = useRef(null);
+    const [dropdownStyle, setDropdownStyle] = useState({});
+
+    const toggleDropdown = () => {
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const dropdownWidth = 200;
+            const dropdownHeight = booking.status === ServiceBookingStatus.Refund ? 120 : 80;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            let top = rect.bottom + window.scrollY;
+            let left = rect.left + window.scrollX;
+            let transform = '';
+
+            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+                top = rect.top + window.scrollY - dropdownHeight;
+                transform = 'translateY(-100%)';
+            }
+            if (left + dropdownWidth > window.innerWidth - 8) {
+                left = window.innerWidth - dropdownWidth - 30;
+            }
+            setDropdownStyle({
+                position: 'absolute',
+                top: top,
+                left: left,
+                zIndex: 9999,
+                minWidth: dropdownWidth,
+                transform,
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
+    const closeDropdown = () => setIsOpen(false);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target) &&
+                menuRef.current &&
+                !menuRef.current.contains(event.target)
+            ) {
+                closeDropdown();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
+
+    const dropdownContent = (
+        <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            style={dropdownStyle}
+            className="rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 dark:border-gray-700"
+            role="menu"
+            aria-orientation="vertical"
+        >
+            <div className="py-1" role="none">
+                <button
+                    onClick={() => {
+                        onViewDetail(booking.bookingServicesID);
+                        closeDropdown();
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
+                >
+                    <FaEye className="w-4 h-4 text-green-500" />
+                    Xem chi tiết
+                </button>
+                {booking.status === ServiceBookingStatus.Refund && (
+                    <button
+                        onClick={() => {
+                            onRequestRefund(booking.bookingServicesID);
+                            closeDropdown();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
+                    >
+                        <FaCheck className="w-4 h-4 text-green-500" />
+                        Chấp nhận hoàn tiền
+                    </button>
+                )}
+            </div>
+        </motion.div>
+    );
+
+    return (
+        <>
+            <button
+                ref={buttonRef}
+                onClick={toggleDropdown}
+                className="inline-flex items-center justify-center p-2 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+                <FaEllipsisV className="w-5 h-5" />
+            </button>
+            {isOpen && ReactDOM.createPortal(dropdownContent, document.body)}
+        </>
+    );
+}
 
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
     const searchInputRef = useRef(null);
@@ -311,37 +412,8 @@ const ServiceBookingList = () => {
         navigate(`/owner/homestays/${homestayId}/service-bookings/${bookingId}`);
     };
 
-    const handleRefund = async (bookingServiceId) => {
-        try {
-            const userInfoString = localStorage.getItem('userInfo');
-            let accountID;
-            if (userInfoString) {
-                const userInfo = JSON.parse(userInfoString);
-                accountID = userInfo.AccountID;
-            } else {
-                throw new Error('Không tìm thấy userInfo trong localStorage');
-            }
-            setIsLoading(true);
-            localStorage.setItem('currentBookingInfo', JSON.stringify({
-                bookingServiceId,
-                homestayId,
-                timestamp: new Date().getTime()
-            }));
-            const response = await bookingAPI.processServiceRefund(bookingServiceId, accountID);
-            console.log('Response từ API VNPay:', response);
-            if (response) {
-                window.location.href = response;
-            }
-        } catch (error) {
-            console.error('Error processing VNPay refund:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const handleRequestRefundServiceToAdmin = async (bookingServiceId) => {
         // console.log(bookingServiceId);
-
         try {
             const respone = await bookingAPI.requestRefundServiceToAdmin(bookingServiceId);
             if (respone?.statusCode === 200) {
@@ -399,20 +471,6 @@ const ServiceBookingList = () => {
         { label: 'Chờ xác nhận', value: serviceBookings.filter(b => b.status === ServiceBookingStatus.Pending).length, color: 'bg-yellow-500', icon: <FaCalendarAlt className="w-6 h-6" /> }
     ], [serviceBookings]);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            const dropdowns = document.querySelectorAll('.relative.inline-block.text-left');
-            dropdowns.forEach(dropdown => {
-                if (!dropdown.contains(event.target)) {
-                    const menu = dropdown.querySelector('.absolute');
-                    if (menu) menu.classList.add('hidden');
-                }
-            });
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
     const homestayName = localStorage.getItem('homestayName')
     return (
         <motion.div
@@ -591,43 +649,11 @@ const ServiceBookingList = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="relative inline-block text-left">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.currentTarget.nextElementSibling.classList.toggle('hidden');
-                                                        }}
-                                                        className="inline-flex items-center justify-center p-2 text-gray-600 hover:text-gray-700 rounded-full hover:bg-gray-100"
-                                                    >
-                                                        <FaEllipsisV className="w-5 h-5" />
-                                                    </button>
-
-                                                    <div className="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                                        <div className="py-1">
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    handleViewServiceBooking(booking.bookingServicesID);
-                                                                    e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                                }}
-                                                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                            >
-                                                                <FaEye className="mr-3 w-4 h-4" />
-                                                                Xem chi tiết
-                                                            </button>
-                                                            {booking.status === ServiceBookingStatus.Refund && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        handleRequestRefundServiceToAdmin(booking.bookingServicesID);
-                                                                        e.currentTarget.parentElement.parentElement.classList.add('hidden');
-                                                                    }}
-                                                                    className="flex w-full items-center px-4 py-2 text-sm text-green-600 hover:bg-red-50"
-                                                                >
-                                                                    <FaCheck className="mr-3 w-4 h-4" />
-                                                                    Chấp nhận hoàn tiền
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <ActionDropdown
+                                                    booking={booking}
+                                                    onViewDetail={handleViewServiceBooking}
+                                                    onRequestRefund={handleRequestRefundServiceToAdmin}
+                                                />
                                             </td>
                                         </motion.tr>
                                     );
