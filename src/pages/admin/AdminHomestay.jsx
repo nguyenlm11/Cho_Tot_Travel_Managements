@@ -226,14 +226,8 @@ function ActionDropdown({ homeStay, handleViewDetail, handleToggleClick }) {
                         className={`flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100 ${homeStay.status === 1 ? 'text-red-600' : 'text-green-600'}`}
                         role="menuitem"
                     >
-
-
-                        {homeStay.status === 1
-                            ? <FaBan className="mr-3 w-4 h-4" />
-                            : <FaCheck className="mr-3 w-4 h-4" />
-                        },
+                        {homeStay.status === 1 ? <FaBan className="mr-3 w-4 h-4" /> : <FaCheck className="mr-3 w-4 h-4" />}
                         {homeStay.status === 1 ? 'Dừng hoạt động' : 'Kích hoạt'}
-
                     </button>
                 )}
             </div>
@@ -292,9 +286,9 @@ export default function AdminHomestay() {
     };
 
     // Thống kê
-    const totalHomeStays = homeStays.filter(homeStay => homeStay.status === 1 || homeStay.status === 2).length;
+    const totalHomeStays = homeStays.filter(homeStay => homeStay.status === 1 || homeStay.status === 3).length;
     const activeHomeStays = homeStays.filter(homeStay => homeStay.status === 1).length;
-    const inactiveHomeStays = homeStays.filter(homeStay => homeStay.status === 2).length;
+    const inactiveHomeStays = homeStays.filter(homeStay => homeStay.status === 3).length;
 
     // Xử lý sắp xếp
     const handleSort = (column) => {
@@ -342,7 +336,7 @@ export default function AdminHomestay() {
 
     const handleConfirm = async () => {
         try {
-            const newStatus = confirmModal.currentStatus === 1 ? 2 : 1;
+            const newStatus = confirmModal.currentStatus === 1 ? 3 : 1;
             // console.log(confirmModal.homestayId);
             // console.log(confirmModal.commissionRateID);
             await adminAPI.changeHomeStayStatus(confirmModal.homestayId, newStatus);
@@ -356,16 +350,13 @@ export default function AdminHomestay() {
         }
     };
 
-    // Cập nhật hàm lọc
     const filteredHomeStays = homeStays.filter(homeStay => {
-        // Chỉ lấy những homestay đã được phê duyệt (status 1 hoặc 2)
-        if (homeStay.status === 0) return false;
-
+        if (homeStay.status !== 1 && homeStay.status !== 3) return false;
         const matchesSearch = homeStay.name.toLowerCase().includes(actualSearchTerm.toLowerCase()) ||
             homeStay.address.toLowerCase().includes(actualSearchTerm.toLowerCase());
         const matchesStatus = selectedStatus === 'all' ||
             (selectedStatus === 'active' && homeStay.status === 1) ||
-            (selectedStatus === 'inactive' && homeStay.status === 2);
+            (selectedStatus === 'inactive' && homeStay.status === 3);
         return matchesSearch && matchesStatus;
     });
 
