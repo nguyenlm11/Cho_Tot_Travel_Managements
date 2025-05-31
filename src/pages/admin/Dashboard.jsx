@@ -1,28 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
-import { Bar, Line, Pie } from 'react-chartjs-2';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    BarElement,
-    ArcElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler
-} from 'chart.js';
-import { FaMoneyBillWave, FaCalendarCheck, FaUsers, FaHome } from 'react-icons/fa';
+import { Bar, Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+import { FaMoneyBillWave, FaCalendarCheck, FaUsers } from 'react-icons/fa';
 import WeekSelectorModal from '../../components/modals/WeekSelectorModal';
-// import { formatDate } from '../../utils/utils';
 import YearSelectorModal from '../../components/modals/YearSelectorModal';
 import dashboardAPI from '../../services/api/dashboardAPI';
-import { getWeekdaysFromRange } from '../../utils/utils';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -31,6 +17,40 @@ const formatCurrency = (value) => {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     }).format(value);
+};
+
+const getCurrentWeekDates = () => {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const startOfWeek = new Date(now);
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startOfWeek.setDate(now.getDate() - daysToSubtract);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const formatDate = (date) => {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${year}/${month}/${day}`;
+    };
+
+    return {
+        startDate: formatDate(startOfWeek),
+        endDate: formatDate(endOfWeek)
+    };
+};
+
+const getCurrentYearDates = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    return {
+        startDate: `${year}-01-01`,
+        endDate: `${year}-12-31`
+    };
 };
 
 const chartOptions = {
@@ -110,224 +130,68 @@ const chartOptions = {
 };
 
 const Dashboard = () => {
-
-
-    // const weeklyData = useMemo(() => ({
-    //     labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
-    //     datasets: [{
-    //         label: 'Doanh thu (triệu VNĐ)',
-    //         data: [15, 18, 22, 25, 30, 35, 28],
-    //         backgroundColor: 'rgba(54, 162, 235, 0.8)',
-    //         borderColor: 'rgba(54, 162, 235, 1)',
-    //         borderWidth: 2,
-    //         tension: 0.4,
-    //         fill: true
-    //     }]
-    // }), []);
-
-    const [loyalOwnersData, setLoyalOwnersData] = useState({
-        labels: [],
-        datasets: [{
-            label: 'Số homestay sở hữu',
-            data: [],
-            backgroundColor: 'rgba(75, 192, 192, 0.8)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1,
-            borderRadius: 5,
-            barThickness: 60
-        }]
-    })
-
-    useEffect(() => {
-        fetchLoyalOwner();
-    }, [])
-
-    const fetchLoyalOwner = async () => {
-        try {
-            const response = await dashboardAPI.getTopLoyalOwners("5")
-            if (response?.statusCode === 200) {
-                const formatData = {
-                    labels: response?.data?.map(item => item?.ownerName),
-                    datasets: [{
-                        label: 'Số homestay sở hữu',
-                        data: response?.data?.map(item => item?.totalHomeStays),
-                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                        barThickness: 50
-                    }]
-                }
-                console.log(formatData)
-                setLoyalOwnersData(formatData)
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
+    const [isLoading, setIsLoading] = useState({
+        stats: true,
+        weekly: true,
+        monthly: true,
+        loyalOwners: true
+    });
 
     const [statsCards, setStatsCards] = useState([
         {
             title: 'Tổng doanh thu',
-            value: [],
+            value: 0,
             suffix: 'đ',
             icon: <FaMoneyBillWave className="w-6 h-6" />,
             color: 'from-green-400 to-green-600'
         },
         {
             title: 'Tổng đặt phòng',
-            value: [],
+            value: 0,
             icon: <FaCalendarCheck className="w-6 h-6" />,
             color: 'from-blue-400 to-blue-600'
         },
         {
             title: 'Tổng chủ homestay',
-            value: [],
+            value: 0,
             icon: <FaUsers className="w-6 h-6" />,
             color: 'from-purple-400 to-purple-600'
         },
         {
             title: 'Tổng khách hàng',
-            value: [],
-            icon: <FaHome className="w-6 h-6" />,
+            value: 0,
+            icon: <FaUsers className="w-6 h-6" />,
             color: 'from-orange-400 to-orange-600'
         }
-    ])
-    useEffect(() => {
-        fetchDashboardTitle();
-    }, [])
-    const fetchDashboardTitle = async () => {
-        try {
-            const responeBookings = await dashboardAPI.getAllStaticBookings()
-            const responseRevenue = await dashboardAPI.getTotalBookingsAndAmount()
-            const response = await dashboardAPI.getTotalAccount();
-            if (response?.statusCode === 200 && responseRevenue?.statusCode === 200 && responeBookings?.statusCode === 200) {
-                const formatData = [
-                    {
-                        title: 'Tổng doanh thu',
-                        value: responseRevenue?.data?.totalBookingsAmount,
-                        suffix: 'đ',
-                        icon: <FaMoneyBillWave className="w-6 h-6" />,
-                        color: 'from-green-400 to-green-600'
-                    },
-                    {
-                        title: 'Tổng đặt phòng',
-                        value: responeBookings?.data?.bookings,
-                        icon: <FaCalendarCheck className="w-6 h-6" />,
-                        color: 'from-blue-400 to-blue-600'
-                    },
-                    {
-                        title: 'Tổng chủ homestay',
-                        value: response?.data?.ownersAccount,
-                        icon: <FaUsers className="w-6 h-6" />,
-                        color: 'from-purple-400 to-purple-600'
-                    },
-                    {
-                        title: 'Tổng khách hàng',
-                        value: response?.data?.customersAccount,
-                        icon: <FaUsers className="w-6 h-6" />,
-                        color: 'from-orange-400 to-orange-600'
-                    }
-                ]
-                setStatsCards(formatData);
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-    // const statsCards = useMemo(() => [
-    //     {
-    //         title: 'Tổng doanh thu',
-    //         value: 120000000,
-    //         suffix: 'đ',
-    //         icon: <FaMoneyBillWave className="w-6 h-6" />,
-    //         color: 'from-green-400 to-green-600'
-    //     },
-    //     {
-    //         title: 'Tổng đặt phòng',
-    //         value: 1500,
-    //         icon: <FaCalendarCheck className="w-6 h-6" />,
-    //         color: 'from-blue-400 to-blue-600'
-    //     },
-    //     {
-    //         title: 'Tổng khách hàng',
-    //         value: 1500,
-    //         icon: <FaUsers className="w-6 h-6" />,
-    //         color: 'from-purple-400 to-purple-600'
-    //     },
-    //     {
-    //         title: 'Tổng homestay',
-    //         value: 500,
-    //         icon: <FaHome className="w-6 h-6" />,
-    //         color: 'from-orange-400 to-orange-600'
-    //     }
-    // ], []);
-
-
-
-
-
-
+    ]);
 
     const [dashboardForWeek, setDashboardForWeek] = useState({
         labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
         datasets: [{
             label: 'Doanh thu (triệu VNĐ)',
-            data: [],
-            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true
+            data: [0, 0, 0, 0, 0, 0, 0],
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            borderColor: 'rgba(34, 197, 94, 1)',
+            borderWidth: 3,
+            tension: 0,
+            fill: true,
+            pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointHoverBackgroundColor: 'rgba(34, 197, 94, 1)',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 3,
         }]
-    })
-    const [selectedWeekData, setSelectedWeekData] = useState(null);
-    const handleWeekChange = (weekData) => {
-        setSelectedWeekData(weekData);
-        console.log('Week selected:', weekData); // Xử lý dữ liệu tuần (gọi API, v.v.)
-    };
-    useEffect(() => {
-        if (selectedWeekData !== null) {
-            fetchDataByWeek()
-        }
-    }, [selectedWeekData])
+    });
 
-    const fetchDataByWeek = async () => {
-        try {
-            const weekdaysFromRange = getWeekdaysFromRange(selectedWeekData?.startDate, selectedWeekData?.endDate);
-            const response = await dashboardAPI.getTotalBookingsTotalBookingsAmount(selectedWeekData?.startDate, selectedWeekData?.endDate, "day")
-            if (response?.statusCode === 200) {
-                const formatData = {
-                    labels: weekdaysFromRange,
-                    datasets: [{
-                        label: 'Doanh thu (triệu VNĐ)',
-                        data: response?.data?.map(item => item?.totalBookingsAmount),
-                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                }
-                // console.log(formatData)
-                setDashboardForWeek(formatData);
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-
-
-
-    // Giả lập gọi API khi thay đổi năm
     const [monthlyData, setMonthlyData] = useState({
         labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
         datasets: [
             {
                 label: 'Doanh thu (triệu VNĐ)',
-                data: [],
+                data: Array(12).fill(0),
                 backgroundColor: 'rgba(54, 162, 235, 0.8)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1,
@@ -336,7 +200,7 @@ const Dashboard = () => {
             },
             {
                 label: 'Lượt đặt phòng',
-                data: [],
+                data: Array(12).fill(0),
                 backgroundColor: 'rgba(75, 192, 192, 0.8)',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1,
@@ -345,52 +209,291 @@ const Dashboard = () => {
             }
         ]
     });
-    const [selectedMonthData, setSelectedMonthData] = useState(null);
-    const handleMonthChange = (monthData) => {
-        setSelectedMonthData(monthData);
-        // console.log(monthData);
 
-        // console.log('Week selected:', weekData); // Xử lý dữ liệu tuần (gọi API, v.v.)
-    };
-    useEffect(() => {
-        if (selectedMonthData !== null) {
-            fetchDataByYear();
-        }
-    }, [selectedMonthData]);
+    const [loyalOwnersData, setLoyalOwnersData] = useState({
+        labels: [],
+        datasets: [{
+            label: 'Số homestay sở hữu',
+            data: [],
+            backgroundColor: [
+                'rgba(34, 197, 94, 0.8)',
+                'rgba(59, 130, 246, 0.8)',
+                'rgba(168, 85, 247, 0.8)',
+                'rgba(251, 146, 60, 0.8)',
+                'rgba(14, 165, 233, 0.8)',
+            ],
+            borderColor: [
+                'rgba(34, 197, 94, 1)',
+                'rgba(59, 130, 246, 1)',
+                'rgba(168, 85, 247, 1)',
+                'rgba(251, 146, 60, 1)',
+                'rgba(14, 165, 233, 1)',
+            ],
+            borderWidth: 2,
+            borderRadius: 6,
+            barThickness: 50
+        }]
+    });
 
-    const fetchDataByYear = async () => {
+    const [selectedWeekData, setSelectedWeekData] = useState(getCurrentWeekDates());
+    const [selectedMonthData, setSelectedMonthData] = useState(getCurrentYearDates());
+
+    const fetchStatsData = useCallback(async () => {
         try {
-            const respone = await dashboardAPI.getTotalBookingsTotalBookingsAmount(selectedMonthData?.startDate, selectedMonthData?.endDate, "month")
-            // Giả lập dữ liệu theo năm
-            const formatData = {
-                labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
-                datasets: [
+            setIsLoading(prev => ({ ...prev, stats: true }));
+
+            const [bookingsResponse, revenueResponse, accountResponse] = await Promise.all([
+                dashboardAPI.getAllStaticBookings(),
+                dashboardAPI.getTotalBookingsAndAmount(),
+                dashboardAPI.getTotalAccount()
+            ]);
+
+            if (bookingsResponse?.statusCode === 200 &&
+                revenueResponse?.statusCode === 200 &&
+                accountResponse?.statusCode === 200) {
+
+                const newStatsCards = [
                     {
-                        label: 'Doanh thu (triệu VNĐ)',
-                        data: respone?.data?.map(item => item?.totalBookingsAmount),
-                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1,
-                        borderRadius: 6,
-                        yAxisID: 'y'
+                        title: 'Tổng doanh thu',
+                        value: revenueResponse.data?.totalBookingsAmount || 0,
+                        suffix: 'đ',
+                        icon: <FaMoneyBillWave className="w-6 h-6" />,
+                        color: 'from-green-400 to-green-600'
                     },
                     {
-                        label: 'Lượt đặt phòng',
-                        data: respone?.data?.map(item => item?.totalBookings),
-                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        borderRadius: 6,
-                        yAxisID: 'y1'
+                        title: 'Tổng đặt phòng',
+                        value: bookingsResponse.data?.bookings || 0,
+                        icon: <FaCalendarCheck className="w-6 h-6" />,
+                        color: 'from-blue-400 to-blue-600'
+                    },
+                    {
+                        title: 'Tổng chủ homestay',
+                        value: accountResponse.data?.ownersAccount || 0,
+                        icon: <FaUsers className="w-6 h-6" />,
+                        color: 'from-purple-400 to-purple-600'
+                    },
+                    {
+                        title: 'Tổng khách hàng',
+                        value: accountResponse.data?.customersAccount || 0,
+                        icon: <FaUsers className="w-6 h-6" />,
+                        color: 'from-orange-400 to-orange-600'
                     }
-                ]
-            };
-            setMonthlyData(formatData);
+                ];
+                setStatsCards(newStatsCards);
+            }
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching stats data:', error);
+        } finally {
+            setIsLoading(prev => ({ ...prev, stats: false }));
         }
-    };
+    }, []);
 
+    const fetchWeeklyData = useCallback(async (weekData) => {
+        if (!weekData?.startDate || !weekData?.endDate) return;
+
+        try {
+            setIsLoading(prev => ({ ...prev, weekly: true }));
+
+            const startDate = new Date(weekData.startDate.replace(/\//g, '-'));
+            const endDate = new Date(weekData.endDate.replace(/\//g, '-'));
+
+            const dateToWeekIndexMap = {};
+            const currentDate = new Date(startDate);
+
+            while (currentDate <= endDate) {
+                const dayOfWeek = currentDate.getDay();
+                const weekIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const formatDateStr = `${currentDate.getFullYear()}/${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}`;
+
+                dateToWeekIndexMap[dateStr] = weekIndex;
+                dateToWeekIndexMap[formatDateStr] = weekIndex;
+
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            const response = await dashboardAPI.getTotalBookingsTotalBookingsAmount(
+                weekData.startDate,
+                weekData.endDate,
+                "day"
+            );
+
+            if (response?.statusCode === 200) {
+                const weeklyData = Array(7).fill(0);
+
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach((item, index) => {
+                        if (item?.totalBookingsAmount !== undefined) {
+                            let weekIndex = -1;
+
+                            if (item.date && dateToWeekIndexMap[item.date] !== undefined) {
+                                weekIndex = dateToWeekIndexMap[item.date];
+                            } else {
+                                const calculatedDate = new Date(startDate);
+                                calculatedDate.setDate(startDate.getDate() + index);
+
+                                if (calculatedDate <= endDate) {
+                                    const calcDateStr = calculatedDate.toISOString().split('T')[0];
+                                    if (dateToWeekIndexMap[calcDateStr] !== undefined) {
+                                        weekIndex = dateToWeekIndexMap[calcDateStr];
+                                    }
+                                }
+                            }
+
+                            if (weekIndex >= 0 && weekIndex < 7) {
+                                weeklyData[weekIndex] = item.totalBookingsAmount;
+                            }
+                        }
+                    });
+                }
+
+                const formatData = {
+                    labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+                    datasets: [{
+                        label: 'Doanh thu (triệu VNĐ)',
+                        data: weeklyData,
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderColor: 'rgba(34, 197, 94, 1)',
+                        borderWidth: 3,
+                        tension: 0,
+                        fill: true,
+                        pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: 'rgba(34, 197, 94, 1)',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 3,
+                    }]
+                };
+                setDashboardForWeek(formatData);
+            }
+        } catch (error) {
+            console.error('Error fetching weekly data:', error);
+        } finally {
+            setIsLoading(prev => ({ ...prev, weekly: false }));
+        }
+    }, []);
+
+    const fetchMonthlyData = useCallback(async (monthData) => {
+        if (!monthData?.startDate || !monthData?.endDate) return;
+
+        try {
+            setIsLoading(prev => ({ ...prev, monthly: true }));
+
+            const response = await dashboardAPI.getTotalBookingsTotalBookingsAmount(
+                monthData.startDate,
+                monthData.endDate,
+                "month"
+            );
+
+            if (response?.statusCode === 200) {
+                const formatData = {
+                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                    datasets: [
+                        {
+                            label: 'Doanh thu (triệu VNĐ)',
+                            data: response.data?.map(item => item?.totalBookingsAmount || 0) || Array(12).fill(0),
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Lượt đặt phòng',
+                            data: response.data?.map(item => item?.totalBookings || 0) || Array(12).fill(0),
+                            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                };
+                setMonthlyData(formatData);
+            }
+        } catch (error) {
+            console.error('Error fetching monthly data:', error);
+        } finally {
+            setIsLoading(prev => ({ ...prev, monthly: false }));
+        }
+    }, []);
+
+    const fetchLoyalOwnersData = useCallback(async () => {
+        try {
+            setIsLoading(prev => ({ ...prev, loyalOwners: true }));
+
+            const response = await dashboardAPI.getTopLoyalOwners("5");
+
+            if (response?.statusCode === 200) {
+                const formatData = {
+                    labels: response.data?.map(item => item?.ownerName) || [],
+                    datasets: [{
+                        label: 'Số homestay sở hữu',
+                        data: response.data?.map(item => item?.totalHomeStays) || [],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(251, 146, 60, 0.8)',
+                            'rgba(14, 165, 233, 0.8)',
+                        ],
+                        borderColor: [
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(168, 85, 247, 1)',
+                            'rgba(251, 146, 60, 1)',
+                            'rgba(14, 165, 233, 1)',
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        barThickness: 50
+                    }]
+                };
+                setLoyalOwnersData(formatData);
+            }
+        } catch (error) {
+            console.error('Error fetching loyal owners data:', error);
+        } finally {
+            setIsLoading(prev => ({ ...prev, loyalOwners: false }));
+        }
+    }, []);
+
+    const handleWeekChange = useCallback((weekData) => {
+        setSelectedWeekData(weekData);
+    }, []);
+
+    const handleMonthChange = useCallback((monthData) => {
+        setSelectedMonthData(monthData);
+    }, []);
+
+    useEffect(() => {
+        Promise.all([
+            fetchStatsData(),
+            fetchLoyalOwnersData()
+        ]);
+    }, [fetchStatsData, fetchLoyalOwnersData]);
+
+    useEffect(() => {
+        if (selectedWeekData) {
+            fetchWeeklyData(selectedWeekData);
+        }
+    }, [selectedWeekData, fetchWeeklyData]);
+
+    useEffect(() => {
+        if (selectedMonthData) {
+            fetchMonthlyData(selectedMonthData);
+        }
+    }, [selectedMonthData, fetchMonthlyData]);
+
+    const LoadingChart = () => (
+        <div className="h-full flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        </div>
+    );
 
     return (
         <motion.div
@@ -421,14 +524,18 @@ const Dashboard = () => {
                                         {stat.title}
                                     </p>
                                     <h3 className="text-2xl font-bold text-white mt-2">
-                                        <CountUp
-                                            end={stat.value}
-                                            duration={2.5}
-                                            separator="."
-                                            suffix={stat.suffix || ''}
-                                            decimals={0}
-                                            formatter={(value) => stat.suffix === 'đ' ? formatCurrency(value) : value}
-                                        />
+                                        {isLoading.stats ? (
+                                            <div className="animate-pulse bg-white/20 h-8 w-24 rounded"></div>
+                                        ) : (
+                                            <CountUp
+                                                end={stat.value}
+                                                duration={2.5}
+                                                separator="."
+                                                suffix={stat.suffix || ''}
+                                                decimals={0}
+                                                formatter={(value) => stat.suffix === 'đ' ? formatCurrency(value) : value}
+                                            />
+                                        )}
                                     </h3>
                                 </div>
                                 <div className="bg-white/20 p-3 rounded-lg">
@@ -450,31 +557,77 @@ const Dashboard = () => {
                             Doanh thu tuần này
                         </h2>
                         <div className="flex gap-2">
-                            <WeekSelectorModal
-                                // defaultYear={2025}
-                                // defaultMonth={5}
-                                // years={[2023, 2024, 2025, 2026]} // Có thể tùy chỉnh danh sách năm
-                                onWeekChange={handleWeekChange}
-                            />
-
+                            <WeekSelectorModal onWeekChange={handleWeekChange} />
                         </div>
                     </div>
 
                     <div className="h-[300px]">
-                        <Line
-                            data={dashboardForWeek}
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false } },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: { callback: (value) => formatCurrency(value) }
+                        {isLoading.weekly ? (
+                            <LoadingChart />
+                        ) : (
+                            <Line
+                                data={dashboardForWeek}
+                                options={{
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: {
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            titleColor: '#374151',
+                                            titleFont: { size: 14, weight: 'bold' },
+                                            bodyColor: '#6B7280',
+                                            bodyFont: { size: 13 },
+                                            padding: 12,
+                                            borderColor: 'rgba(34, 197, 94, 1)',
+                                            borderWidth: 2,
+                                            cornerRadius: 8,
+                                            displayColors: false,
+                                            callbacks: {
+                                                label: (context) => {
+                                                    return `Doanh thu: ${formatCurrency(context.parsed.y)}`;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            grid: { display: false },
+                                            border: { display: false },
+                                            ticks: {
+                                                font: { size: 12, weight: '600' },
+                                                color: '#6B7280'
+                                            }
+                                        },
+                                        y: {
+                                            beginAtZero: true,
+                                            grid: {
+                                                drawBorder: false
+                                            },
+                                            border: { display: false },
+                                            ticks: {
+                                                callback: (value) => formatCurrency(value),
+                                                font: { size: 11 },
+                                                color: '#9CA3AF'
+                                            }
+                                        }
+                                    },
+                                    interaction: {
+                                        intersect: false,
+                                        mode: 'index'
+                                    },
+                                    animation: {
+                                        duration: 800,
+                                        easing: 'easeOutQuart'
+                                    },
+                                    elements: {
+                                        line: {
+                                            tension: 0
+                                        }
                                     }
-                                }
-                            }}
-                        />
+                                }}
+                            />
+                        )}
                     </div>
                 </motion.div>
 
@@ -489,18 +642,16 @@ const Dashboard = () => {
                             Thống kê doanh thu và lượt đặt phòng theo tháng
                         </h2>
                         <div className="flex gap-2">
-                            <YearSelectorModal
-                                // defaultYear={2025}
-                                // defaultMonth={5}
-                                // years={[2023, 2024, 2025, 2026]} // Có thể tùy chỉnh danh sách năm
-                                onWeekChange={handleMonthChange}
-                            />
-
+                            <YearSelectorModal onWeekChange={handleMonthChange} />
                         </div>
                     </div>
 
                     <div className="h-[400px]">
-                        <Bar data={monthlyData} options={chartOptions} />
+                        {isLoading.monthly ? (
+                            <LoadingChart />
+                        ) : (
+                            <Bar data={monthlyData} options={chartOptions} />
+                        )}
                     </div>
                 </motion.div>
 
@@ -514,15 +665,63 @@ const Dashboard = () => {
                         Top chủ sở hữu homestay
                     </h2>
                     <div className="h-[300px]">
-                        <Bar
-                            data={loyalOwnersData}
-                            options={{
-                                indexAxis: 'y',
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false } }
-                            }}
-                        />
+                        {isLoading.loyalOwners ? (
+                            <LoadingChart />
+                        ) : (
+                            <Bar
+                                data={loyalOwnersData}
+                                options={{
+                                    indexAxis: 'y',
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: {
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            titleColor: '#374151',
+                                            titleFont: { size: 14, weight: 'bold' },
+                                            bodyColor: '#6B7280',
+                                            bodyFont: { size: 13 },
+                                            padding: 12,
+                                            borderColor: 'rgba(229, 231, 235, 1)',
+                                            borderWidth: 1,
+                                            cornerRadius: 8,
+                                            displayColors: false,
+                                            callbacks: {
+                                                label: (context) => {
+                                                    return `Số homestay: ${context.parsed.x} căn`;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            beginAtZero: true,
+                                            grid: {
+                                                drawBorder: false
+                                            },
+                                            border: { display: false },
+                                            ticks: {
+                                                font: { size: 11 },
+                                                color: '#9CA3AF'
+                                            }
+                                        },
+                                        y: {
+                                            grid: { display: false },
+                                            border: { display: false },
+                                            ticks: {
+                                                font: { size: 12, weight: '600' },
+                                                color: '#6B7280'
+                                            }
+                                        }
+                                    },
+                                    animation: {
+                                        duration: 1000,
+                                        easing: 'easeOutQuart'
+                                    }
+                                }}
+                            />
+                        )}
                     </div>
                 </motion.div>
             </div>

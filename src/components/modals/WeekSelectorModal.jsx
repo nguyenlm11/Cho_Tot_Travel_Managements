@@ -23,33 +23,44 @@ const WeekSelectorModal = ({
         return `${year}/${month}/${day}`;
     };
 
-    // Hàm tính các tuần trong tháng
+    // Hàm tính các tuần trong tháng (chỉ trong phạm vi tháng được chọn)
     const getWeeksInMonth = (year, month) => {
         const weeks = [];
         const firstDay = new Date(year, month - 1, 1);
         const lastDay = new Date(year, month, 0);
-        let currentDay = firstDay;
-
+        
+        let currentDay = new Date(firstDay);
         let weekNumber = 1;
+        
         while (currentDay <= lastDay) {
             const weekStart = new Date(currentDay);
             const weekEnd = new Date(currentDay);
-            // Tính ngày kết thúc của tuần, không vượt quá ngày cuối tháng
+            
+            // Tính ngày kết thúc của tuần (tối đa 6 ngày sau ngày bắt đầu)
             weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            // Đảm bảo không vượt quá ngày cuối tháng
             if (weekEnd > lastDay) {
                 weekEnd.setTime(lastDay.getTime());
             }
-
+            
             weeks.push({
                 weekNumber,
                 start: formatDate(weekStart),
                 end: formatDate(weekEnd),
             });
-
+            
+            // Chuyển sang tuần tiếp theo (7 ngày sau)
             currentDay.setDate(currentDay.getDate() + 7);
+            
+            // Nếu ngày bắt đầu tuần tiếp theo vượt quá tháng thì dừng
+            if (currentDay > lastDay) {
+                break;
+            }
+            
             weekNumber++;
         }
-
+        
         return weeks;
     };
 
