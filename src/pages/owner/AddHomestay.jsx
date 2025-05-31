@@ -254,16 +254,28 @@ const AddHomestay = () => {
       newErrors.Description = 'Mô tả là bắt buộc';
     }
     if (rentalData.numberBedRoom <= 0) {
-      newErrors.numberBedRoom = 'Số phòng ngủ không thể bé hơn 0';
+      newErrors.numberBedRoom = 'Số phòng ngủ không thể bé hơn hoặc bằng 0';
+    }
+    if (rentalData.numberBedRoom > 50) {
+      newErrors.numberBedRoom = 'Số phòng ngủ tối đa là 50';
     }
     if (rentalData.numberBathRoom <= 0) {
-      newErrors.numberBathRoom = 'Số phòng tắm không thể bé hơn 0';
+      newErrors.numberBathRoom = 'Số phòng tắm không thể bé hơn hoặc bằng 0';
+    }
+    if (rentalData.numberBathRoom > 20) {
+      newErrors.numberBathRoom = 'Số phòng tắm tối đa là 20';
     }
     if (rentalData.numberKitchen <= 0) {
-      newErrors.numberKitchen = 'Số bếp không thể bé hơn 0';
+      newErrors.numberKitchen = 'Số bếp không thể bé hơn hoặc bằng 0';
+    }
+    if (rentalData.numberKitchen > 5) {
+      newErrors.numberKitchen = 'Nhà bếp tối đa là 5';
     }
     if (rentalData.numberWifi <= 0) {
-      newErrors.numberWifi = 'Số Wifi không thể bé hơn 0';
+      newErrors.numberWifi = 'Số Wifi không thể bé hơn hoặc bằng 0';
+    }
+    if (rentalData.numberWifi > 20) {
+      newErrors.numberWifi = 'Số Wifi tối đa là 20';
     }
     if (rentalData.MaxAdults < 1) {
       newErrors.MaxAdults = 'Số người lớn tối thiểu là 1';
@@ -322,6 +334,11 @@ const AddHomestay = () => {
       if (roomType.maxPeople < roomType.maxAdults) {
         newErrors[`maxPeople_${index}`] = 'Số người tối đa phải lớn hơn số người lớn';
       }
+      roomType.pricingRoom.forEach((entry, index) => {
+        if (entry.rentPrice <= 0) {
+          newErrors[`rentPrice_${index}`] = 'Giá thuê phải lớn hơn 0';
+        }
+      });
     });
     rentalData.pricingEntries.forEach((entry, index) => {
       if (entry.rentPrice <= 0) {
@@ -596,7 +613,7 @@ const AddHomestay = () => {
         status: true,
         maxAdults: 2,
         maxChildren: 0,
-        // maxPeople: 2,
+        maxPeople: 2,
         pricingRoom: [{
           rentPrice: 0,
           startDate: "",

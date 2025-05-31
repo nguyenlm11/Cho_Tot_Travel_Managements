@@ -60,7 +60,7 @@ const AddHomestayRental = () => {
             newErrors.Description = 'Mô tả là bắt buộc';
         }
         if (formData.numberBedRoom < 0) {
-            newErrors.numberBedRoom = 'Số giường không thể là số âm';
+            newErrors.numberBedRoom = 'Số phòng không thể là số âm';
         }
         if (formData.numberBathRoom < 0) {
             newErrors.numberBathRoom = 'Số phòng tắm không thể là số âm';
@@ -471,7 +471,7 @@ const AddHomestayRental = () => {
                                                         value={formData.numberBedRoom}
                                                         onChange={handleInputChange}
                                                         min="0"
-                                                        max="20"
+                                                        max="100"
                                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary/50"
                                                     />
                                                     {errors.numberBedRoom && (
