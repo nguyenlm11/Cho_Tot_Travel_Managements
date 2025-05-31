@@ -263,7 +263,7 @@ const CustomerList = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Danh sách khách hàng của {homestayName}
+                            Danh sách khách hàng của {customers[0]?.homestayName}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Quản lý tất cả các khách hàng của bạn tại đây
@@ -357,24 +357,24 @@ const CustomerList = () => {
                                         exit={{ opacity: 0, y: -20 }}
                                         className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
                                             <div className="flex items-center gap-3">
                                                 <div className="font-medium text-gray-900 dark:text-white">
                                                     {customer.name}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-gray-600 dark:text-gray-400">{customer.email}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-gray-600 dark:text-gray-400">{customer.phone}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 text-center">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-gray-600 dark:text-gray-400 truncate max-w-xs">{customer.address}</span>
                                             </div>

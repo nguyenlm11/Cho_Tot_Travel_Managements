@@ -431,7 +431,7 @@ const ReportHomestay = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Báo cáo giao dịch của {homestayName}
+                            Báo cáo giao dịch của {transactions[0]?.homestayName}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Xem và quản lý tất cả các giao dịch liên quan đến Homestay
