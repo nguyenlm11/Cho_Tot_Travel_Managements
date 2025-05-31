@@ -201,6 +201,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatu
 
 // HomestayCard Component
 const HomestayCard = ({ homestay, index, onEdit, setShowDeleteModal }) => {
+  console.log(homestay)
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -293,10 +294,17 @@ const HomestayCard = ({ homestay, index, onEdit, setShowDeleteModal }) => {
                 <FaBed className="text-primary" />
                 <span>{homestay.rooms} phòng</span>
               </div> */}
-              <div className="flex items-center gap-1 text-yellow-500">
-                <FaStar />
-                <span>{homestay.rating}</span>
-              </div>
+              {homestay.rating !== null ? (
+                <div className="flex items-center gap-1 text-yellow-500">
+                  <FaStar />
+                  <span>{homestay.rating}/5</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-yellow-500">
+                  Chưa có đánh giá
+                </div>
+              )}
+
             </div>
             <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
               <FaRegClock className="text-primary" />
@@ -365,7 +373,7 @@ const HomestayList = () => {
           address: homestay.address,
           status: getStatusText(homestay.status),
           rooms: homestay.numberOfRoom || 0,
-          rating: 0,
+          rating: homestay.sumRate,
           image: homestay.imageHomeStays?.[0]?.image,
           lastUpdated: homestay.createAt,
           description: homestay.description || '',

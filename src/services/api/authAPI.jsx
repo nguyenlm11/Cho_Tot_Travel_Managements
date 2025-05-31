@@ -58,6 +58,9 @@ const authService = {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('userInfo');
         localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('homestayName');
+        localStorage.removeItem('currentBookingInfo');
+        localStorage.removeItem('userHomestays');
     },
 
     register: async (formData) => {
