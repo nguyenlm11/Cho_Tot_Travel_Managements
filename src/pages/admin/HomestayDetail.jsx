@@ -56,7 +56,8 @@ const HomestayDetail = () => {
         switch (status) {
             case 0: return 'Chờ phê duyệt';
             case 1: return 'Đang hoạt động';
-            case 2: return 'Đã dừng hoạt động';
+            case 2: return 'Đã bị từ chối';
+            case 3: return 'Đã dừng hoạt động';
             default: return 'Không xác định';
         }
     };
@@ -65,7 +66,8 @@ const HomestayDetail = () => {
         switch (status) {
             case 0: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
             case 1: return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-            case 2: return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+            case 2: return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
+            case 3: return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
             default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
         }
     };

@@ -61,15 +61,14 @@ const statusConfig = {
     text: 'Không hoạt động'
   },
   cancel: {
-    color: 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100',
-    text: 'Đã hủy'
+    color: 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100',
+    text: 'Đã bị từ chối'
   }
 };
 
 // FilterBar Component (Giữ nguyên)
 const FilterBar = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, handleSearch, setActualSearchTerm, actualSearchTerm }) => {
   const searchInputRef = useRef(null);
-
   const statusOptions = [
     { value: 'all', label: 'Tất cả trạng thái', icon: <FaFilter className="text-gray-400" /> },
     { value: 'active', label: 'Hoạt động', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
@@ -339,9 +338,9 @@ const HomestayList = () => {
       case 1:
         return 'active';
       case 2:
-        return 'inactive';
-      case 3:
         return 'cancel';
+      case 3:
+        return 'inactive';
       default:
         return 'pending';
     }
@@ -445,9 +444,9 @@ const HomestayList = () => {
       icon: <FaHome className="w-6 h-6" />
     },
     {
-      label: 'Đã hủy',
+      label: 'Đã bị từ chối',
       value: homestays.filter(h => h.status === 'cancel').length,
-      color: 'bg-gray-500',
+      color: 'bg-purple-500',
       icon: <FaHome className="w-6 h-6" />
     }
   ];

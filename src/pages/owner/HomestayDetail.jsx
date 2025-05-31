@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaMapMarkerAlt, FaMoneyBillWave, FaUsers, FaStar, FaHome, FaCheck, FaTimes, FaClock, FaImage, FaServicestack, FaPercent, FaUndoAlt, FaExclamationTriangle, FaEdit, FaCalendarAlt, FaChartLine, FaTag, FaGlobe } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaMoneyBillWave, FaUsers, FaStar, FaHome, FaCheck, FaTimes, FaClock, FaImage, FaServicestack, FaPercent, FaUndoAlt, FaExclamationTriangle, FaEdit, FaCalendarAlt, FaChartLine, FaTag, FaGlobe } from 'react-icons/fa';
 import { IoPricetag } from 'react-icons/io5';
 import { toast, Toaster } from 'react-hot-toast';
 import homestayAPI from '../../services/api/homestayAPI';
+import adminAPI from '../../services/api/adminAPI';
 import { EditHomestayModal } from '../../components/modals/EditHomestayModal';
 import { formatDate } from '../../utils/utils';
 import AddpolicyModal from '../../components/modals/AddPolicyModal';
@@ -21,6 +22,7 @@ const HomestayDetail = () => {
     const [isAddPolicyModalOpen, setIsAddPolicyModalOpen] = useState(false);
     const [isEditPolicyModalOpen, setIsEditPolicyModalOpen] = useState(false);
     const [isAcceptCommissionRateModalOpen, setIsAcceptCommissionRateModalOpen] = useState(false);
+    const [isReapprovalConfirmModalOpen, setIsReapprovalConfirmModalOpen] = useState(false);
     const user = JSON.parse(localStorage.getItem('userInfo'));
 
     useEffect(() => {
@@ -55,16 +57,20 @@ const HomestayDetail = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 0: return 'Không hoạt động';
+            case 0: return 'Chờ phê duyệt';
             case 1: return 'Đang hoạt động';
+            case 2: return 'Đã bị từ chối';
+            case 3: return 'Đã dừng hoạt động';
             default: return 'Không xác định';
         }
     };
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 0: return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+            case 0: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
             case 1: return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
+            case 2: return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+            case 3: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
             default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
         }
     };
@@ -77,6 +83,27 @@ const HomestayDetail = () => {
     const closeEditModal = () => {
         setIsEditModalOpen(false);
         setEditingHomestay(null);
+    };
+
+    const handleApproveHomestay = async (homeStayID) => {
+        setIsReapprovalConfirmModalOpen(true);
+    };
+
+    const confirmReapproval = async () => {
+        try {
+            const response = await adminAPI.changeHomeStayStatus(homestay.homeStayID, 0);
+            if (response?.status === 200 || response?.data) {
+                toast.success('Đã gửi yêu cầu phê duyệt thành công. Homestay của bạn đã chuyển về trạng thái chờ phê duyệt.');
+                await fetchHomestayDetail();
+            } else {
+                toast.error('Không thể gửi yêu cầu phê duyệt. Vui lòng thử lại sau.');
+            }
+        } catch (error) {
+            console.error('Error requesting approval:', error);
+            toast.error(`Có lỗi xảy ra khi gửi yêu cầu phê duyệt: ${error.response?.data?.message || error.message}`);
+        } finally {
+            setIsReapprovalConfirmModalOpen(false);
+        }
     };
 
     if (loading) {
@@ -111,10 +138,10 @@ const HomestayDetail = () => {
             <Toaster />
             <div className="mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div>
+                    <div>
                         <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-2">
                             {homestay.name}
-                            </h1>
+                        </h1>
                         <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                             <FaMapMarkerAlt className="w-4 h-4" />
                             <span>{homestay.address}</span>
@@ -124,19 +151,58 @@ const HomestayDetail = () => {
                         <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(homestay.status)}`}>
                             {getStatusText(homestay.status)}
                         </span>
-                            {user?.role === "Owner" && (
+                        {homestay.status === 2 && (
+                            <button
+                                onClick={() => handleApproveHomestay(homestay.homeStayID)}
+                                className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
+                                text-white font-semibold rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl 
+                                transform hover:scale-105 transition-all duration-200 border border-green-400"
+                            >
+                                <FaUndoAlt className="w-4 h-4" />
+                                Gửi yêu cầu phê duyệt lại
+                            </button>
+                        )}
+                        {user?.role === "Owner" && (
                             <button
                                 onClick={() => openEditModal(homestay)}
-                                    className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2
+                                className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2
                                     hover:bg-primary-dark transition-colors"
-                                >
-                                    <FaEdit />
-                                    Chỉnh sửa
+                            >
+                                <FaEdit />
+                                Chỉnh sửa
                             </button>
                         )}
                     </div>
                 </div>
             </div>
+
+            {homestay.status === 2 && (
+                <div className="mb-6">
+                    <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center flex-shrink-0">
+                                <FaExclamationTriangle className="w-5 h-5 text-red-600 dark:text-red-300" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+                                    Homestay đã bị từ chối
+                                </h3>
+                                <p className="text-red-700 dark:text-red-300 mb-4 leading-relaxed">
+                                    Homestay của bạn đã bị từ chối phê duyệt. Bạn có thể gửi yêu cầu phê duyệt lại sau khi đã kiểm tra và hoàn thiện thông tin homestay.
+                                </p>
+                                <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 border border-red-200 dark:border-red-700">
+                                    <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Các bước tiếp theo:</h4>
+                                    <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
+                                        <li>• Kiểm tra và cập nhật thông tin homestay</li>
+                                        <li>• Đảm bảo hình ảnh và mô tả chất lượng</li>
+                                        <li>• Nhấn nút "Gửi yêu cầu phê duyệt lại" để gửi lại cho admin</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="mb-6">
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -229,7 +295,7 @@ const HomestayDetail = () => {
                             <h3 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                                 <FaHome className="w-5 h-5" />
                                 Thông tin cơ bản
-                                    </h3>
+                            </h3>
                         </div>
                         <div className="p-6 space-y-6">
                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4">
@@ -322,7 +388,7 @@ const HomestayDetail = () => {
                                 </div>
                             </div>
                         </div>
-                </div>
+                    </div>
 
                     {homestay.cultureExperiences && homestay.cultureExperiences.length > 0 && (
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
@@ -358,9 +424,9 @@ const HomestayDetail = () => {
                                         </div>
                                     ))}
                                 </div>
-                                            </div>
-                                        </div>
-                                    )}
+                            </div>
+                        </div>
+                    )}
 
                     {homestay.services && homestay.services.length > 0 && (
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
@@ -393,7 +459,7 @@ const HomestayDetail = () => {
                                                     }`}
                                                 >
                                                     {service.status ? 'Hoạt động' : 'Không hoạt động'}
-                                    </span>
+                                                </span>
                                             </div>
                                             <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
                                                 {service.description}
@@ -436,7 +502,7 @@ const HomestayDetail = () => {
                                                     <div>
                                                         <span className="font-semibold text-gray-800 dark:text-white text-base">
                                                             {rating.username}
-                                    </span>
+                                                        </span>
                                                         <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(rating.createdAt)}</p>
                                                     </div>
                                                 </div>
@@ -478,7 +544,7 @@ const HomestayDetail = () => {
                             </div>
                         </div>
                     )}
-                            </div>
+                </div>
 
                 <div className="space-y-6">
                     {homestay.commissionRate && (
@@ -503,9 +569,9 @@ const HomestayDetail = () => {
                                             {homestay.commissionRate.platformShare * 100}%
                                         </p>
                                     </div>
-                    </div>
+                                </div>
 
-                            <div className="space-y-3">
+                                <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-600 dark:text-gray-400">Trạng thái admin:</span>
                                         <span className={`flex items-center gap-1 ${homestay.commissionRate.isAccepted
@@ -534,12 +600,12 @@ const HomestayDetail = () => {
                                 </div>
 
                                 {user?.role === "Owner" && !(homestay.commissionRate.isAccepted && homestay.commissionRate.ownerAccepted) && (
-                                <button
+                                    <button
                                         onClick={() => setIsAcceptCommissionRateModalOpen(true)}
                                         className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                                     >
                                         Xác nhận tỷ lệ hoa hồng
-                                </button>
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -569,12 +635,12 @@ const HomestayDetail = () => {
                                 </div>
 
                                 {user?.role === "Owner" && (
-                                <button
+                                    <button
                                         onClick={() => setIsEditPolicyModalOpen(true)}
                                         className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                                     >
                                         Cập nhật chính sách
-                                </button>
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -685,6 +751,53 @@ const HomestayDetail = () => {
                     homeStayID={homestay?.homeStayID}
                     fetchHomestays={fetchHomestayDetail}
                 />
+            )}
+
+            {isReapprovalConfirmModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-96 shadow-xl border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                <FaUndoAlt className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+                                    Xác nhận gửi yêu cầu
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                    Yêu cầu phê duyệt lại homestay
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                Bạn có chắc chắn muốn gửi yêu cầu phê duyệt lại cho homestay này?
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                Homestay sẽ chuyển về trạng thái "Chờ phê duyệt" và admin sẽ xem xét lại.
+                            </p>
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsReapprovalConfirmModalOpen(false)}
+                                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 
+                                dark:hover:bg-gray-700 rounded-lg transition-colors font-medium"
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button
+                                onClick={confirmReapproval}
+                                className="px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 
+                                hover:from-green-600 hover:to-green-700 text-white font-semibold 
+                                rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                            >
+                                Xác nhận gửi
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaSearch, FaUserEdit, FaTrashAlt, FaCheck, FaTimes, FaUserPlus, FaUser, FaSort, FaArrowDown, FaArrowUp, FaUserCheck, FaUserClock, FaPlus, FaEdit, FaEye } from 'react-icons/fa';
+import { FaSearch, FaCheck, FaTimes, FaUser, FaUserCheck, FaUserClock, FaPlus, FaEdit, FaEye } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { toast, Toaster } from 'react-hot-toast';
 import adminAPI from '../../services/api/adminAPI';
@@ -12,7 +12,6 @@ import ReactDOM from 'react-dom';
 
 const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, setActualSearchTerm }) => {
     const searchInputRef = useRef(null);
-
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
@@ -152,33 +151,57 @@ function ActionDropdown({ homeStay, onApprove, onReject, onAddCommission, onEdit
                     <FaEye className="w-4 h-4 text-green-500" />
                     Xem chi tiết
                 </button>
-                {(homeStay?.commissionRate?.isAccepted == true && homeStay?.commissionRate?.ownerAccepted == true) ? (
+
+                {/* Chỉ hiển thị các action khác nếu homestay chưa bị từ chối (status !== 2) */}
+                {homeStay?.status !== 2 && (
                     <>
-                        <button
-                            onClick={() => { console.log('onApprove', homeStay?.homeStayID, homeStay?.commissionRateID); onApprove(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
-                        >
-                            <FaCheck className="w-4 h-4 text-green-500" />
-                            Phê duyệt
-                        </button>
-                        <button
-                            onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
-                        >
-                            <FaTimes className="w-4 h-4 text-red-500" />
-                            Từ chối
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        {((homeStay?.commissionRate?.hostShare === 0 && homeStay?.commissionRate?.platformShare === 0) || (homeStay?.commissionRate == null)) && (
+                        {(homeStay?.commissionRate?.isAccepted == true && homeStay?.commissionRate?.ownerAccepted == true) ? (
                             <>
                                 <button
-                                    onClick={() => { console.log('onAddCommission', homeStay?.homeStayID); onAddCommission(homeStay?.homeStayID); closeDropdown(); }}
+                                    onClick={() => { console.log('onApprove', homeStay?.homeStayID, homeStay?.commissionRateID); onApprove(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
                                     className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
                                 >
-                                    <FaPlus className="w-4 h-4 text-green-500" />
-                                    Thêm tỉ lệ hoa hồng
+                                    <FaCheck className="w-4 h-4 text-green-500" />
+                                    Phê duyệt
+                                </button>
+                                <button
+                                    onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                                >
+                                    <FaTimes className="w-4 h-4 text-red-500" />
+                                    Từ chối
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                {((homeStay?.commissionRate?.hostShare === 0 && homeStay?.commissionRate?.platformShare === 0) || (homeStay?.commissionRate == null)) && (
+                                    <>
+                                        <button
+                                            onClick={() => { console.log('onAddCommission', homeStay?.homeStayID); onAddCommission(homeStay?.homeStayID); closeDropdown(); }}
+                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                                        >
+                                            <FaPlus className="w-4 h-4 text-green-500" />
+                                            Thêm tỉ lệ hoa hồng
+                                        </button>
+                                        <button
+                                            onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
+                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                                        >
+                                            <FaTimes className="w-4 h-4 text-red-500" />
+                                            Từ chối
+                                        </button>
+                                    </>
+                                )}
+                            </>
+                        )}
+                        {((homeStay?.commissionRate?.ownerAccepted == null || homeStay?.commissionRate?.ownerAccepted == false) && (homeStay?.commissionRate?.isAccepted == true || homeStay?.commissionRate?.isAccepted == false)) && (
+                            <>
+                                <button
+                                    onClick={() => { console.log('onEditCommission', homeStay?.homeStayID); onEditCommission(homeStay?.homeStayID); closeDropdown(); }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
+                                >
+                                    <FaEdit className="w-4 h-4 text-green-500" />
+                                    Cập nhật tỉ lệ
                                 </button>
                                 <button
                                     onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
@@ -189,24 +212,6 @@ function ActionDropdown({ homeStay, onApprove, onReject, onAddCommission, onEdit
                                 </button>
                             </>
                         )}
-                    </>
-                )}
-                {((homeStay?.commissionRate?.ownerAccepted == null || homeStay?.commissionRate?.ownerAccepted == false) && (homeStay?.commissionRate?.isAccepted == true || homeStay?.commissionRate?.isAccepted == false)) && (
-                    <>
-                        <button
-                            onClick={() => { console.log('onEditCommission', homeStay?.homeStayID); onEditCommission(homeStay?.homeStayID); closeDropdown(); }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
-                        >
-                            <FaEdit className="w-4 h-4 text-green-500" />
-                            Cập nhật tỉ lệ
-                        </button>
-                        <button
-                            onClick={() => { console.log('onReject', homeStay?.homeStayID, homeStay?.commissionRateID); onReject(homeStay?.homeStayID, homeStay?.commissionRateID); closeDropdown(); }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 light:text-gray-200 hover:text-gray-20 flex items-center gap-2"
-                        >
-                            <FaTimes className="w-4 h-4 text-red-500" />
-                            Từ chối
-                        </button>
                     </>
                 )}
             </div>
@@ -241,9 +246,9 @@ export default function PendingHomestay() {
     const [actualSearchTerm, setActualSearchTerm] = useState('');
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
-        type: '', // 'approve' hoặc 'reject'
+        type: '',
         homestayId: null,
-        commissionRateID: '' // Thêm trường này để lưu tỉ lệ ăn chia
+        commissionRateID: ''
     });
     const [isAddCommissionRateModalOpen, setIsAddCommissionRateModalOpen] = useState(false);
     const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -270,11 +275,10 @@ export default function PendingHomestay() {
         try {
             const response = await adminAPI.getAllRegisterHomestay();
             if (response?.data) {
-                // Sắp xếp dữ liệu theo thứ tự mới nhất (dựa vào homeStayID)
                 const sortedData = response.data.sort((a, b) => b.homeStayID - a.homeStayID);
                 setHomeStays(sortedData);
                 setOriginalData(sortedData);
-                setCurrentPage(1); // Reset về trang 1 khi có dữ liệu mới
+                setCurrentPage(1);
             } else {
                 toast.error('Không có dữ liệu homestay');
             }
@@ -286,68 +290,28 @@ export default function PendingHomestay() {
         }
     };
 
-    const handleSort = (column) => {
-        const newDirection = sortDirection === null ? 'asc' : sortDirection === 'asc' ? 'desc' : null;
-        setSortDirection(newDirection);
-        setSortColumn(column);
-
-        if (newDirection === null) {
-            // Khi không sắp xếp, trả về sắp xếp mặc định theo ID (mới nhất lên đầu)
-            const sortedData = [...originalData].sort((a, b) => b.homeStayID - a.homeStayID);
-            setHomeStays(sortedData);
-            return;
-        }
-
-        const sortedHomeStays = [...homeStays].sort((a, b) => {
-            if (newDirection === 'asc') {
-                return a.name.localeCompare(b.name);
-            } else {
-                return b.name.localeCompare(a.name);
-            }
-        });
-
-        setHomeStays(sortedHomeStays);
-    };
-
-    const getSortIcon = (column) => {
-        if (sortColumn !== column) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
-        if (sortDirection === null) return <FaSort className="w-5 h-5 ml-2 text-gray-400" />;
-        if (sortDirection === 'asc') return <FaArrowDown className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
-        return <FaArrowUp className="w-5 h-5 ml-2 text-blue-500 animate-bounce" />;
-    };
-
     const filteredHomeStays = homeStays.filter(homeStay => {
-        // Chỉ lấy homestay đang chờ phê duyệt
-        if (homeStay.status !== 0) return false;
-
+        if (homeStay.status !== 0 && homeStay.status !== 2) return false;
         return homeStay.name.toLowerCase().includes(searchText.toLowerCase()) ||
             homeStay.address.toLowerCase().includes(searchText.toLowerCase());
     });
 
-    // Tính toán số trang
     const totalPages = Math.ceil(filteredHomeStays.length / itemsPerPage);
-
-    // Lấy dữ liệu cho trang hiện tại
     const currentItems = filteredHomeStays.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
-    // Xử lý chuyển trang
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
-    };
-
-    const totalHomeStays = homeStays.length;
     const approvedHomeStays = homeStays.filter(homeStay => homeStay.status === 1).length;
     const pendingHomeStays = homeStays.filter(homeStay => homeStay.status === 0).length;
+    const rejectedHomeStays = homeStays.filter(homeStay => homeStay.status === 2).length;
 
     const handleApproveClick = (id, commissionRateID) => {
         setConfirmModal({
             isOpen: true,
             type: 'approve',
             homestayId: id,
-            commissionRateID: commissionRateID // Reset giá trị khi mở modal
+            commissionRateID: commissionRateID
         });
     };
 
@@ -364,7 +328,6 @@ export default function PendingHomestay() {
 
         try {
             if (confirmModal.type === 'approve') {
-                // Kiểm tra xem đã có commissionRateID chưa
                 if (!confirmModal.commissionRateID) {
                     toast.error('Vui lòng nhập tỉ lệ ăn chia trước khi phê duyệt');
                     return;
@@ -394,7 +357,7 @@ export default function PendingHomestay() {
                 }
             }
         } catch (error) {
-            console.error("Error in handleConfirm:", error); // Thêm log để debug
+            console.error("Error in handleConfirm:", error);
             toast.error(`Không thể ${confirmModal.type === 'approve' ? 'phê duyệt' : 'từ chối'} homestay: ${error.message}`);
         } finally {
             setConfirmModal({ isOpen: false, type: '', homestayId: null });
@@ -431,21 +394,36 @@ export default function PendingHomestay() {
 
             </div>
 
-            {/* Hiển thị tổng số HomeStay */}
             <div className="grid grid-cols-3 gap-4 mb-8">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 
-                        dark:from-blue-600 dark:to-blue-700 rounded-xl p-6"
+                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 
+                        dark:from-yellow-600 dark:to-yellow-700 rounded-xl p-6"
                 >
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUser className="w-6 h-6 text-white" />
+                            <FaUserClock className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-white/80 text-sm">Tổng số HomeStay</p>
-                            <p className="text-white text-2xl font-bold">{totalHomeStays}</p>
+                            <p className="text-white/80 text-sm">Chờ phê duyệt</p>
+                            <p className="text-white text-2xl font-bold">{pendingHomeStays}</p>
+                        </div>
+                    </div>
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-red-500 to-red-600 
+                        dark:from-red-600 dark:to-red-700 rounded-xl p-6"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/10 rounded-lg">
+                            <FaTimes className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-white/80 text-sm">Đã từ chối</p>
+                            <p className="text-white text-2xl font-bold">{rejectedHomeStays}</p>
                         </div>
                     </div>
                 </motion.div>
@@ -460,24 +438,8 @@ export default function PendingHomestay() {
                             <FaUserCheck className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-white/80 text-sm">Tổng số đã phê duyệt</p>
+                            <p className="text-white/80 text-sm">Đã phê duyệt</p>
                             <p className="text-white text-2xl font-bold">{approvedHomeStays}</p>
-                        </div>
-                    </div>
-                </motion.div>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 
-                        dark:from-yellow-600 dark:to-yellow-700 rounded-xl p-6"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/10 rounded-lg">
-                            <FaUserClock className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-white/80 text-sm">Tổng số chờ phê duyệt</p>
-                            <p className="text-white text-2xl font-bold">{pendingHomeStays}</p>
                         </div>
                     </div>
                 </motion.div>
@@ -566,8 +528,8 @@ export default function PendingHomestay() {
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.status === 1 ? 'bg-green-100 text-green-800' :
-                                                homeStay.status === 2 ? 'bg-red-100 text-red-800' :
-                                                    'bg-yellow-100 text-yellow-800'
+                                                    homeStay.status === 2 ? 'bg-red-100 text-red-800' :
+                                                        'bg-yellow-100 text-yellow-800'
                                                 }`}>
                                                 {homeStay.status === 1 ? 'Đã phê duyệt' :
                                                     homeStay.status === 2 ? 'Đã từ chối' :
