@@ -730,7 +730,7 @@ const BookingList = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Quản lý đặt phòng {homestayName}
+                            Quản lý đặt phòng {bookings[0]?.homestayName}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Quản lý tất cả các đặt phòng của khách hàng
@@ -844,7 +844,7 @@ const BookingList = () => {
                                     </th>
                                     <th className="w-32 px-4 py-3 text-left">
                                         <span className="font-semibold text-gray-700 dark:text-gray-300">
-                                            Mã giao dịch
+                                            Mã đặt phòng
                                         </span>
                                     </th>
                                     <th className="w-48 px-4 py-3 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"

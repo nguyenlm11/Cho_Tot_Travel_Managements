@@ -489,7 +489,7 @@ const ServiceBookingList = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-                            Quản lý đặt dịch vụ của {homestayName}
+                            Quản lý đặt dịch vụ của {serviceBookings[0]?.homestayName}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Quản lý tất cả các đặt dịch vụ của khách hàng

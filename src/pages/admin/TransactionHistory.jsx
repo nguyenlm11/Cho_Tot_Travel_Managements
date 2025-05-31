@@ -668,13 +668,13 @@ const TransactionHistory = () => {
                                 <tr>
                                     <TableHeader label="Ngày thanh toán" sortKey="payDate" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Ngày nhận tiền" sortKey="finishDate" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Mã giao dịch" sortKey="transactionNo" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Mã" sortKey="transactionNo" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Người thanh toán" sortKey="payerName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Nhà nghỉ" sortKey="homeStayName" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Loại giao dịch" sortKey="transactionKind" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Trạng thái đơn" sortKey="statusTransaction" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Trạng thái" sortKey="statusTransaction" sortConfig={sortConfig} onSort={handleSort} />
                                     <TableHeader label="Tổng tiền" sortKey="amount" sortConfig={sortConfig} onSort={handleSort} />
-                                    <TableHeader label="Số tiền nhận" sortKey="adminAmount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <TableHeader label="Tiền được nhận" sortKey="adminAmount" sortConfig={sortConfig} onSort={handleSort} />
                                     <th className="px-6 py-3 text-lef"></th>
                                 </tr>
                             </thead>
@@ -692,7 +692,9 @@ const TransactionHistory = () => {
                                             {formatDate(transaction.payDate)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                            {formatDate(transaction?.finishDate)}
+                                            {formatDate(transaction?.finishDate) !== "01/01/1" && (
+                                                formatDate(transaction?.finishDate)
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                             {transaction.transactionNo}

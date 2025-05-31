@@ -422,10 +422,10 @@ const RoomListFilterByHomestay = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-              Danh sách phòng thuê của {homestayName}
+              Danh sách phòng thuê của {rooms[0]?.homestayName}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Quản lý tất cả các phòng thuê
+              Quản lý tất cả các phòng
             </p>
           </div>
           <div className="flex gap-2">
