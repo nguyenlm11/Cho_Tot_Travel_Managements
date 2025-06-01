@@ -297,7 +297,7 @@ const HomestayCard = ({ homestay, index, onEdit, setShowDeleteModal }) => {
               {homestay.rating !== null ? (
                 <div className="flex items-center gap-1 text-yellow-500">
                   <FaStar />
-                  <span>{homestay.rating}/5</span>
+                  <span>{homestay.rating.toFixed(1)}/5</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1 text-yellow-500">
