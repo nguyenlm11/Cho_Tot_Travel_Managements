@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaMapMarkerAlt, FaMoneyBillWave, FaUsers, FaStar, FaHome, FaCheck, FaTimes, FaClock, FaImage, FaServicestack, FaPercent, FaUndoAlt, FaExclamationTriangle, FaEdit } from 'react-icons/fa';
 import { IoPricetag } from 'react-icons/io5';
 import { toast, Toaster } from 'react-hot-toast';
@@ -8,9 +8,13 @@ import homestayAPI from '../../services/api/homestayAPI';
 const HomestayDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [homestay, setHomestay] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+    // Nhận tên chủ nhà từ state được truyền qua
+    const ownerNameFromState = location.state?.ownerName;
 
     useEffect(() => {
         fetchHomestayDetail();
@@ -70,6 +74,27 @@ const HomestayDetail = () => {
             case 3: return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
             default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
         }
+    };
+
+    // Function to get owner name from API response
+    const getOwnerName = () => {
+        // Ưu tiên tên từ state được truyền qua
+        if (ownerNameFromState) {
+            return ownerNameFromState;
+        }
+        
+        // Fallback sang API response
+        if (homestay?.account?.name) {
+            return homestay.account.name;
+        }
+        if (homestay?.ownerName) {
+            return homestay.ownerName;
+        }
+        if (homestay?.owner?.name) {
+            return homestay.owner.name;
+        }
+        // Fallback nếu không có tên
+        return null;
     };
 
     if (loading) {
@@ -414,11 +439,13 @@ const HomestayDetail = () => {
                         <div className="p-6 space-y-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    ID chủ sở hữu
+                                    Chủ sở hữu
                                 </label>
-                                <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">
-                                    {homestay.ownerID}
-                                </p>
+                                <div className="space-y-1">
+                                    <p className="text-gray-800 dark:text-white font-semibold">
+                                        {getOwnerName() || 'Không có thông tin'}
+                                    </p>
+                                </div>
                             </div>
 
                             {homestay.staffID && (

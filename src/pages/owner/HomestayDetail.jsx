@@ -678,23 +678,19 @@ const HomestayDetail = () => {
                         <div className="p-6 space-y-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    ID chủ sở hữu
+                                    Nhân viên quản lý cho homestay này
                                 </label>
-                                <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">
-                                    {homestay.ownerID}
-                                </p>
-                            </div>
-
-                            {homestay.staffID && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Nhân viên hỗ trợ
-                                    </label>
+                                {homestay.staffID ? (
                                     <p className="text-gray-600 dark:text-gray-400">
                                         {homestay.staffName || homestay.staffID}
                                     </p>
-                                </div>
-                            )}
+                                ) : (
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        Chưa có nhân viên
+                                    </p>
+                                )}
+
+                            </div>
                         </div>
                     </div>
 

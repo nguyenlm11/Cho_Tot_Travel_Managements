@@ -380,7 +380,13 @@ export default function AdminHomestay() {
         );
     }
     const handleViewDetail = (homestayId) => {
-        navigate(`/admin/homestays/detail/${homestayId}`);
+        // Tìm homestay để lấy tên chủ nhà
+        const homestay = homeStays.find(hs => hs.homeStayID === homestayId);
+        const ownerName = homestay?.ownerName;
+        
+        navigate(`/admin/homestays/detail/${homestayId}`, {
+            state: { ownerName }
+        });
     };
 
     return (
@@ -485,6 +491,9 @@ export default function AdminHomestay() {
                                 <th className="py-3 px-4 text-center text-sm font-medium text-gray-900 dark:text-white w-[11%] min-w-[80px]">
                                     Trạng thái
                                 </th>
+                                <th className="py-3 px-4 text-center text-sm font-medium text-gray-900 dark:text-white w-[11%] min-w-[80px]">
+                                    Ngày đăng ký
+                                </th>
                                 <th className="py-3 px-2 text-center text-sm font-medium text-gray-900 dark:text-white w-[5%] min-w-[60px]"></th>
                             </tr>
                         </thead>
@@ -525,6 +534,13 @@ export default function AdminHomestay() {
                                         >
                                             {homeStay.status === 1 ? 'Đang hoạt động' : 'Ngừng hoạt động'}
                                         </span>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                                        {new Date(homeStay.createAt).toLocaleDateString('vi-VN', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        })}
                                     </td>
                                     <td className="px-2 py-3 text-center">
                                         <ActionDropdown

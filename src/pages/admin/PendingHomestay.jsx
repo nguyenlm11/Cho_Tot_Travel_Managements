@@ -370,7 +370,13 @@ export default function PendingHomestay() {
     };
 
     const handleViewDetail = (homestayId) => {
-        navigate(`/admin/homestays/detail/${homestayId}`);
+        // Tìm homestay để lấy tên chủ nhà
+        const homestay = homeStays.find(hs => hs.homeStayID === homestayId);
+        const ownerName = homestay?.account?.name;
+
+        navigate(`/admin/homestays/detail/${homestayId}`, {
+            state: { ownerName }
+        });
     };
 
     if (loading) {
@@ -503,6 +509,7 @@ export default function PendingHomestay() {
                                 <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[18%] min-w-[100px]">Chủ nhà</th>
                                 <th className="py-3 px-4 text-left text-sm font-medium text-gray-900 dark:text-white w-[34%] min-w-[160px]">Địa chỉ</th>
                                 <th className="py-3 px-4 text-center text-sm font-medium text-gray-900 dark:text-white w-[10%] min-w-[80px]">Trạng thái</th>
+                                <th className="py-3 px-4 text-center text-sm font-medium text-gray-900 dark:text-white w-[10%] min-w-[80px]">Ngày đăng ký</th>
                                 <th className="py-3 px-2 text-center text-sm font-medium text-gray-900 dark:text-white w-[5%] min-w-[60px]"></th>
                             </tr>
                         </thead>
@@ -528,13 +535,20 @@ export default function PendingHomestay() {
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${homeStay.status === 1 ? 'bg-green-100 text-green-800' :
-                                                    homeStay.status === 2 ? 'bg-red-100 text-red-800' :
-                                                        'bg-yellow-100 text-yellow-800'
+                                                homeStay.status === 2 ? 'bg-red-100 text-red-800' :
+                                                    'bg-yellow-100 text-yellow-800'
                                                 }`}>
                                                 {homeStay.status === 1 ? 'Đã phê duyệt' :
                                                     homeStay.status === 2 ? 'Đã từ chối' :
                                                         'Chờ phê duyệt'}
                                             </span>
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                                            {new Date(homeStay.createAt).toLocaleDateString('vi-VN', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric'
+                                            })}
                                         </td>
                                         <td className="px-2 py-3 text-center">
                                             <ActionDropdown

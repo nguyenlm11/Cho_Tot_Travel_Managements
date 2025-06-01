@@ -12,6 +12,7 @@ export const AddStaffAccountModal = ({ fetchStaffs, isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [homestays, setHomestays] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [existingStaffs, setExistingStaffs] = useState([]);
 
   const [newStaff, setNewStaff] = useState({
     userName: '',
@@ -60,6 +61,12 @@ export const AddStaffAccountModal = ({ fetchStaffs, isOpen, onClose }) => {
     const isOnlyWhitespace = (str) => {
       return str.trim().length === 0;
     };
+
+    // Kiểm tra xem có homestay nào khả dụng không
+    if (availableHomestays.length === 0) {
+      toast.error('Không có Homestay nào khả dụng để gán nhân viên!');
+      return false;
+    }
 
     // Kiểm tra email
     if (!newStaff.email || isOnlyWhitespace(newStaff.email)) {
@@ -126,11 +133,30 @@ export const AddStaffAccountModal = ({ fetchStaffs, isOpen, onClose }) => {
 
 
   useEffect(() => {
-    fetchOwnerHomestays();
-  }, []);
+    if (isOpen) {
+      fetchOwnerHomestays();
+      fetchExistingStaffs();
+    }
+  }, [isOpen]);
 
 
   const navigate = useNavigate();
+  const fetchExistingStaffs = async () => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      if (!userInfo?.AccountID) {
+        navigate('/login');
+        return;
+      }
+      const response = await staffAPI.getAllStaffsByOwner(userInfo.AccountID);
+      console.log('Existing staffs:', response?.data);
+      setExistingStaffs(response?.data || []);
+    } catch (error) {
+      console.log('Error fetching existing staffs:', error);
+      setExistingStaffs([]);
+    }
+  };
+
   const fetchOwnerHomestays = async () => {
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
@@ -139,12 +165,35 @@ export const AddStaffAccountModal = ({ fetchStaffs, isOpen, onClose }) => {
         return;
       }
       const response = await homestayAPI.getHomestaysByOwner(userInfo.AccountID);
-      console.log(response.data);
+      console.log('Homestays data:', response.data);
       setHomestays(response.data);
     } catch (error) {
       console.log(error);
     }
   }
+
+  const isHomestayAvailable = (homestay) => {
+    const hasDirectStaffId = homestay?.staffID !== null &&
+      homestay?.staffID !== undefined &&
+      homestay?.staffID !== '' &&
+      homestay?.staffId !== null &&
+      homestay?.staffId !== undefined &&
+      homestay?.staffId !== '';
+
+    const hasStaffAssigned = existingStaffs.some(staff =>
+      staff?.homeStay?.homeStayID === homestay?.homeStayID ||
+      staff?.homeStayID === homestay?.homeStayID
+    );
+    return !hasDirectStaffId && !hasStaffAssigned;
+  };
+
+  // Get available homestays for selection
+  const availableHomestays = homestays?.filter(homestay => isHomestayAvailable(homestay)) || [];
+
+  // Debug logging
+  console.log('Total homestays:', homestays?.length || 0);
+  console.log('Available homestays:', availableHomestays.length);
+  console.log('Existing staffs count:', existingStaffs.length);
 
   return (
     <>
@@ -166,13 +215,20 @@ export const AddStaffAccountModal = ({ fetchStaffs, isOpen, onClose }) => {
                   onChange={(e) => setNewStaff({ ...newStaff, homeStayID: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="">Chọn Homestay</option>
-                  {homestays?.filter((homestay) => homestay?.staffID === null)?.map((homestay) => (
+                  <option value="">
+                    {availableHomestays.length > 0 ? 'Chọn Homestay' : 'Không có Homestay nào khả dụng'}
+                  </option>
+                  {availableHomestays.map((homestay) => (
                     <option key={homestay.homeStayID} value={homestay.homeStayID}>
                       {homestay.name}
                     </option>
                   ))}
                 </select>
+                {availableHomestays.length === 0 && (
+                  <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                    Tất cả homestay đã được gán nhân viên. Vui lòng tạo homestay mới hoặc xóa nhân viên hiện có.
+                  </p>
+                )}
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium">Tên tài khoản</label>
@@ -259,7 +315,11 @@ export const AddStaffAccountModal = ({ fetchStaffs, isOpen, onClose }) => {
                 </button>
                 <button
                   onClick={handleCreateStaff}
-                  className="ml-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                  disabled={availableHomestays.length === 0}
+                  className={`ml-2 px-4 py-2 text-white rounded-lg transition-colors ${availableHomestays.length === 0
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-green-500 hover:bg-green-600'
+                    }`}
                 >
                   Thêm
                 </button>
