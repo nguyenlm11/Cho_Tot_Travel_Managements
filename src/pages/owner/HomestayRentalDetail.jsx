@@ -727,16 +727,6 @@ const HomestayRentalDetail = () => {
                                                 </button>
                                             )}
 
-                                            {rental?.rentWhole === false && (
-                                                <button
-                                                    onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomRental`)}
-                                                    className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center
-                                                    transition-all duration-200 shadow-md hover:shadow-lg font-medium"
-                                                >
-                                                    <FaHome className="mr-2 w-4 h-4" /> Danh sách phòng
-                                                </button>
-                                            )}
-
                                             <button
                                                 onClick={() => setShowDeleteModal(true)}
                                                 className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center
@@ -746,6 +736,15 @@ const HomestayRentalDetail = () => {
                                             </button>
                                         </div>
                                     </div>
+                                )}
+                                {rental?.rentWhole === false && (
+                                    <button
+                                        onClick={() => navigate(`/owner/homestays/${homestayId}/rentals/${rental?.homeStayRentalID}/roomRental`)}
+                                        className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center
+                                                    transition-all duration-200 shadow-md hover:shadow-lg font-medium mt-3"
+                                    >
+                                        <FaHome className="mr-2 w-4 h-4" /> Danh sách phòng
+                                    </button>
                                 )}
                             </div>
 

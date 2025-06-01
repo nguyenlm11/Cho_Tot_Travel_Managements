@@ -125,6 +125,8 @@ const AddHomestay = () => {
     let { name, value } = e.target;
     if (name === 'RentWhole') {
       value = value === "true";
+    } else if (['numberBedRoom', 'numberBathRoom', 'numberKitchen', 'numberWifi', 'MaxAdults', 'MaxChildren', 'MaxPeople'].includes(name)) {
+      value = parseInt(value) || 0;
     }
     setRentalData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
